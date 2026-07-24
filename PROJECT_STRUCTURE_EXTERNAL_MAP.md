@@ -38,10 +38,12 @@ KPOT/
 │
 ├── bin/kpot.mjs    # ✅ CLI entry: parseArgs → phase dispatch (scan/plan/apply/rollback), exit-code
 │                   #    contract 0/1/2/3; phases themselves land in Phases 2–5
-├── src/            # 🔶 in progress: plan/season.mjs ✅ (owner-decided month→season buckets);
-│                   #    the rest of scan/ meta/ dedupe/ plan/ apply/ report/ core/ is 🔲 planned
+├── src/            # 🔶 in progress: core/ ✅ (paths · journal · pool) · meta/ ✅ evidence model +
+│                   #    filename-date detectors · plan/season.mjs ✅; scan/ dedupe/ rest of plan/
+│                   #    apply/ report/ are 🔲 planned
 └── tests/          # ✅ fixtures/make.mjs (deterministic messy-tree generator, 22 cases,
-                    #    expected.json ground truth) + fixtures.test.mjs — npm test 5/5
+                    #    expected.json ground truth) + specs for CLI/fixtures/core/meta/seasons —
+                    #    npm test 40/40
 ```
 
 ## What each part is
@@ -60,12 +62,12 @@ KPOT/
 | `interviews/` | Questions only the owner may answer (season boundaries, reuse-vs-write) | `STATUS.md` |
 | `bin/kpot.mjs` | ✅ CLI entry: `parseArgs`, phase dispatch, `--help`/`--version`, stable exit codes (0 ok · 1 error · 2 usage · 3 not-implemented) | `src/apply/`, `src/plan/`, `src/report/` (once they exist) |
 | 🔲 `src/scan/` | Tree walk, media identification, content hashing. Read-only over user data. | `src/core/` |
-| 🔲 `src/meta/` | Date/metadata extraction with confidence + evidence per file | `src/core/` |
+| 🔶 `src/meta/` | ✅ the date-evidence model (`evidence.mjs`: precedence order, wall/instant claims, plausibility window) + filename-date detectors (`filename_date.mjs`, survey-derived, fixture-verified); the EXIF/MP4 extractors land in Phase 2 | `src/core/` |
 | 🔲 `src/dedupe/` | Groups identical/near-identical files across directories | `src/scan/` output, `src/core/` |
-| 🔲 `src/plan/` | Builds the year/season target tree; emits the pre-sort plan + disputed cases | `src/meta/`, `src/dedupe/` |
+| 🔶 `src/plan/` | ✅ `season.mjs` (owner-decided month→season buckets); the target-tree builder and SortPlan emitter are 🔲 Phase 3 | `src/meta/`, `src/dedupe/` |
 | 🔲 `src/apply/` | The only writer: backup commit, dry run, real move, post-report, rollback | `src/plan/`, `src/core/` |
 | 🔲 `src/report/` | Renders human-readable reports from the machine-readable run data | `src/core/` |
-| 🔲 `src/core/` | Shared primitives: path normalization, run journal, bounded concurrency, logging | nothing (the bottom layer) |
+| ✅ `src/core/` | Shared primitives: `paths.mjs` (win32-semantics normalization/comparison, `\\?\` long-path handling), `journal.mjs` (append-only JSONL run journal, crash-torn-tail tolerant), `pool.mjs` (bounded-concurrency settle-all mapper) | nothing (the bottom layer) |
 | `tests/` | ✅ `node --test` specs; `tests/fixtures/make.mjs` generates synthetic messy trees with `expected.json` ground truth (catalog mirrors `researches/02_real_archive_survey.md`) | all of `src/` (once it exists) |
 
 ## Cross-references & dependency rules

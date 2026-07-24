@@ -18,8 +18,12 @@
 
 ## The core abstractions
 
-> ⚠️ **The model, not the code.** None of this is implemented yet (`STATUS.md`) — this is the agreed
-> logical shape, written before the code so the code has something to conform to. Sphere: programming.
+> ⚠️ **Model first, code following.** The logical shape below was agreed before the code. As of
+> 2026-07-24 the first abstractions are implemented and tested: **Evidence** (`src/meta/evidence.mjs` —
+> precedence order, wall/instant claim shapes, plausibility window; filename detectors in
+> `src/meta/filename_date.mjs`), **RunJournal** (`src/core/journal.mjs` — append-only JSONL, torn-tail
+> tolerant) and Bucket's season half (`src/plan/season.mjs`). The rest is still ahead of the code.
+> Sphere: programming.
 
 | Abstraction | What it *is* (essence) | Responsibility |
 |-------------|------------------------|----------------|

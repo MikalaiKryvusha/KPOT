@@ -23,6 +23,12 @@
 
 ## Entries
 
+### EXP-0004 · 2026-07-24 · ✅ · #meta #dates #timezone #testing #fixtures
+**Context:** building the date-evidence model — filename detectors had to be tested against fixture ground truth whose epoch case (`1374250121884` → "2013-07-19 18:08:41") is written in the OWNER'S local time.
+**Tried / did:** modeled two distinct claim shapes instead of one Date: `wall` (naive local components, what `IMG_20140121_183801` and EXIF encode) vs `instant` (absolute UTC, what epoch names and mvhd encode). Tests assert wall claims against ground-truth strings (TZ-free) and instant claims against exact epoch ms — never a locally-formatted epoch string.
+**Result:** ✅ — 25 new specs green on first run, portable across machines/timezones; the wall-vs-instant split also cleanly defers "which local time converts an instant to a season" to the plan phase instead of burying it in a parser.
+**Lesson:** never collapse wall-clock and UTC date claims into one type — the distinction is exactly where photo tools silently mis-shelve files by a few hours around midnight/New Year. Keep TZ conversion a single explicit plan-phase decision; test each claim shape in its own domain.   → link: src/meta/evidence.mjs · tests/meta_filename_date.test.mjs
+
 ### EXP-0003 · 2026-07-24 · ✅ · #fixtures #binary #exif #testing
 **Context:** first product code — the fixture generator needed JPEGs with real EXIF dates and MP4s with real mvhd dates, without any dependency.
 **Tried / did:** hand-built minimal binaries: JPEG = SOI + APP1(TIFF IFD0→ExifIFD→DateTimeOriginal) + COM-uniqueness + EOI (64-byte TIFF, offsets computed by hand); MP4 = ftyp + moov/mvhd (creation_time = unix + 2082844800) + free-box uniqueness. Tests assert the planted date strings/values are literally in the bytes.
