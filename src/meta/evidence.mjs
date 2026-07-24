@@ -31,6 +31,8 @@ export const EVIDENCE_PRECEDENCE = Object.freeze([
   'sidecar',             // THM/XMP twin file's metadata, inherited by the media file
   'dirname',             // year and/or season in an ancestor directory name (owner's hand-sorting)
   'filename-year',       // a bare year somewhere in the name — weak
+  'dir-cohort',          // INFERRED from confidently-dated neighbors in the same dir (owner-approved
+                         // 2026-07-24); always an assumption — verdicts flag it and plans surface it
   'fs-mtime',            // filesystem mtime — weakest; bulk-copy spikes make it lie (researches/02)
 ]);
 
@@ -49,6 +51,7 @@ export const DEFAULT_CONFIDENCE = Object.freeze({
   'sidecar': 'medium',
   'dirname': 'medium',
   'filename-year': 'low',
+  'dir-cohort': 'low',
   'fs-mtime': 'low',
 });
 

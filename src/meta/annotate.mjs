@@ -17,6 +17,7 @@ import { mp4Evidence } from './mp4.mjs';
 import { allNameEvidence } from './filename_date.mjs';
 import { dirnameEvidence } from './dirname_date.mjs';
 import { detectMtimeSpikeDays, mtimeEvidence, resolveDate } from './resolve.mjs';
+import { cohortYearByDir, cohortEvidence } from './cohort.mjs';
 
 /** Kinds that get evidence + a verdict; junk/other are not dated (they are not sorted by date). */
 const MEDIA_KINDS = new Set(['photo', 'video', 'audio']);
@@ -58,12 +59,26 @@ export async function annotateAssets(root, assets, { now = new Date(), concurren
     const { evidence: ranked, ...verdict } = resolveDate(evidence, { now });
     asset.evidence = ranked;  // rank-sorted by the resolver
     asset.verdict = verdict;  // evidence not duplicated inside the verdict
-    return verdict.status;
   });
+
+  // Second pass — dir-cohort inference (owner-approved): now that neighbors have verdicts, give
+  // still-unknown files their directory's year consensus as flagged, low-confidence evidence.
+  const annotated = media.filter(a => a.verdict);
+  const cohorts = cohortYearByDir(annotated);
+  for (const asset of annotated) {
+    if (asset.verdict.status !== 'unknown') continue;
+    const dir = asset.path.split('/').slice(0, -1).join('/');
+    const cohort = cohorts.get(dir);
+    if (!cohort) continue;
+    const { evidence: ranked, ...verdict } = resolveDate(
+      [...asset.evidence, cohortEvidence(cohort, dir)], { now });
+    asset.evidence = ranked;
+    asset.verdict = verdict;
+  }
 
   const counts = { dated: 0, partial: 0, unknown: 0, errors: [] };
   for (const [i, r] of results.entries()) {
-    if (r.ok) counts[r.value] += 1;
+    if (r.ok) counts[media[i].verdict.status] += 1;
     else counts.errors.push({ path: media[i].path, error: r.error?.message ?? String(r.error) });
   }
   return counts;

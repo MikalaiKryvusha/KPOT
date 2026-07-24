@@ -21,7 +21,7 @@ import { pathToFileURL } from 'node:url';
 import process from 'node:process';
 
 /** Version stamp of the fixture catalog — bump when cases change so stale trees are detectable. */
-export const FIXTURE_VERSION = 1;
+export const FIXTURE_VERSION = 2; // v2 (2026-07-24): +3 cases in 100MEDIA — the dir-cohort scenario
 
 /** Seconds between the QuickTime epoch (1904-01-01) and the Unix epoch (1970-01-01). */
 const QT_EPOCH_OFFSET = 2082844800;
@@ -129,9 +129,18 @@ export function catalog() {
       expected: { kind: 'photo', date: '2014-01-21 18:46:26', evidence: 'filename', twin: 'plus-pair' } },
     { path: 'Мобилка/IMG_20140121_184626+.jpg', body: makeJpeg(null, 'twinB'),
       expected: { kind: 'photo', date: '2014-01-21 18:46:26', evidence: 'filename', twin: 'plus-pair' } },
-    // — camera serial name, EXIF is the only evidence —
+    // — camera serial names, EXIF is the only evidence; three confident 2011 files make this
+    //   device-dump dir a cohort for the EXIF-less neighbor below (owner decision 2026-07-24) —
+    { path: '100MEDIA/IMAG0178.jpg', body: makeJpeg('2011:03:04 09:15:00', 'htc2'),
+      expected: { kind: 'photo', date: '2011-03-04 09:15:00', evidence: 'exif' } },
+    { path: '100MEDIA/IMAG0179.jpg', body: makeJpeg('2011:03:05 11:02:10', 'htc3'),
+      expected: { kind: 'photo', date: '2011-03-05 11:02:10', evidence: 'exif' } },
     { path: '100MEDIA/IMAG0180.jpg', body: makeJpeg('2011:03:05 14:20:33', 'htc1'),
       expected: { kind: 'photo', date: '2011-03-05 14:20:33', evidence: 'exif' } },
+    // — EXIF-less file among confidently-dated neighbors → ASSUMED year via dir cohort, must be
+    //   marked assumed and surfaced to the owner; the date itself stays honestly unknown —
+    { path: '100MEDIA/IMAG0181.jpg', body: makeJpeg(null, 'htc4'),
+      expected: { kind: 'photo', date: null, year: 2011, evidence: 'dir-cohort', assumed: true } },
     // — EXIF and dir-name evidence agree (hand-sorted season subtree exists in real archive) —
     { path: '2013/Лето 2013/DSC01529.JPG', body: makeJpeg('2013:07:04 10:11:12', 'sony1'),
       expected: { kind: 'photo', date: '2013-07-04 10:11:12', evidence: 'exif' } },

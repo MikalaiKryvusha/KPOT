@@ -94,6 +94,6 @@ test('the case catalog covers the survey chaos classes', () => {
   const kinds = new Set(catalog().map(c => c.expected.kind));
   for (const k of ['photo', 'video', 'audio', 'junk', 'other']) assert.ok(kinds.has(k), `no ${k} case`);
   const evidences = new Set(catalog().map(c => c.expected.evidence));
-  for (const e of ['exif', 'filename', 'filename-epoch', 'dirname', 'exif-implausible', 'none'])
+  for (const e of ['exif', 'filename', 'filename-epoch', 'dirname', 'dir-cohort', 'exif-implausible', 'none'])
     assert.ok(evidences.has(e), `no ${e} evidence case`);
 });

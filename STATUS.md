@@ -38,8 +38,8 @@
 - **Bilingual README** (KAIF style) + GitHub description; name spelled out: **Krinik Photo Organizer
   Tool**.
 - **Code (all [TESTED], suite 40/40 green):**
-  - `tests/fixtures/make.mjs` — deterministic messy-tree generator, 22 planted cases + `expected.json`
-    ground truth (5 specs).
+  - `tests/fixtures/make.mjs` — deterministic messy-tree generator, 22 planted cases (v2 of
+    2026-07-24: 25 — dir-cohort scenario added) + `expected.json` ground truth (5 specs).
   - `bin/kpot.mjs` — CLI skeleton: scan/plan/apply/rollback dispatch, `--help`/`--version`, exit-code
     contract 0/1/2/3 (7 specs).
   - `src/plan/season.mjs` — owner-decided month→season mapping (3 specs).
@@ -70,8 +70,13 @@
   losers kept visible) and `src/meta/annotate.mjs` (composition; wired into `kpot scan` JSON).
   Precedence amendment recorded in the decision log: wall-clock sources outrank UTC instants at
   the same tier. **Phase-2 acceptance spec passes**: every planted date recovered, every planted
-  undatable *unknown*, evidence attached; CLI smoke = `15 dated · 1 partial · 2 unknown` — the
-  ground truth exactly. Suite **55/55**.
+  undatable *unknown*, evidence attached; CLI smoke matches the ground truth exactly.
+- **Dir-cohort evidence (owner-approved 2026-07-24; file-size dating rejected):**
+  `src/meta/cohort.mjs` — an undatable file among ≥3 confidently-dated same-year neighbors (≥80%
+  consensus) gets that year as a flagged low-confidence ASSUMPTION (`verdict.assumed`, partial,
+  `<год>/прочее` at plan time, always surfaced). Weak/cohort-derived neighbors never feed a
+  cohort; single-file and mixed-year dirs stay honestly unknown. Fixture v2 plants the scenario
+  (25 cases now); decision-log row added. Suite **56/56**.
 
 ---
 
@@ -164,7 +169,7 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
 > A concrete checklist so the next session (empty context) can start immediately: which files, which
 > commands, what to verify first.
 
-1. Verify the environment: `node -v` (≥20), `npm test` (**must be 55/55**), `git status` (clean),
+1. Verify the environment: `node -v` (≥20), `npm test` (**must be 56/56**), `git status` (clean),
    `gh auth status` (MikalaiKryvusha).
 2. **Phase 3 — `src/dedupe/`**: group assets by sha256 across directories (scan already emits the
    hashes; the fixture plants a 3-copy group and the "+"-twin negative case), pick the keeper —

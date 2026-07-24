@@ -70,7 +70,7 @@ code 3). What already exists and is verified by tests (15/15 green):
   with provenance, rename-based moves.
 - [CLI skeleton](bin/kpot.mjs) — `scan` / `plan` / `apply --dry-run` / `rollback` dispatch with a
   stable exit-code contract · [fixture generator](tests/fixtures/make.mjs) — deterministic messy tree
-  with 22 planted chaos cases + ground-truth manifest · [season mapping](src/plan/season.mjs).
+  with 25 planted chaos cases + ground-truth manifest · [season mapping](src/plan/season.mjs).
 
 Roadmap: `MASTER_PLAN.md` · current state: `STATUS.md`.
 
@@ -148,7 +148,7 @@ KPOT **не переместит ни одного файла**, пока не �
   происхождения, перемещения переименованием.
 - [Скелет CLI](bin/kpot.mjs) — диспетчер `scan` / `plan` / `apply --dry-run` / `rollback` со
   стабильным контрактом кодов выхода · [генератор фикстур](tests/fixtures/make.mjs) —
-  детерминированное «бардачное» дерево из 22 случаев хаоса с эталоном ответов ·
+  детерминированное «бардачное» дерево из 25 случаев хаоса с эталоном ответов ·
   [маппинг сезонов](src/plan/season.mjs).
 
 Дорожная карта: `MASTER_PLAN.md` · текущее состояние: `STATUS.md`.

@@ -38,7 +38,7 @@ test('epoch filenames decode to the exact UTC instant (never a local guess)', ()
 
 test('undatable fixture names yield nothing — EXIF is their only hope, not a guess', () => {
   const undatable = catalog().filter(c =>
-    ['exif', 'none', 'dirname', 'mvhd-utc', 'exif-implausible'].includes(c.expected.evidence));
+    ['exif', 'none', 'dirname', 'dir-cohort', 'mvhd-utc', 'exif-implausible'].includes(c.expected.evidence));
   assert.ok(undatable.length >= 10);
   for (const c of undatable) {
     assert.equal(bestNameEvidence(base(c.path), opts), null, `false positive on ${c.path}`);

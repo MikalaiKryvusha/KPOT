@@ -18,7 +18,7 @@
 import { EVIDENCE_RANK, formatWall, isPlausibleYear, makeEvidence } from './evidence.mjs';
 
 /** Kinds that can only ever narrow the date to a year(+season) — they yield 'partial' verdicts. */
-const PARTIAL_KINDS = new Set(['dirname', 'filename-year']);
+const PARTIAL_KINDS = new Set(['dirname', 'filename-year', 'dir-cohort']);
 
 /** Spike detection defaults: a UTC day owning ≥ MIN_COUNT files AND ≥ MIN_SHARE of them is a bulk-copy artifact. */
 export const SPIKE_MIN_COUNT = 3;
@@ -91,7 +91,7 @@ export function resolveDate(evidence, { now = new Date() } = {}) {
   const verdict = {
     status: 'unknown', date: null, dateOnly: false, instant: null,
     year: null, season: null, confidence: null, winner: null, corroborated: false,
-    evidence: sorted, disputed,
+    assumed: false, evidence: sorted, disputed,
   };
   if (candidates.length === 0) return verdict;
 
@@ -99,6 +99,8 @@ export function resolveDate(evidence, { now = new Date() } = {}) {
   verdict.winner = winner.kind;
   verdict.confidence = winner.confidence;
   verdict.year = claimYear(winner);
+  // an inferred cohort year is a flagged GUESS — the plan phase must surface it to the owner
+  verdict.assumed = winner.kind === 'dir-cohort';
 
   if (PARTIAL_KINDS.has(winner.kind)) {
     verdict.status = 'partial';

@@ -13,6 +13,7 @@ import { exifEvidence, parseExifDate } from '../src/meta/exif.mjs';
 import { mp4CreationInstant } from '../src/meta/mp4.mjs';
 import { dirnameEvidence } from '../src/meta/dirname_date.mjs';
 import { detectMtimeSpikeDays, mtimeEvidence, resolveDate } from '../src/meta/resolve.mjs';
+import { cohortYearByDir } from '../src/meta/cohort.mjs';
 import { makeEvidence, formatWall } from '../src/meta/evidence.mjs';
 import { annotateAssets } from '../src/meta/annotate.mjs';
 import { scanTree } from '../src/scan/scan.mjs';
@@ -111,6 +112,26 @@ test('resolver: precedence picks the winner, agreements corroborate, conflicts a
     [['filename-timestamp', 'conflicts-with-winner']]);
 });
 
+test('dir-cohort fires only on strong consensus of confident neighbors', () => {
+  const asset = (path, year, winner = 'exif-original', confidence = 'high') =>
+    ({ path, verdict: year === null ? { status: 'unknown', year: null } : { status: 'dated', year, winner, confidence } });
+
+  const cohorts = cohortYearByDir([
+    // a device dump: three confident 2011 files + one unknown → consensus
+    asset('dump/a.jpg', 2011), asset('dump/b.jpg', 2011), asset('dump/c.jpg', 2011),
+    asset('dump/x.jpg', null),
+    // a mixed dir: 2×2015 + 2×2016 → top share 0.5 < 0.8 → NO consensus
+    asset('mixed/a.jpg', 2015), asset('mixed/b.jpg', 2015),
+    asset('mixed/c.jpg', 2016), asset('mixed/d.jpg', 2016),
+    // too few neighbors → no consensus
+    asset('small/a.jpg', 2019), asset('small/b.jpg', 2019),
+    // weak years must not feed a cohort: low-confidence and cohort-derived neighbors don't count
+    asset('weak/a.jpg', 2013, 'filename-year', 'low'), asset('weak/b.jpg', 2013, 'dir-cohort', 'low'),
+    asset('weak/c.jpg', 2013, 'filename-year', 'low'),
+  ]);
+  assert.deepEqual([...cohorts.entries()], [['dump', { year: 2011, count: 3 }]]);
+});
+
 // ---------------------------------------------------------------------------------------------
 // The Phase-2 ACCEPTANCE test (MASTER_PLAN §Phase 2): full pipeline over the fixture tree.
 // ---------------------------------------------------------------------------------------------
@@ -167,6 +188,14 @@ test('ACCEPTANCE: every planted date recovered, every undatable honestly unknown
           assert.equal(v.date, null, f.path);
           assert.equal(v.year, exp.year, f.path);
           assert.equal(v.season, exp.season, f.path);
+          break;
+        case 'dir-cohort': // an ASSUMED year from confidently-dated neighbors — flagged, date null
+          assert.equal(v.status, 'partial', f.path);
+          assert.equal(v.winner, 'dir-cohort', f.path);
+          assert.equal(v.assumed, true, f.path);
+          assert.equal(v.confidence, 'low', f.path);
+          assert.equal(v.date, null, f.path);
+          assert.equal(v.year, exp.year, f.path);
           break;
         case 'exif-implausible':
           assert.equal(v.status, 'unknown', `broken clock must not be trusted: ${f.path}`);

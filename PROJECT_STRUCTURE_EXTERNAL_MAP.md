@@ -42,9 +42,9 @@ KPOT/
 │                   #    pipeline: model + detectors + exif/mp4/dirname extractors + resolver) ·
 │                   #    scan/ ✅ (identify by magic bytes · walk · hash) · plan/season.mjs ✅;
 │                   #    dedupe/ rest of plan/ apply/ report/ are 🔲 planned
-└── tests/          # ✅ fixtures/make.mjs (deterministic messy-tree generator, 22 cases,
+└── tests/          # ✅ fixtures/make.mjs (deterministic messy-tree generator, 25 cases v2,
                     #    expected.json ground truth) + specs incl. the Phase-2 acceptance spec —
-                    #    npm test 55/55
+                    #    npm test 56/56
 ```
 
 ## What each part is
