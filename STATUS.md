@@ -134,6 +134,10 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
   `аудио/` inside each season dir.
 - 🧰 Homework (owner only): provide a *copy* of a small, real, messy sample directory for realism
   checks — never the original archive, and never committed to the repo.
+- ❓ **Idea 01 awaiting owner review** — `ideas/01_inbox_topup_flow.md`: inbox dir for raw dumps +
+  a desktop shortcut running an incremental **top-up flow** into the structured library (owner's
+  own request in chat 2026-07-24; forks to close: auto-apply vs stop-at-plan, inbox location,
+  emptied-folder policy, inbox default name). Touches Phases 3–5; does not block Phase 2 work.
 
 ---
 
