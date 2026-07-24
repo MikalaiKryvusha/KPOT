@@ -102,7 +102,7 @@ successes). Living reference — never DONE-tagged.
 
 | Field | Value |
 |-------|-------|
-| **Name / brand** | `KPOT` |
+| **Name / brand** | `KPOT` — **Krinik Photo Organizer Tool** (owner's naming, 2026-07-24) |
 | **Short name** | `KPOT` |
 | **GitHub repository** | `https://github.com/MikalaiKryvusha/KPOT` (public) |
 | **Local project folder** | `D:\work\ai_sandbox\KPOT` |

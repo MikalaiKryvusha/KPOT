@@ -1,4 +1,4 @@
-# KPOT
+# KPOT — Krinik Photo Organizer Tool
 
 [🇬🇧 English](#english) · [🇷🇺 Русский](#русский)
 
@@ -12,9 +12,9 @@
 
 ## English
 
-**KPOT — chaos in, chronology out.** A safety-first CLI tool that turns a messy home photo/video
-archive into a browsable chronological library, sorted by year and season — without ever risking a
-file you cannot get back.
+**KPOT — Krinik Photo Organizer Tool.** Chaos in, chronology out: a safety-first CLI tool that turns
+a messy home photo/video archive into a browsable chronological library, sorted by year and season —
+without ever risking a file you cannot get back.
 
 ### Why
 
@@ -82,9 +82,9 @@ MIT © 2026 Mikalai Kryvusha (KOT KRINIK)
 
 ## Русский
 
-**KPOT — на входе бардак, на выходе хронология.** Безопасный CLI-инструмент, который превращает
-захламлённый домашний фото-видео архив в удобную хронологическую библиотеку по годам и сезонам — не
-рискуя ни одним файлом, который нельзя вернуть.
+**KPOT — Krinik Photo Organizer Tool.** На входе бардак, на выходе хронология: безопасный
+CLI-инструмент, который превращает захламлённый домашний фото-видео архив в удобную хронологическую
+библиотеку по годам и сезонам — не рискуя ни одним файлом, который нельзя вернуть.
 
 ### Зачем
 
