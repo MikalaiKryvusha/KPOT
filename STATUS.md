@@ -85,15 +85,11 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
 > Decisions the agent must not make alone (brand/UX/architecture), or actions only the human can do
 > (test on real hardware, external accounts). Filed in `interviews/` and `plans/homework_*.md`.
 
-- ❓ Season boundaries are unspecified in `GOAL.md` — "Зима начало года / Весна / Лето / Зима конец года"
-  names four buckets and omits autumn, and no month boundaries are given. File an `/interview` before
-  implementing the mapping. **New evidence (survey 2026-07-24): the owner's own hand-sorted years DO
-  contain "осень" dirs — the omission in GOAL.md is likely accidental.**
-- ❓ Audio policy — the real archive contains voice notes/recordings (`.ogg`, `.amr`, `.mp3` …);
-  GOAL.md speaks only of photo+video. And junk-file policy (Thumbs.db, .nomedia, .tmp). Fold both
-  into the season-boundaries interview.
-- ❓ Reuse vs. write-our-own — the outcome of the prior-art research is a vision-level fork (a vendored
-  ExifTool binary changes distribution and licensing). Interview the owner with the research in hand.
+- 🟡 **`interviews/interview_001_extractor_seasons_policies.md` — FILED 2026-07-24, awaiting the
+  owner's answers.** Covers all five open forks: Q1 metadata extractor (pure JS vs. vendored ExifTool
+  vs. external; recommendation: pure JS `exifreader` + own MP4 parser), Q2 season boundaries incl.
+  autumn (survey found the owner's own "осень" dirs), Q3 audio policy, Q4 junk-file policy, Q5
+  other-files policy. Q2 unblocks Phase 3 season mapping; Q1 fixes `package.json` deps + Node floor.
 - 🧰 Homework (owner only): provide a *copy* of a small, real, messy sample directory for realism
   checks — never the original archive, and never committed to the repo.
 
