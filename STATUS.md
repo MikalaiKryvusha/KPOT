@@ -22,6 +22,14 @@
 
 **Nothing else exists.** There is no `bin/`, no `src/`, no `tests/` — not one line of product code.
 
+### Phase 1 (partial) — Real-archive survey ✅ (2026-07-24)
+- Owner granted **READ-ONLY** access to his real archive (path in agent memory, never in this public
+  repo). Strictly no writes there until Phase 4 safety exists and the owner re-authorizes.
+- Survey done → `researches/02_real_archive_survey.md`: 71 606 files / 551 GB, full catalog of
+  extensions, filename patterns (44% carry a decodable date in the name), name hazards, ~11% exact-dup
+  proxy, unreliable mtimes, and the owner's own hand-made `<year>/<season>` dirs (incl. "осень").
+  This is the ground truth the fixture generator must reproduce.
+
 ---
 
 ## Where we are now
@@ -53,10 +61,11 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
 > (`/autoloop`, `/dayloop`, `/nightloop`) grind this pool.
 
 - [ ] Prior-art research → `researches/01_prior_art.md` — comparison of existing tools per GOAL.md; pure
-      desk research, ends in a recommendation for the owner.
+      desk research, ends in a recommendation for the owner. **(in progress 2026-07-24, agent running)**
 - [ ] Fixture generator `tests/fixtures/make.mjs` — synthesizes a messy tree with known-correct answers
       (known EXIF dates, planted duplicates, undatable files). Everything downstream is testable only
-      once this exists; fully self-verifiable.
+      once this exists; fully self-verifiable. **Build it from the real-chaos catalog in
+      `researches/02_real_archive_survey.md` §"Implications" item 1.**
 - [ ] CLI skeleton `bin/kpot.mjs` — `parseArgs` from `node:util`, phase dispatch, `--help`, exit codes.
       Verifiable by its own tests.
 - [ ] `src/core/` primitives — path normalization (Windows drive letters / UNC / long paths / case),
@@ -76,7 +85,11 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
 
 - ❓ Season boundaries are unspecified in `GOAL.md` — "Зима начало года / Весна / Лето / Зима конец года"
   names four buckets and omits autumn, and no month boundaries are given. File an `/interview` before
-  implementing the mapping.
+  implementing the mapping. **New evidence (survey 2026-07-24): the owner's own hand-sorted years DO
+  contain "осень" dirs — the omission in GOAL.md is likely accidental.**
+- ❓ Audio policy — the real archive contains voice notes/recordings (`.ogg`, `.amr`, `.mp3` …);
+  GOAL.md speaks only of photo+video. And junk-file policy (Thumbs.db, .nomedia, .tmp). Fold both
+  into the season-boundaries interview.
 - ❓ Reuse vs. write-our-own — the outcome of the prior-art research is a vision-level fork (a vendored
   ExifTool binary changes distribution and licensing). Interview the owner with the research in hand.
 - 🧰 Homework (owner only): provide a *copy* of a small, real, messy sample directory for realism
