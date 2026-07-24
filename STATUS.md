@@ -60,8 +60,10 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
 > without the human and without resources only the human can provide. The loop skills
 > (`/autoloop`, `/dayloop`, `/nightloop`) grind this pool.
 
-- [ ] Prior-art research → `researches/01_prior_art.md` — comparison of existing tools per GOAL.md; pure
-      desk research, ends in a recommendation for the owner. **(in progress 2026-07-24, agent running)**
+- [x] Prior-art research → `researches/01_prior_art.md` — ✅ done 2026-07-24, npm facts spot-verified.
+      Recommendation: reuse `exifreader` (images) + `node:crypto` staged SHA-256 (exact dups); write our
+      own MP4/MOV box parser, filename patterns, DateVerdict resolver and all product logic; defer
+      perceptual hashing. ExifTool vendoring = owner fork (interview).
 - [ ] Fixture generator `tests/fixtures/make.mjs` — synthesizes a messy tree with known-correct answers
       (known EXIF dates, planted duplicates, undatable files). Everything downstream is testable only
       once this exists; fully self-verifiable. **Build it from the real-chaos catalog in
