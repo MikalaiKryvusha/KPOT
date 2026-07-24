@@ -66,13 +66,14 @@ Application of `PHILOSOPHY.md` to this project:
 
 ### Phase 3 — Duplicates & the sort plan
 - **Goal of the phase:** the owner can read, before anything happens, exactly what would move where.
-- **Steps:** duplicate grouping across directories + keeper selection · season mapping (⚠️ blocked on
-  the owner interview — `GOAL.md` names four buckets and omits autumn) · per-year and global "прочее"
-  buckets · collision handling that preserves original names · the `plan` phase emitting the SortPlan,
-  the disputed cases and the collisions.
+- **Steps:** duplicate grouping across directories + keeper selection · season mapping (five buckets,
+  boundaries decided in interview #001) · per-year and global "прочее" buckets · `аудио/` (and possibly
+  `видео/`) subdirs inside seasons · custom-parent-dir nesting preservation · junk quarantine with
+  provenance · collision handling that preserves original names · the `plan` phase emitting the
+  SortPlan, the disputed cases and the collisions.
 - **Acceptance:** the pre-sort master plan on the fixture tree is complete, human-readable, and every
   planted ambiguity appears in the disputed section.
-- **Status:** 🔲 todo. Blocked on: season-boundary interview.
+- **Status:** 🔲 todo. ~~Blocked~~ unblocked 2026-07-24 by interview #001.
 
 ### Phase 4 — Safety: backup, dry run, rollback
 - **Goal of the phase:** the four guarantees `GOAL.md` demands exist and are proven.
@@ -108,8 +109,13 @@ season. The measure is his, not ours — `GOAL.md`, closing paragraph.
 | 2026-07-24 | Single-writer architecture: only `src/apply/` may touch user files | Makes the safety invariants enforceable and testable in one place |
 | 2026-07-24 | Research before code (Phase 1 is a study, not a feature) | `GOAL.md` requires reusing existing solutions where they fit; writing an EXIF parser first would be the most expensive possible mistake |
 | 2026-07-24 | **Moves are filesystem renames, never copy+delete** (owner requirement, GOAL.md addendum of 2026-07-24) | Speed — the real archive is 551 GB and would not fit twice anyway. Same-volume: `fs.rename`. Cross-volume target: explicit copy→verify-hash→delete fallback, surfaced in the plan/report, never silent |
-| — | **OPEN:** season boundaries (which months, and what happens to autumn) | `GOAL.md` lists "Зима начало года / Весна / Лето / Зима конец года" — autumn is missing and no months are given. Owner interview required before Phase 3 |
-| — | **OPEN:** reuse vs. write-our-own for metadata extraction | Depends on the Phase 1 research; vendoring an ExifTool binary changes distribution and licensing |
+| 2026-07-24 | **Seasons: five buckets** — Зима начало года = Jan–Feb · Весна = Mar–May · Лето = Jun–Aug · Осень = Sep–Nov · Зима конец года = Dec · + `прочее` per year | Interview #001 Q2 = A. Autumn omission in `GOAL.md` was accidental — the owner's own archive has "осень" dirs. **Unblocks Phase 3 season mapping** |
+| 2026-07-24 | **Metadata extraction: pure JS** — `exifreader` (npm, MPL-2.0) for images + our own ~150-line MP4/MOV box parser; ExifTool only as a possible future opt-in "deep mode" behind the same extractor interface, never a hard dependency | Interview #001 Q1 = A, based on `researches/01_prior_art.md`. Keeps Node ≥ 20, zero binaries, near-zero deps |
+| 2026-07-24 | **Audio is media**, sorted like photos/videos but into its own `аудио/` subdir inside the season dir | Interview #001 Q3 = A + owner's clarification |
+| 2026-07-24 | **Junk files → quarantine** `ПРОЧЕЕ/_мусор`, each with recorded provenance meta (original path, what it belonged to). KPOT still deletes nothing | Interview #001 Q4 = C |
+| 2026-07-24 | **Other non-media files stay in place** + "left unsorted" report section; `.psd` counts as media | Interview #001 Q5 = A |
+| 2026-07-24 | **Custom parent directories are preserved as nesting** inside the season dir (e.g. `2013/Лето/<владельческая папка>/…`) | Owner in chat, 2026-07-24; extends the `GOAL.md` name-preservation requirement |
+| — | **OPEN:** separate `видео/` subdir inside the season dir (like аудио/)? | Owner leaned yes in chat ("возможно есть смысл"), явного подтверждения нет — pending one chat question |
 | — | **OPEN:** backup mechanism — git commit vs. manifest + hardlink snapshot | Git is simple and truly restorable but poor with tens of GB of binaries; decide with real sizes in Phase 4 |
 
 ---

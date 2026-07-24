@@ -75,8 +75,9 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
 - [ ] Date-evidence model in `src/meta/` — the confidence/evidence structure and filename-date patterns
       (`IMG_20130704_101112`, `2013-07-04 10.11.12`, WhatsApp/Telegram/screenshot conventions).
       Pure functions, trivially testable.
-- [ ] Season mapping (winter-start-of-year / spring / summer / autumn / winter-end-of-year / прочее)
-      as a pure function over a date. Small, exact, testable.
+- [ ] Season mapping as a pure function over a date — boundaries DECIDED (interview #001 Q2): Jan–Feb
+      Зима начало года · Mar–May Весна · Jun–Aug Лето · Sep–Nov Осень · Dec Зима конец года. Small,
+      exact, testable.
 
 ---
 
@@ -85,11 +86,12 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
 > Decisions the agent must not make alone (brand/UX/architecture), or actions only the human can do
 > (test on real hardware, external accounts). Filed in `interviews/` and `plans/homework_*.md`.
 
-- 🟡 **`interviews/interview_001_extractor_seasons_policies.md` — FILED 2026-07-24, awaiting the
-  owner's answers.** Covers all five open forks: Q1 metadata extractor (pure JS vs. vendored ExifTool
-  vs. external; recommendation: pure JS `exifreader` + own MP4 parser), Q2 season boundaries incl.
-  autumn (survey found the owner's own "осень" dirs), Q3 audio policy, Q4 junk-file policy, Q5
-  other-files policy. Q2 unblocks Phase 3 season mapping; Q1 fixes `package.json` deps + Node floor.
+- ✅ **Interview #001 ANSWERED 2026-07-24** — all five forks decided (pure-JS extraction · five
+  seasons with month boundaries · audio → `<год>/<сезон>/аудио/` · junk → quarantine with provenance ·
+  other files stay + report; custom parent dirs preserved as nesting). Decisions recorded in the
+  `MASTER_PLAN.md` decision log. Season mapping is UNBLOCKED.
+- ❓ Small pending chat question: separate `видео/` subdir inside seasons (owner leaned yes, not
+  confirmed).
 - 🧰 Homework (owner only): provide a *copy* of a small, real, messy sample directory for realism
   checks — never the original archive, and never committed to the repo.
 
