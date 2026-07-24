@@ -36,7 +36,8 @@ KPOT/
 ├── .claude/skills/ # the CANONICAL skill set — edit here only
 ├── .agents/ .grok/ .cline/ .roo/   # derived copies for the other 4 agent systems (auto-resynced)
 │
-├── 🔲 bin/kpot.mjs # CLI entry point — argv → phase dispatch
+├── bin/kpot.mjs    # ✅ CLI entry: parseArgs → phase dispatch (scan/plan/apply/rollback), exit-code
+│                   #    contract 0/1/2/3; phases themselves land in Phases 2–5
 ├── 🔲 src/         # scan/ meta/ dedupe/ plan/ apply/ report/ core/
 └── tests/          # ✅ fixtures/make.mjs (deterministic messy-tree generator, 22 cases,
                     #    expected.json ground truth) + fixtures.test.mjs — npm test 5/5
@@ -56,7 +57,7 @@ KPOT/
 | `.kaif/kaif-core.mjs` | The framework's own machinery, backing `npm run kaif:*` | `.kaif/kaif.json` |
 | `researches/` | Desk research write-ups — first up: prior-art comparison required by `GOAL.md` | `GOAL.md` |
 | `interviews/` | Questions only the owner may answer (season boundaries, reuse-vs-write) | `STATUS.md` |
-| 🔲 `bin/kpot.mjs` | CLI entry: `parseArgs`, phase dispatch, `--help`, exit codes | `src/apply/`, `src/plan/`, `src/report/` |
+| `bin/kpot.mjs` | ✅ CLI entry: `parseArgs`, phase dispatch, `--help`/`--version`, stable exit codes (0 ok · 1 error · 2 usage · 3 not-implemented) | `src/apply/`, `src/plan/`, `src/report/` (once they exist) |
 | 🔲 `src/scan/` | Tree walk, media identification, content hashing. Read-only over user data. | `src/core/` |
 | 🔲 `src/meta/` | Date/metadata extraction with confidence + evidence per file | `src/core/` |
 | 🔲 `src/dedupe/` | Groups identical/near-identical files across directories | `src/scan/` output, `src/core/` |

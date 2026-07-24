@@ -9,6 +9,9 @@
     "type": "git",
     "url": "git+https://github.com/MikalaiKryvusha/KPOT.git"
   },
+  "bin": {
+    "kpot": "./bin/kpot.mjs"
+  },
   "engines": {
     "node": ">=20"
   },

@@ -69,8 +69,10 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
       group, junk, audio, hand-sorted season subtree, broken clock, mtime spike) + `expected.json`
       ground truth. `npm test` = 5/5 green (`tests/fixtures.test.mjs`). Grow the catalog with every
       new feature.
-- [ ] CLI skeleton `bin/kpot.mjs` — `parseArgs` from `node:util`, phase dispatch, `--help`, exit codes.
-      Verifiable by its own tests.
+- [x] CLI skeleton `bin/kpot.mjs` — ✅ done 2026-07-24. `parseArgs`, phase dispatch (scan/plan/apply/
+      rollback), `--help`/`--version`, stable exit-code contract (0 ok · 1 error · 2 usage · 3 not
+      implemented), dir-existence validation, `bin` entry in package.json. 7 specs in
+      `tests/cli.test.mjs`; suite 12/12.
 - [ ] `src/core/` primitives — path normalization (Windows drive letters / UNC / long paths / case),
       run journal, bounded-concurrency worker pool. Unit-testable in isolation.
 - [ ] Date-evidence model in `src/meta/` — the confidence/evidence structure and filename-date patterns
