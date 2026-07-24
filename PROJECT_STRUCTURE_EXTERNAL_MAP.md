@@ -38,7 +38,8 @@ KPOT/
 │
 ├── 🔲 bin/kpot.mjs # CLI entry point — argv → phase dispatch
 ├── 🔲 src/         # scan/ meta/ dedupe/ plan/ apply/ report/ core/
-└── 🔲 tests/       # *.test.mjs specs + fixtures/ (synthetic messy trees + generator)
+└── tests/          # ✅ fixtures/make.mjs (deterministic messy-tree generator, 22 cases,
+                    #    expected.json ground truth) + fixtures.test.mjs — npm test 5/5
 ```
 
 ## What each part is
@@ -63,7 +64,7 @@ KPOT/
 | 🔲 `src/apply/` | The only writer: backup commit, dry run, real move, post-report, rollback | `src/plan/`, `src/core/` |
 | 🔲 `src/report/` | Renders human-readable reports from the machine-readable run data | `src/core/` |
 | 🔲 `src/core/` | Shared primitives: path normalization, run journal, bounded concurrency, logging | nothing (the bottom layer) |
-| 🔲 `tests/` | `node --test` specs; `tests/fixtures/` holds synthetic trees + their generator | all of `src/` |
+| `tests/` | ✅ `node --test` specs; `tests/fixtures/make.mjs` generates synthetic messy trees with `expected.json` ground truth (catalog mirrors `researches/02_real_archive_survey.md`) | all of `src/` (once it exists) |
 
 ## Cross-references & dependency rules
 

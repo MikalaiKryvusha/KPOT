@@ -194,7 +194,8 @@ The rules that keep it objective:
 
 | Command | What it does |
 |---------|--------------|
-| `npm test` | Runs every `*.test.mjs` via `node --test`. The gate before any commit. Exits 0 on a clean tree today (0 tests) — that is the starting point, not a pass. |
+| `npm test` | Runs every `*.test.mjs` via `node --test`. The gate before any commit. Real specs exist since 2026-07-24 (fixture generator, 5 specs). |
+| `node tests/fixtures/make.mjs <dir>` | Generates the deterministic messy fixture tree + `expected.json` ground truth into `<dir>` (temp dirs only, never the repo). |
 | `node --test --test-name-pattern "<re>"` | Runs a single spec while iterating. |
 | `node --test --experimental-test-coverage` | Coverage report — use it to find untested branches in date resolution. |
 | `node bin/kpot.mjs scan <dir>` | 🔲 planned — Phase 1: builds the scan map of a tree. |

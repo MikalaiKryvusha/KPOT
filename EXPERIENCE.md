@@ -23,6 +23,18 @@
 
 ## Entries
 
+### EXP-0003 · 2026-07-24 · ✅ · #fixtures #binary #exif #testing
+**Context:** first product code — the fixture generator needed JPEGs with real EXIF dates and MP4s with real mvhd dates, without any dependency.
+**Tried / did:** hand-built minimal binaries: JPEG = SOI + APP1(TIFF IFD0→ExifIFD→DateTimeOriginal) + COM-uniqueness + EOI (64-byte TIFF, offsets computed by hand); MP4 = ftyp + moov/mvhd (creation_time = unix + 2082844800) + free-box uniqueness. Tests assert the planted date strings/values are literally in the bytes.
+**Result:** ✅ — 5/5 specs green on the first `npm test` run; generator is deterministic byte-for-byte.
+**Lesson:** for *metadata* fixtures, magic-correct minimal files beat real sample media: zero deps, bytes reviewable, and "the date is really in the file" is itself assertable. Decodable pixels are only needed when perceptual hashing arrives.   → link: tests/fixtures/make.mjs
+
+### EXP-0002 · 2026-07-24 · ✅ · #research #survey #privacy
+**Context:** studying the owner's real archive (read-only grant) to ground fixtures and the date-evidence model.
+**Tried / did:** one recursive inventory into a scratchpad CSV, then a single Node analysis script (extension histogram, ordered regex pattern classifier, dup proxy by size+name, mtime histogram). Committed only aggregates — no real paths/names (public repo).
+**Result:** ✅ — survey found decisive facts imagination would have missed: 44% dates-in-filenames, epoch-ms names, Cyrillic *extension*, "+"-twins, an mtime bulk-copy spike, owner's own hand-made season dirs incl. autumn.
+**Lesson:** before designing parsers, measure the real corpus once, cheaply, read-only — and keep raw data in scratchpad, aggregates in the repo. The ordered first-match-wins pattern classifier prototype is directly reusable in `src/meta/`.   → link: researches/02_real_archive_survey.md
+
 ### EXP-0001 · 2026-01-01 · ✅ · #example #meta
 **Context:** first task after KAIF was deployed into this project (example entry — replace with real ones).
 **Tried / did:** wrote the first real lesson here in the canonical format.

@@ -64,10 +64,11 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
       Recommendation: reuse `exifreader` (images) + `node:crypto` staged SHA-256 (exact dups); write our
       own MP4/MOV box parser, filename patterns, DateVerdict resolver and all product logic; defer
       perceptual hashing. ExifTool vendoring = owner fork (interview).
-- [ ] Fixture generator `tests/fixtures/make.mjs` — synthesizes a messy tree with known-correct answers
-      (known EXIF dates, planted duplicates, undatable files). Everything downstream is testable only
-      once this exists; fully self-verifiable. **Build it from the real-chaos catalog in
-      `researches/02_real_archive_survey.md` §"Implications" item 1.**
+- [x] Fixture generator `tests/fixtures/make.mjs` — ✅ done 2026-07-24. 22 planted cases from the
+      real-chaos catalog (EXIF dates, mvhd dates, epoch names, "+"-twins, Cyrillic extension, dup
+      group, junk, audio, hand-sorted season subtree, broken clock, mtime spike) + `expected.json`
+      ground truth. `npm test` = 5/5 green (`tests/fixtures.test.mjs`). Grow the catalog with every
+      new feature.
 - [ ] CLI skeleton `bin/kpot.mjs` — `parseArgs` from `node:util`, phase dispatch, `--help`, exit codes.
       Verifiable by its own tests.
 - [ ] `src/core/` primitives — path normalization (Windows drive letters / UNC / long paths / case),
