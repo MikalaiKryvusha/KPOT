@@ -22,32 +22,44 @@
 
 **Nothing else exists.** There is no `bin/`, no `src/`, no `tests/` — not one line of product code.
 
-### Phase 1 (partial) — Real-archive survey ✅ (2026-07-24)
-- Owner granted **READ-ONLY** access to his real archive (path in agent memory, never in this public
-  repo). Strictly no writes there until Phase 4 safety exists and the owner re-authorizes.
-- Survey done → `researches/02_real_archive_survey.md`: 71 606 files / 551 GB, full catalog of
-  extensions, filename patterns (44% carry a decodable date in the name), name hazards, ~11% exact-dup
-  proxy, unreliable mtimes, and the owner's own hand-made `<year>/<season>` dirs (incl. "осень").
-  This is the ground truth the fixture generator must reproduce.
+### Phase 1 — Research, decisions, harness & skeleton ✅ mostly (2026-07-24, one session)
+- **Real-archive survey** → `researches/02_real_archive_survey.md`. Owner granted **READ-ONLY** access
+  to his real archive (path in agent memory, never in this public repo; no writes until Phase 4 safety
+  exists AND the owner re-authorizes). 71 606 files / 551 GB; extension + filename-pattern catalog
+  (44% carry a decodable date in the name), name hazards, ~11% exact-dup proxy, mtime bulk-copy spike,
+  owner's own hand-made `<year>/<season>` dirs incl. "осень".
+- **Prior-art research** → `researches/01_prior_art.md` (npm facts spot-verified). Reuse: `exifreader`
+  + `node:crypto`. Write ourselves: MP4/MOV date parser, filename patterns, DateVerdict resolver, all
+  product logic. Perceptual hashing deferred. The niche is open.
+- **Interview #001 answered** — all forks closed: pure-JS extraction · five seasons with month
+  boundaries · layout inside a season = photos at root + `видео/` + `аудио/` · junk → quarantine with
+  provenance · other files stay + report · custom parent dirs preserved as nesting. Also fixed into
+  `GOAL.md`: moves are **renames, not copy+delete**.
+- **Bilingual README** (KAIF style) + GitHub description; name spelled out: **Krinik Photo Organizer
+  Tool**.
+- **Code (all [TESTED], suite 15/15 green):**
+  - `tests/fixtures/make.mjs` — deterministic messy-tree generator, 22 planted cases + `expected.json`
+    ground truth (5 specs).
+  - `bin/kpot.mjs` — CLI skeleton: scan/plan/apply/rollback dispatch, `--help`/`--version`, exit-code
+    contract 0/1/2/3 (7 specs).
+  - `src/plan/season.mjs` — owner-decided month→season mapping (3 specs).
 
 ---
 
 ## Where we are now
 
-Greenfield. The framework and the repo are in place; the product is at zero. The next move is **not**
-to start writing a scanner — it is Phase 1, the prior-art research `GOAL.md` explicitly asks for
-("если такие решения уже есть на Github — используем их"): find out whether ExifTool, exiftool-vendored,
-Elodie, PhotoPrism, `sharp`/`exifr` and friends already solve the date-extraction and dedup parts, and
-decide what we reuse vs. write. Writing our own EXIF parser before that research would be the single
-most expensive mistake available here.
+Phase 1 is essentially closed in one session (2026-07-24): research done, every product fork decided
+by the owner, the test harness foundation (fixture generator) exists, the CLI skeleton runs, and the
+first `src/` module (season mapping) is in. Two Phase-1 backlog items remain — `src/core/` primitives
+and the `src/meta/` date-evidence model — and they are exactly the bridge into Phase 2 (scan).
 
 | Phase | Status | What's there |
 |-------|--------|--------------|
 | Phase 0 — foundation | ✅ done | repo, license, KAIF, docs, `npm test` gate |
-| Phase 1 — prior-art research + CLI skeleton | 🔲 todo | nothing yet |
-| Phase 2 — scan & metadata | 🔲 todo | nothing yet |
-| Phase 3 — dedup & plan | 🔲 todo | nothing yet |
-| Phase 4 — safety (backup / dry run / rollback) | 🔲 todo | nothing yet |
+| Phase 1 — research + decisions + skeleton | 🔶 ~80% | researches 01+02, interview #001 ✅, fixtures, CLI, seasons; left: `src/core/`, date-evidence model |
+| Phase 2 — scan & metadata | 🔲 todo | `exifreader` decision made; fixture ground truth ready |
+| Phase 3 — dedup & plan | 🔲 todo | unblocked (seasons + layout decided) |
+| Phase 4 — safety (backup / dry run / rollback) | 🔲 todo | backup fork: manifest+hardlink favored (551 GB reality) |
 | Phase 5 — apply & reports | 🔲 todo | nothing yet |
 
 Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
@@ -104,16 +116,20 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
 > A concrete checklist so the next session (empty context) can start immediately: which files, which
 > commands, what to verify first.
 
-1. Read `GOAL.md` (the contract, in Russian) and `MASTER_PLAN.md` (the phases). They outrank this file
-   on *what to build*; this file is *where we are*.
-2. Verify the environment is intact: `node -v` (≥20), `npm test` (must exit 0), `git status` (clean),
-   `gh auth status` (logged in as MikalaiKryvusha).
-3. Start Phase 1 with the research task: write `researches/01_prior_art.md`. Do NOT write product code
-   before it exists — `GOAL.md` requires reusing existing solutions where they fit.
-4. Then the fixture generator (`tests/fixtures/make.mjs`) before any scanner code, so every later phase
-   has an objective harness. See the harness section of `AGENT_GUIDE.md`.
-5. File the two open interviews (season boundaries, reuse-vs-write) with `/interview` so the owner can
-   answer them while autonomous work continues elsewhere.
+1. Verify the environment: `node -v` (≥20), `npm test` (**must be 15/15**), `git status` (clean),
+   `gh auth status` (MikalaiKryvusha).
+2. Take the next autonomous backlog item: **`src/core/` primitives** — Windows path normalization
+   (drive letters / UNC / `\\?\` long paths / case-insensitive compare), the run journal, a
+   bounded-concurrency worker pool. Unit-test each in isolation (`tests/core_*.test.mjs`).
+3. Then the **date-evidence model in `src/meta/`** — Evidence/DateVerdict structures + the filename
+   pattern detectors. Port the ordered first-match-wins classifier prototyped in the survey (pattern
+   list: `researches/02_real_archive_survey.md` §"Filename patterns"); precedence seed:
+   `researches/01_prior_art.md` §5 (Elodie order). Test against the fixture tree's `expected.json`.
+4. That completes Phase 1 → start Phase 2 (`src/scan/`): tree walk + media identification by content
+   (magic bytes — fixtures already provide them) + streamed hashing. Wire into `kpot scan <dir>` and
+   flip its exit code from 3 to 0.
+5. Decisions are all in `MASTER_PLAN.md` §Decision log (2026-07-24 block) — re-read before designing;
+   do not re-ask the owner what is already decided there.
 
 ---
 

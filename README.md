@@ -57,13 +57,20 @@ sorting half a terabyte takes minutes, not hours.
 
 ### Status
 
-🚧 **Early development — design & research phase.** No usable tool yet. Done so far:
+🚧 **Early development.** The tool is not usable yet (every phase reports "not implemented", exit
+code 3). What already exists and is verified by tests (15/15 green):
 
 - [Prior-art research](researches/01_prior_art.md) — what we reuse (`exifreader`, `node:crypto`)
   vs. write ourselves (MP4/MOV date parser, evidence-based date resolver, all product logic).
 - [Real-archive survey](researches/02_real_archive_survey.md) — anonymized study of a real 71 000-file
   / 551 GB messy archive: the filename-pattern zoo, name hazards and duplicate rates the tool must
   survive. Fixtures are built from this catalog, the real archive is never touched by tests.
+- All product decisions closed by the owner ([interview #001](interviews/interview_001_extractor_seasons_policies.md)):
+  pure-JS metadata extraction, five season buckets, `видео/` + `аудио/` subdirs, junk quarantine
+  with provenance, rename-based moves.
+- [CLI skeleton](bin/kpot.mjs) — `scan` / `plan` / `apply --dry-run` / `rollback` dispatch with a
+  stable exit-code contract · [fixture generator](tests/fixtures/make.mjs) — deterministic messy tree
+  with 22 planted chaos cases + ground-truth manifest · [season mapping](src/plan/season.mjs).
 
 Roadmap: `MASTER_PLAN.md` · current state: `STATUS.md`.
 
@@ -127,8 +134,8 @@ KPOT **не переместит ни одного файла**, пока не �
 
 ### Статус
 
-🚧 **Ранняя разработка — этап проектирования и исследований.** Готового инструмента пока нет.
-Сделано:
+🚧 **Ранняя разработка.** Инструментом пользоваться пока нельзя (каждая фаза отвечает «не
+реализовано», код выхода 3). Что уже существует и проверено тестами (15/15 зелёных):
 
 - [Исследование готовых решений](researches/01_prior_art.md) — что берём готовое (`exifreader`,
   `node:crypto`), что пишем сами (парсер дат MP4/MOV, резолвер даты по уликам, вся продуктовая логика).
@@ -136,6 +143,13 @@ KPOT **не переместит ни одного файла**, пока не �
   настоящего бардака на 71 000 файлов / 551 ГБ: зоопарк паттернов имён, опасные имена и доля
   дубликатов, которые инструмент обязан пережить. Тестовые фикстуры строятся по этому каталогу,
   реальный архив тестами не затрагивается.
+- Все продуктовые решения закрыты владельцем ([интервью #001](interviews/interview_001_extractor_seasons_policies.md)):
+  чистый JS для метаданных, пять сезонов, подпапки `видео/` и `аудио/`, карантин мусора с записью
+  происхождения, перемещения переименованием.
+- [Скелет CLI](bin/kpot.mjs) — диспетчер `scan` / `plan` / `apply --dry-run` / `rollback` со
+  стабильным контрактом кодов выхода · [генератор фикстур](tests/fixtures/make.mjs) —
+  детерминированное «бардачное» дерево из 22 случаев хаоса с эталоном ответов ·
+  [маппинг сезонов](src/plan/season.mjs).
 
 Дорожная карта: `MASTER_PLAN.md` · текущее состояние: `STATUS.md`.
 
