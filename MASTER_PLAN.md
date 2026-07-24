@@ -107,6 +107,7 @@ season. The measure is his, not ours — `GOAL.md`, closing paragraph.
 | 2026-07-24 | Evidence/DateVerdict as first-class objects rather than resolving dates inline | The requirement to document disputed cases is unimplementable otherwise — see the internal map |
 | 2026-07-24 | Single-writer architecture: only `src/apply/` may touch user files | Makes the safety invariants enforceable and testable in one place |
 | 2026-07-24 | Research before code (Phase 1 is a study, not a feature) | `GOAL.md` requires reusing existing solutions where they fit; writing an EXIF parser first would be the most expensive possible mistake |
+| 2026-07-24 | **Moves are filesystem renames, never copy+delete** (owner requirement, GOAL.md addendum of 2026-07-24) | Speed — the real archive is 551 GB and would not fit twice anyway. Same-volume: `fs.rename`. Cross-volume target: explicit copy→verify-hash→delete fallback, surfaced in the plan/report, never silent |
 | — | **OPEN:** season boundaries (which months, and what happens to autumn) | `GOAL.md` lists "Зима начало года / Весна / Лето / Зима конец года" — autumn is missing and no months are given. Owner interview required before Phase 3 |
 | — | **OPEN:** reuse vs. write-our-own for metadata extraction | Depends on the Phase 1 research; vendoring an ExifTool binary changes distribution and licensing |
 | — | **OPEN:** backup mechanism — git commit vs. manifest + hardlink snapshot | Git is simple and truly restorable but poor with tens of GB of binaries; decide with real sizes in Phase 4 |
