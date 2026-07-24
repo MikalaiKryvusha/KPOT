@@ -91,8 +91,8 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
   seasons with month boundaries · audio → `<год>/<сезон>/аудио/` · junk → quarantine with provenance ·
   other files stay + report; custom parent dirs preserved as nesting). Decisions recorded in the
   `MASTER_PLAN.md` decision log. Season mapping is UNBLOCKED.
-- ❓ Small pending chat question: separate `видео/` subdir inside seasons (owner leaned yes, not
-  confirmed).
+- ✅ Video subdir confirmed in chat 2026-07-24: photos at season root, video → `видео/`, audio →
+  `аудио/` inside each season dir.
 - 🧰 Homework (owner only): provide a *copy* of a small, real, messy sample directory for realism
   checks — never the original archive, and never committed to the repo.
 

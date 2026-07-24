@@ -115,7 +115,7 @@ season. The measure is his, not ours — `GOAL.md`, closing paragraph.
 | 2026-07-24 | **Junk files → quarantine** `ПРОЧЕЕ/_мусор`, each with recorded provenance meta (original path, what it belonged to). KPOT still deletes nothing | Interview #001 Q4 = C |
 | 2026-07-24 | **Other non-media files stay in place** + "left unsorted" report section; `.psd` counts as media | Interview #001 Q5 = A |
 | 2026-07-24 | **Custom parent directories are preserved as nesting** inside the season dir (e.g. `2013/Лето/<владельческая папка>/…`) | Owner in chat, 2026-07-24; extends the `GOAL.md` name-preservation requirement |
-| — | **OPEN:** separate `видео/` subdir inside the season dir (like аудио/)? | Owner leaned yes in chat ("возможно есть смысл"), явного подтверждения нет — pending one chat question |
+| 2026-07-24 | **Video gets its own `видео/` subdir inside the season dir** (symmetric with `аудио/`; photos stay at the season root) | Owner confirmed in chat: «лучше ролики тоже в отдельную видео/» |
 | — | **OPEN:** backup mechanism — git commit vs. manifest + hardlink snapshot | Git is simple and truly restorable but poor with tens of GB of binaries; decide with real sizes in Phase 4 |
 
 ---
