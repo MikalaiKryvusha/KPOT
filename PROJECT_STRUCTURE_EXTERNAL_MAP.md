@@ -39,11 +39,11 @@ KPOT/
 ├── bin/kpot.mjs    # ✅ CLI entry: parseArgs → phase dispatch (scan/plan/apply/rollback), exit-code
 │                   #    contract 0/1/2/3; phases themselves land in Phases 2–5
 ├── src/            # 🔶 in progress: core/ ✅ (paths · journal · pool) · meta/ ✅ evidence model +
-│                   #    filename-date detectors · plan/season.mjs ✅; scan/ dedupe/ rest of plan/
-│                   #    apply/ report/ are 🔲 planned
+│                   #    filename-date detectors · scan/ ✅ (identify by magic bytes · walk · hash)
+│                   #    · plan/season.mjs ✅; dedupe/ rest of plan/ apply/ report/ are 🔲 planned
 └── tests/          # ✅ fixtures/make.mjs (deterministic messy-tree generator, 22 cases,
-                    #    expected.json ground truth) + specs for CLI/fixtures/core/meta/seasons —
-                    #    npm test 40/40
+                    #    expected.json ground truth) + specs for CLI/fixtures/core/meta/scan/seasons —
+                    #    npm test 48/48
 ```
 
 ## What each part is
@@ -61,7 +61,7 @@ KPOT/
 | `researches/` | Desk research write-ups — first up: prior-art comparison required by `GOAL.md` | `GOAL.md` |
 | `interviews/` | Questions only the owner may answer (season boundaries, reuse-vs-write) | `STATUS.md` |
 | `bin/kpot.mjs` | ✅ CLI entry: `parseArgs`, phase dispatch, `--help`/`--version`, stable exit codes (0 ok · 1 error · 2 usage · 3 not-implemented) | `src/apply/`, `src/plan/`, `src/report/` (once they exist) |
-| 🔲 `src/scan/` | Tree walk, media identification, content hashing. Read-only over user data. | `src/core/` |
+| ✅ `src/scan/` | `identify.mjs` (kind by magic bytes — extensions lie; junk-by-name policy) + `scan.mjs` (walk without following links, bounded-concurrency sniff + streamed SHA-256, per-file errors collected). Read-only over user data; wired to `kpot scan` | `src/core/` |
 | 🔶 `src/meta/` | ✅ the date-evidence model (`evidence.mjs`: precedence order, wall/instant claims, plausibility window) + filename-date detectors (`filename_date.mjs`, survey-derived, fixture-verified); the EXIF/MP4 extractors land in Phase 2 | `src/core/` |
 | 🔲 `src/dedupe/` | Groups identical/near-identical files across directories | `src/scan/` output, `src/core/` |
 | 🔶 `src/plan/` | ✅ `season.mjs` (owner-decided month→season buckets); the target-tree builder and SortPlan emitter are 🔲 Phase 3 | `src/meta/`, `src/dedupe/` |

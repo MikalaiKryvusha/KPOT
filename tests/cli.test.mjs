@@ -55,10 +55,11 @@ test('scan without <dir> → usage error (2), with missing dir → runtime error
   assert.ok(missing.err.includes('does not exist'));
 });
 
-test('every phase on a real dir → not-implemented (3) naming its planned phase', async () => {
+test('unimplemented phases on a real dir → not-implemented (3) naming their planned phase', async () => {
+  // `scan` graduated to a real phase on 2026-07-24 (STATUS.md Phase-2 checklist) — see scan.test.mjs
   const dir = await mkdtemp(join(tmpdir(), 'kpot-cli-'));
   try {
-    for (const cmd of ['scan', 'plan', 'apply']) {
+    for (const cmd of ['plan', 'apply']) {
       const r = await cli(cmd, dir);
       assert.equal(r.code, EXIT_NOT_IMPLEMENTED, cmd);
       assert.ok(r.err.includes('not implemented'), cmd);
@@ -66,6 +67,18 @@ test('every phase on a real dir → not-implemented (3) naming its planned phase
     }
     const rb = await cli('rollback', 'run-000');   // run-id is not a dir — no existence check
     assert.equal(rb.code, EXIT_NOT_IMPLEMENTED);
+  } finally { await rm(dir, { recursive: true, force: true }); }
+});
+
+test('scan on an empty dir → 0, machine-readable JSON on stdout, summary on stderr', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'kpot-cli-scan-'));
+  try {
+    const r = await cli('scan', dir);
+    assert.equal(r.code, EXIT_OK);
+    const map = JSON.parse(r.out);
+    assert.deepEqual(map.assets, []);
+    assert.deepEqual(map.errors, []);
+    assert.ok(r.err.includes('0 files'));
   } finally { await rm(dir, { recursive: true, force: true }); }
 });
 

@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 // bin/kpot.mjs — KPOT CLI entry point.
-// [TESTED: 2026-07-24 · tests/cli.test.mjs — 7 specs incl. one real child-process spawn; 12/12 suite green]
+// [TESTED: 2026-07-24 · tests/cli.test.mjs — 8 specs incl. a real child-process spawn and a real
+// scan run; suite 48/48 green + CLI smoke on a generated fixture tree (exit 0, kinds correct)]
 //
-// Parses argv (node:util parseArgs), validates input, and dispatches to a phase. The phases
-// themselves land with MASTER_PLAN.md Phases 2–5 — today each reports "not implemented" with a
-// dedicated exit code, so scripts and tests can already rely on the contract:
+// Parses argv (node:util parseArgs), validates input, and dispatches to a phase. Phases not yet
+// landed report "not implemented" with a dedicated exit code, so scripts and tests can already
+// rely on the contract:
 //
-//   kpot scan <dir>              build the scan map of a tree           (Phase 2)
+//   kpot scan <dir>              build the scan map of a tree           (✅ Phase 2 — implemented)
 //   kpot plan <dir>              emit the pre-sort master plan          (Phase 3)
 //   kpot apply [--dry-run] <dir> execute the plan (dry run = same code path, no writes)  (Phase 4/5)
 //   kpot rollback <run-id>       restore from the backup of a past run  (Phase 4)
@@ -18,6 +19,7 @@ import { parseArgs } from 'node:util';
 import { readFile, stat } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 import process from 'node:process';
+import { scanTree } from '../src/scan/scan.mjs';
 
 export const EXIT_OK = 0;
 export const EXIT_ERROR = 1;
@@ -41,9 +43,9 @@ Options:
 Exit codes: 0 ok · 1 error · 2 usage · 3 not implemented yet (early development)
 Docs: https://github.com/MikalaiKryvusha/KPOT`;
 
-/** Phases and what each one requires as its positional argument. */
+/** Phases, their positional argument, and (for the ones still ahead) where they land. */
 const PHASES = {
-  scan:     { arg: 'dir',    plannedIn: 'Phase 2' },
+  scan:     { arg: 'dir' },                            // implemented — see runScan below
   plan:     { arg: 'dir',    plannedIn: 'Phase 3' },
   apply:    { arg: 'dir',    plannedIn: 'Phase 4/5' },
   rollback: { arg: 'run-id', plannedIn: 'Phase 4' },
@@ -107,8 +109,32 @@ export async function run(argv, { out = console.log, err = console.error } = {})
     }
   }
 
+  if (command === 'scan') return runScan(target, { out, err });
+
   err(`kpot ${command}: not implemented yet — planned in ${phase.plannedIn} (see MASTER_PLAN.md).`);
   return EXIT_NOT_IMPLEMENTED;
+}
+
+/**
+ * The scan phase: machine-readable JSON on stdout, a human one-liner on stderr — so
+ * `kpot scan dir > map.json` just works. Read-only over the tree (RULE 1). Per-file errors are
+ * inside the JSON and do not fail the run; only a scan-level failure exits non-zero.
+ */
+async function runScan(dir, { out, err }) {
+  let result;
+  try {
+    result = await scanTree(dir);
+  } catch (e) {
+    err(`kpot scan: ${e.message}`);
+    return EXIT_ERROR;
+  }
+  out(JSON.stringify(result, null, 2));
+  const byKind = {};
+  for (const a of result.assets) byKind[a.kind] = (byKind[a.kind] ?? 0) + 1;
+  const kinds = Object.entries(byKind).map(([k, n]) => `${k} ${n}`).join(' · ') || 'nothing';
+  err(`kpot scan: ${result.assets.length} files (${kinds})`
+    + (result.errors.length ? ` · ${result.errors.length} unreadable — see "errors"` : ''));
+  return EXIT_OK;
 }
 
 // Real invocation only (not when imported by tests): returned code → process exit code.
