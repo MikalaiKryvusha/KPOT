@@ -1,0 +1,17 @@
+# dependencies
+node_modules/
+
+# KAIF installer scratch (self-cleaned by verify-final; never versioned)
+.kaif/install/
+
+# local agent settings (machine-specific)
+.claude/settings.local.json
+
+# runtime artifacts of KPOT runs (scan maps, dry-run reports, rollback journals)
+*.log
+/.kpot-runs/
+
+# OS
+Thumbs.db
+.DS_Store
+desktop.ini

@@ -1,0 +1,365 @@
+# KPOT — AI Agent Guide
+
+This file is read by the AI agent before every task. It is the **canon** of the project: the rules,
+the map, the commands, the conventions. Keep it accurate — a fresh agent session with empty context
+relies entirely on this document to get to work.
+
+> 🧠 **PRIME PRINCIPLE — SIMPLICITY (read `PHILOSOPHY.md`).** If something is taking a long time, it is
+> NOT a hard task and NOT a library bug — the agent is DOING IT TOO COMPLEX because it did NOT UNDERSTAND
+> THE TASK. Everything should be simple (KISS + Occam). Stuck → re-understand the task, find the
+> built-in simple path, do NOT escalate complexity. A stall = "simplify your understanding," not "dig harder."
+
+> 🤖 **AUTONOMOUS MODE.** When the human has stepped away / granted autonomy and there is no active
+> interactive task, and `STATUS.md` has an open autonomous backlog — the agent SHOULD, on its own
+> initiative, enter the appropriate loop skill (`/autoloop`, `/dayloop`, or `/nightloop`) and grind the
+> backlog, committing progress and self-restarting after each task. Stop only on the skill's stop
+> conditions. Do not enter a loop if the human just gave a specific interactive task.
+
+---
+
+## Before every task — checklist
+
+```
+1. Read STATUS.md                 # current state: what's done, where we are, what's next
+2. Recall experience              # grep EXPERIENCE.md by the task's tags — don't repeat known dead ends (skill: /experience)
+3. git status                     # what changed, what's uncommitted
+4. git log --oneline -5           # where we are in history
+5. Read MEMORY.md (if present)    # user profile, key decisions
+6. Load ONLY the relevant slice   # use the Context router below — read the required minimum + task-type docs, not everything
+7. Execute by the fable loop      # /fable-method: gates + forced artifacts (INTENT/AUTH/TWINS/PENDING); /fable-loop to orchestrate; /fable-judge before claiming done
+8. Read the relevant plan         # plans/<feature>.md, if the task touches a specific feature
+9. Check the map & blast radius   # before editing code: PROJECT_ARCHITECTURE_INTERNAL_MAP.md — who is affected; update the map if relations change
+10. Run the build (if touching code)   # NO build step — pure Node ESM. The gate is `npm test`. Do NOT run `npm run build` (no such script).
+11. Use the test harness          # `npm test` (node --test) + CLI runs against tests/fixtures/ — drive/observe the software without a human
+12. Comment the code              # comment blocks, classes, modules, important lines — with a test-status marker: fresh raw content gets [NOT-TESTED]; verified-by-observation flips to [TESTED: date · how] (TESTING_FRAMEWORK.md)
+13. Reflect on bugs in bugs/      # one md per bug; follow BUG_FIXING_FRAMEWORK.md
+14. Capture experience            # after a meaningful success/failure, append a lesson to EXPERIENCE.md (skill: /experience)
+15. Periodically re-read the key guidance docs:
+    - PHILOSOPHY.md   ← the simplicity principle; if stuck, go here first
+    - AGENT_GUIDE.md
+    - STATUS.md
+    - BUG_FIXING_FRAMEWORK.md
+    Edit them when it would make future autonomous work more effective. The agent operates across
+    sessions that lose context — these docs must let a fresh session get productive from empty context.
+16. Narrate in the chat, at least a little, in natural language — what you're doing right now — so the
+    human can glance over and follow along.
+17. Documents from the human (ideas, bugs, features): read them, fix typos, minimally restructure into a
+    clean structured format for AI consumption. After implementing from such a document, write the
+    status and the implementation date back into it.
+```
+
+→ **`STATUS.md`** is the master state file. Update it after every significant task.
+
+### Context router (progressive loading) — read only the slice you need
+
+Don't read every document "just in case" — that fills the context you're trying to protect. Read the
+**required minimum** always, then only the documents for the task type; fetch more on demand.
+
+| Task type          | Read (minimum on top of the required minimum)                         |
+|--------------------|-----------------------------------------------------------------------|
+| **Required minimum (always)** | `STATUS.md` · `PHILOSOPHY.md` (the principle set) · this router · `EXPERIENCE.md` (grep by tag) |
+| Bug                | `BUG_FIXING_FRAMEWORK.md` · `bugs/<this>` · the map (blast radius)     |
+| Testing / verifying anything | `TESTING_FRAMEWORK.md` (the 7 principles · `[NOT-TESTED]`/`[TESTED]` markers) · the sphere's verification sections |
+| Feature / idea     | `ideas/<this>` · `MASTER_PLAN.md` · the relevant `plans/<this>`        |
+| Refactor / edit    | `AGENT_GUIDE.md` · the two maps (blast radius)                         |
+| Planning           | `MASTER_PLAN.md` · `GOAL.md` · open backlog                            |
+
+Sections in these documents are anchored — address a slice (`DOC.md#anchor`) rather than re-reading the
+whole file. The required minimum is **not** subject to laziness: `PHILOSOPHY.md` always applies.
+
+### Task execution discipline — the fable loop
+
+Any non-trivial task is executed by the **fable-method** loop (`.claude/skills/fable-method/`): classify
+the ask → define done → gather evidence → decide → act surgically → verify by observation → report
+outcome-first, with its gates and **forced artifacts** (`INTENT:` / `AUTH:` / `TWINS:` / `PENDING:`
+lines at decision points — rules at decision points, not rules in lists, are what weak sessions actually
+follow). Orchestrated work (parallel evidence fan-out, adversarial verifiers) uses `/fable-loop` — inside
+the autonomous cycles, per backlog item. Whenever work is claimed complete (yours or another agent's),
+run a **`/fable-judge`** pass before presenting it as done — mandatory in the loops and in `/release`.
+These three skills are vendored verbatim from [fable-method](https://github.com/Sahir619/fable-method)
+(Sahir619, MIT) — see their headers for the sync ritual; the project's sphere library plays the role of
+their domain adapters.
+
+### Languages — two audiences, two languages
+
+Agent-internal documents (this guide, `PHILOSOPHY.md`, `BUG_FIXING_FRAMEWORK.md`, `STATUS.md`,
+`EXPERIENCE.md`, the maps, working notes in `plans/`/`bugs/`/`researches/`, the skills) are written and
+maintained in **English** — the language models read most reliably. Owner-facing documents (`GOAL.md`,
+`KAIF_FRAMEWORK.md`, the directory READMEs) and every chat report to the owner are in
+**ru**. Keep this split as you create new documents.
+
+### Experience log — `EXPERIENCE.md`
+
+`EXPERIENCE.md` is the agent's growing, grep-friendly log of lessons (externalized memory of what works and
+what doesn't). **Recall** relevant entries before a task (grep by tag); **capture** a short lesson after any
+meaningful success or failure — in loops, do both without waiting for the human. Skill: `/experience`.
+Boundary: `bugs/` = one doc per defect; `EXPERIENCE.md` = short cross-task, approach-level lessons (incl.
+successes). Living reference — never DONE-tagged.
+
+---
+
+## Project identity (CANON — use these, don't invent)
+
+| Field | Value |
+|-------|-------|
+| **Name / brand** | `KPOT` |
+| **Short name** | `KPOT` |
+| **GitHub repository** | `https://github.com/MikalaiKryvusha/KPOT` (public) |
+| **Local project folder** | `D:\work\ai_sandbox\KPOT` |
+| **Author / owner** | `Mikalai Kryvusha` |
+| **License** | `MIT` — see `LICENSE` (© 2026 Mikalai Kryvusha / KOT KRINIK) |
+
+> Keep one canonical spelling for names/paths/URLs and use it everywhere. If you find an old/renamed
+> identifier in historical docs, normalize it to the canonical value above.
+
+---
+
+## Goal of the project
+
+KPOT is an open-source CLI tool that turns a person's chaotic home photo/video collection into an
+orderly chronological library. It scans a directory (or a whole drive), finds media files, establishes
+each file's capture date from whatever evidence exists (EXIF, filename, sidecars, filesystem times),
+detects duplicates and copies scattered across directories, and lays everything out as
+`<year>/<season>/`. It is built for a non-technical owner of a messy archive, so **safety outranks
+tidiness**: nothing moves until the owner has seen a plan, a dry-run report and a backup they can roll
+back to. Full statement of intent: `GOAL.md` (in Russian, the owner's words — treat it as the contract).
+
+---
+
+## Architecture — the map
+
+> ⚠️ **Status: planned, not yet built.** No source code exists yet (see `STATUS.md`). The layout below is
+> the agreed target shape — create directories as the phases land, and keep this section honest.
+
+```
+bin/kpot.mjs    ← CLI entry point: parses argv, dispatches to a phase
+src/scan/       ← walks the tree, identifies media files, hashes them          (reads user files)
+src/meta/       ← date & metadata extraction; every verdict carries a confidence + evidence
+src/dedupe/     ← groups identical/near-identical files across directories
+src/plan/       ← builds the target year/season tree; emits the pre-sort master plan + disputed cases
+src/apply/      ← the ONLY writer: backup commit, dry run, real move, post-report, rollback
+src/report/     ← renders human-readable reports (scan map, dry-run, post-sort)
+src/core/       ← shared primitives: run journal, config, paths, logging
+tests/          ← node --test specs + tests/fixtures/ (synthetic messy trees)
+```
+
+**RULE 1 (the safety invariant):** only `src/apply/` may modify, move or delete a user's file, and only
+after a backup commit exists and the run journal records the intended operation. Every other module is
+strictly read-only over the user's data. Violating this is a bug even if the run "worked".
+
+**RULE 2 (dependency direction):** dependencies point one way only —
+`bin → apply → plan → {dedupe, meta, scan} → core`. A lower layer never imports a higher one, and sibling
+feature modules do not import each other; shared code moves down into `src/core/`.
+
+**RULE 3 (evidence, not guesses):** a date is never silently invented. Every file carries the evidence
+and the confidence behind its date; anything unresolved goes to the global "прочее" bucket and is listed
+in the disputed-cases section of the plan, per `GOAL.md`.
+
+Full file map and data flows live in `PROJECT_STRUCTURE_EXTERNAL_MAP.md`.
+
+---
+
+## Build
+
+**There is no build step.** KPOT is plain Node ESM (`"type": "module"`) — sources run as written, nothing
+is compiled or bundled. `npm run build` does not exist; do not invent it. The equivalent gate is:
+
+```bash
+npm test              # node --test — the correctness gate; exits 0 on a clean tree
+node --check <file>   # syntax-only check of a single .mjs file
+```
+
+Environment: Node ≥20 (`engines` in `package.json`); developed on Node 24 / Windows 11 with PowerShell
+as the primary shell. No native dependencies so far — if a metadata library needs one, treat that as an
+architecture fork and run `/interview` first. Keep the dependency count near zero: `GOAL.md` says reuse
+an existing solution where one genuinely fits, otherwise write it ourselves in `.mjs`.
+
+---
+
+## Test harness (how the agent observes & drives the software)
+
+KPOT is a CLI over a filesystem, which is the easiest possible thing to verify autonomously: **generate a
+synthetic messy tree, run the tool on it, compare the result to a golden expectation.** No human, no real
+photos, no guessing. This is the project's single most important investment — build it early (Phase 0)
+and grow it with every feature.
+
+The rules that keep it objective:
+- **Never test against the owner's real archive.** Fixtures only. A generator script builds trees with
+  known-correct answers (known EXIF dates, known duplicates, known undatable files), so the expected
+  output is computed, not eyeballed.
+- **Assert on the plan, not on the eyeball.** Phases emit machine-readable JSON alongside the human
+  report; tests assert on the JSON. A dry run must produce byte-identical operations to the real run —
+  that equivalence is itself a test.
+- **Every destructive test runs in a temp dir** created per test and removed after, never in the repo.
+
+| Command | What it does |
+|---------|--------------|
+| `npm test` | Runs every `*.test.mjs` via `node --test`. The gate before any commit. Exits 0 on a clean tree today (0 tests) — that is the starting point, not a pass. |
+| `node --test --test-name-pattern "<re>"` | Runs a single spec while iterating. |
+| `node --test --experimental-test-coverage` | Coverage report — use it to find untested branches in date resolution. |
+| `node bin/kpot.mjs scan <dir>` | 🔲 planned — Phase 1: builds the scan map of a tree. |
+| `node bin/kpot.mjs plan <dir>` | 🔲 planned — Phase 2: emits the pre-sort master plan + disputed cases. |
+| `node bin/kpot.mjs apply --dry-run <dir>` | 🔲 planned — Phase 3: full simulation, no file touched. |
+| `node bin/kpot.mjs rollback <run-id>` | 🔲 planned — Phase 4: restores from the backup commit. |
+
+> Full harness guide: `TESTING_FRAMEWORK.md` (the 7 principles and the `[NOT-TESTED]` / `[TESTED]`
+> markers). Fixture generator and specs live in `tests/` once Phase 0 lands.
+
+---
+
+## Git workflow
+
+Work **only in `main`** — no feature branches. Commit incrementally and often; small commits are the
+undo mechanism. To undo, use history (`git revert <hash>`, `git checkout <hash> -- <file>`), never a
+branch dance and never `git reset --hard` on shared history. Push to `origin` (GitHub, public) after a
+green `npm test`.
+
+Never commit a user's media, a real archive path dump, or a run journal from a real run — `.gitignore`
+already excludes `/.kpot-runs/` and `*.log`. Test fixtures must be synthetic and small.
+
+> Reconciliation with the fable-method **authorization gate**: this deployed guide IS the owner's
+> standing authorization for routine commits/pushes per the policy above. Everything beyond it —
+> releases, deploys, external sends/publishes, force-pushes, deletions of shared data — still requires
+> the owner's quoted words (an `AUTH:` line).
+
+## Commits
+
+Style: `feat:`, `fix:`, `docs:`, `refactor:`, `ci:` + one line of what was done.
+End every commit message with the co-author trailer:
+
+```
+Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>
+```
+
+Replace the trailer with whatever agent/model is actually doing the work (`Codex GPT-5`, `Grok`, …) —
+it records who wrote the change, so it must be truthful rather than copied.
+
+No commit/version tool yet: commit with plain `git`. If a release tool appears (version bump + tag +
+`gh release`), document it here and in the Tools table — and note that `/release` is the skill that
+drives it.
+
+## Push / GitHub authentication
+
+Authentication is the **`gh` CLI** (v2.95+), logged in as `MikalaiKryvusha` with the token in the OS
+keyring; git operations use HTTPS with `gh` acting as the credential helper. Verify with `gh auth status`.
+If git asks for a password, re-wire the helper: `gh auth setup-git`. Use `gh` for all GitHub work
+(issues, releases, PRs) — never hand-roll API calls with a token.
+
+Push recovery: on a non-fast-forward rejection → `git pull --rebase origin main` → resolve → `npm test`
+→ push again. Never `--force` a shared branch; if history really must change, ask the owner first.
+
+---
+
+## Tools
+
+The project has **no custom tooling yet** — only the KAIF handles the installer wired into
+`package.json`. Add a row here the moment you add or extend a tool.
+
+| Command | What it does |
+|---------|--------------|
+| `npm test` | The correctness gate (`node --test`). See the harness section above. |
+| `npm run kaif:version` | Prints the deployed KAIF version / sphere / language (skill: `/kaif-version`). |
+| `npm run kaif:check` | Checks the origin for a newer KAIF release. |
+| `npm run kaif:update` | Updates the KAIF framework files in place (skill: `/kaif-update`). |
+| `gh` | All GitHub operations — issues, releases, repo settings. |
+
+---
+
+## Backlog & the DONE tag
+
+So that the file listing alone tells you what's open vs. closed — **insert the word `DONE` into the
+filename after the number when a file's task is completed and verified:**
+
+```
+bugs/04_modal.md                →  bugs/04_DONE_modal.md
+ideas/07_dev_menu.md      →  ideas/07_DONE_dev_menu.md
+```
+
+**Rule (do this every time you work with bug/idea files):**
+- Finished a bug/idea and it is CONFIRMED closed (status ✅, verified) — rename immediately, inserting
+  `DONE` after the number: `git mv <NN>_<name>.md <NN>_DONE_<name>.md`.
+- A file in progress / partial / research-only — do NOT mark `DONE` (🔧/🟡/🔬 = not done yet).
+- Use `git mv` (preserves history). Don't change the number.
+- Reference docs in `plans/` (master_plan, project_map, etc.) are NOT tasks — never tag them DONE.
+
+**Backlog revision skill — `/check-backlog`:** walks `bugs/` and `plans/`, collects everything without a
+`DONE` tag as the open backlog, and tags genuinely-closed files DONE (with a status section appended).
+
+**Bug reporting skill — `/report-bug`:** hit a defect during dev/test — file a dedicated md in `bugs/`
+by the canon, per `BUG_FIXING_FRAMEWORK.md`. The agent keeps its own bug backlog — one doc per defect,
+nothing lost.
+
+**Idea proposal skill — `/propose-idea`:** had a worthwhile idea that fits the master plan and the
+human's vision — file it as an md in `ideas/` with status "❓ awaiting human approval." An
+agent's idea is a contribution to the product VISION → implement ONLY after the human approves.
+
+---
+
+## Decisions the agent must NOT make alone — interviews
+
+Before a significant new feature, and whenever a brand/UX/architecture fork appears, conduct an
+**interview** with the human using the `/interview` skill: closed A/B/C questions, recommendation first,
+answered by the human directly in `interviews/interview_NNN_<topic>.md`. Never make UI/UX/brand/
+architecture decisions without confirmation. Everything else — decide yourself with sensible defaults
+and report in the chat.
+
+Rule of thumb: *is it cheap to reverse?* If yes — decide yourself. If it shapes brand/architecture/UX
+for the long term — interview.
+
+Task-level ambiguity (which of two deliverables did the human mean *right now*) is NOT an interview:
+per fable-method Step 0, ask exactly **one pointed question** in the chat that states your recommended
+interpretation. Interviews are for vision-level forks that outlive the task.
+
+---
+
+## Code style
+
+The universal baseline:
+- Comment all non-trivial blocks and modules — what the code does and why, and what it connects to.
+  This is for transparency, traceability, and future maintainability across context-losing sessions.
+- No magic numbers — named constants with clear names.
+- Prefer the platform/library's idiomatic, built-in way over a hand-rolled mechanism.
+
+JavaScript / Node specifics for KPOT:
+- **ESM only**, `.mjs` extension, `node:`-prefixed built-in imports (`import { readdir } from 'node:fs/promises'`).
+- **Near-zero dependencies.** Node's own APIs first (`node:fs`, `node:crypto`, `node:path`, `node:test`,
+  `parseArgs` from `node:util`). A new runtime dependency is an architecture decision — justify it in the
+  `MASTER_PLAN.md` decision log; a native-build dependency needs an `/interview`.
+- **Paths are data, not strings to concatenate.** Always `node:path`; never assume `/`. The owner runs
+  Windows: handle drive letters, UNC paths, `\\?\` long paths, case-insensitive-but-case-preserving
+  filesystems, and reserved names. Compare paths with a normalizing helper in `src/core/`, not `===`.
+- **Filenames are not ASCII and not safe.** Cyrillic, emoji, trailing dots/spaces, and 260-char limits
+  all occur in real archives. Never destroy a user's original filename — `GOAL.md` requires preserving it.
+- **Async and streaming.** Hash and read big media with streams; never load a video into memory. Bound
+  concurrency explicitly (a small worker pool) — an unbounded `Promise.all` over a whole drive will
+  exhaust file handles.
+- **Errors carry the path.** A failure on one file must never abort a whole scan: collect it into the run
+  report and continue. A partially-completed apply must be resumable/rollbackable from the journal.
+- **Test-status markers** in comments per `TESTING_FRAMEWORK.md`: new code is `[NOT-TESTED]` until an
+  observation flips it to `[TESTED: date · how]`.
+
+---
+
+## Notes from the human
+
+Standing guidance from the owner, extracted from `GOAL.md` (2026-07-24) — these are requirements, not
+preferences:
+- **Never move a user's file before all four safety artifacts exist**: (a) a detailed map of what goes
+  where and why, (b) a backup commit the source directory can be restored from, (c) a dry run whose
+  report is all-but-identical to the real run, (d) a post-sort report with a rollback path. This is the
+  core of the product, not a feature — see `GOAL.md` §"перед тем как инструмент выполнит реальную сортировку".
+- **Document every disputed case.** Where the date or the destination is ambiguous, record the conflict
+  and surface it in the pre-sort master plan instead of quietly picking a winner.
+- **Preserve what the user named.** Custom filenames and meaningful directory names survive the sort.
+- **Reuse before writing.** If a GitHub project already solves part of this well, use it for that part;
+  write our own `.mjs` only where nothing suitable exists. Record the comparison in `researches/`.
+
+General working rules:
+- Always check the current time and the log file's time before reading logs — read fresh logs, not stale ones.
+- Work autonomously without interactive questions. If you need information from the human, write an
+  interview document and pause the session (so the human is signaled to come answer), rather than blocking.
+- If you find bugs in third-party libraries, file tickets for them via `gh` on the human's behalf.
+- Actively test what you build, using whatever tooling lets you drive the software effectively.
+- Periodically re-read and, where useful, improve your own guidance docs so a fresh session can be
+  effective despite context loss. Steer and tune yourself toward maximum effectiveness and autonomy
+  toward the stated goal.

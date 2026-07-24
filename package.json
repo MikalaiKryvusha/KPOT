@@ -1,0 +1,21 @@
+{
+  "name": "kpot",
+  "version": "0.0.0",
+  "description": "Turns a chaotic home photo/video collection into a chronological library: scans, dates by metadata, groups duplicates, sorts into year/season folders — with a dry run, a backup commit and rollback.",
+  "type": "module",
+  "license": "MIT",
+  "author": "Mikalai Kryvusha (KOT KRINIK)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MikalaiKryvusha/KPOT.git"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test",
+    "kaif:version": "node .kaif/kaif-core.mjs version",
+    "kaif:check": "node .kaif/kaif-core.mjs check",
+    "kaif:update": "node .kaif/kaif-core.mjs update"
+  }
+}
