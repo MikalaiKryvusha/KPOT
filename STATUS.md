@@ -78,9 +78,8 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
 - [ ] Date-evidence model in `src/meta/` — the confidence/evidence structure and filename-date patterns
       (`IMG_20130704_101112`, `2013-07-04 10.11.12`, WhatsApp/Telegram/screenshot conventions).
       Pure functions, trivially testable.
-- [ ] Season mapping as a pure function over a date — boundaries DECIDED (interview #001 Q2): Jan–Feb
-      Зима начало года · Mar–May Весна · Jun–Aug Лето · Sep–Nov Осень · Dec Зима конец года. Small,
-      exact, testable.
+- [x] Season mapping — ✅ done 2026-07-24. `src/plan/season.mjs` (`seasonForMonth`, canonical Russian
+      dir names per interview #001 Q2), specs in `tests/season.test.mjs`. Suite 15/15.
 
 ---
 

@@ -38,7 +38,8 @@ KPOT/
 │
 ├── bin/kpot.mjs    # ✅ CLI entry: parseArgs → phase dispatch (scan/plan/apply/rollback), exit-code
 │                   #    contract 0/1/2/3; phases themselves land in Phases 2–5
-├── 🔲 src/         # scan/ meta/ dedupe/ plan/ apply/ report/ core/
+├── src/            # 🔶 in progress: plan/season.mjs ✅ (owner-decided month→season buckets);
+│                   #    the rest of scan/ meta/ dedupe/ plan/ apply/ report/ core/ is 🔲 planned
 └── tests/          # ✅ fixtures/make.mjs (deterministic messy-tree generator, 22 cases,
                     #    expected.json ground truth) + fixtures.test.mjs — npm test 5/5
 ```
