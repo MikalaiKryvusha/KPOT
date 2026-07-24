@@ -17,11 +17,15 @@
 //               Converting an instant to a year/season is a *plan-phase* decision (owner's local
 //               time), not something this layer does silently.
 
-/** Evidence kinds, strongest first. The array IS the precedence order for the Phase-2 resolver. */
+/** Evidence kinds, strongest first. The array IS the precedence order for the Phase-2 resolver.
+ * NOTE on wall-vs-instant ordering (EXP-0004): the library buckets by LOCAL year/season, so at the
+ * same trust tier a wall-clock source (what the device wrote in local time) outranks a UTC instant
+ * (mvhd, epoch) whose timezone is unknown — an instant can mis-shelve a midnight/New-Year shot.
+ * Instants still win when no wall source exists, and corroborate when both agree. */
 export const EVIDENCE_PRECEDENCE = Object.freeze([
   'exif-original',       // EXIF DateTimeOriginal — the shutter moment (wall)
-  'container-created',   // MP4/MOV mvhd or QuickTime creation date (instant, UTC)
   'filename-timestamp',  // full date(+time) written into the name by the device (wall)
+  'container-created',   // MP4/MOV mvhd or QuickTime creation date (instant, UTC)
   'filename-epoch',      // unix epoch in the name, seconds or ms (instant)
   'exif-modify',         // EXIF ModifyDate — edited/exported time, weaker than original
   'sidecar',             // THM/XMP twin file's metadata, inherited by the media file
@@ -38,8 +42,8 @@ export const EVIDENCE_RANK = Object.freeze(
 /** Default confidence class per kind — the resolver's starting point, not its verdict. */
 export const DEFAULT_CONFIDENCE = Object.freeze({
   'exif-original': 'high',
-  'container-created': 'high',
   'filename-timestamp': 'high',
+  'container-created': 'high',
   'filename-epoch': 'high',
   'exif-modify': 'medium',
   'sidecar': 'medium',
@@ -116,10 +120,11 @@ export function formatWall({ year, month, day, hour = 0, minute = 0, second = 0 
  * @param {Date} [claim.instant]
  * @param {boolean} [claim.dateOnly]  true when the source carries a date but no time of day
  * @param {string} [claim.detail]    human-readable provenance, e.g. the matched pattern id
+ * @param {string} [claim.season]    observed season word (dirname evidence: owner's own "осень" dirs)
  * @returns {{kind: string, rank: number, confidence: string,
- *            wall?: object, instant?: Date, dateOnly: boolean, detail?: string}}
+ *            wall?: object, instant?: Date, dateOnly: boolean, detail?: string, season?: string}}
  */
-export function makeEvidence(kind, { wall, instant, dateOnly = false, detail } = {}) {
+export function makeEvidence(kind, { wall, instant, dateOnly = false, detail, season } = {}) {
   if (!(kind in EVIDENCE_RANK)) {
     throw new RangeError(`unknown evidence kind: ${kind}`);
   }
@@ -139,5 +144,6 @@ export function makeEvidence(kind, { wall, instant, dateOnly = false, detail } =
     ...(wall !== undefined ? { wall } : { instant }),
     dateOnly,
     ...(detail !== undefined ? { detail } : {}),
+    ...(season !== undefined ? { season } : {}),
   };
 }

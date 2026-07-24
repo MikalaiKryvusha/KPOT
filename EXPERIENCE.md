@@ -23,6 +23,12 @@
 
 ## Entries
 
+### EXP-0005 · 2026-07-24 · ✅ · #precedence #fixtures #design #dates
+**Context:** wiring the DateVerdict resolver: the seeded precedence (Elodie order) put container/mvhd above filename timestamps — but the fixture's VID_ case (mvhd and filename agreeing) expected `filename` to win.
+**Tried / did:** instead of "fixing" the fixture, treated the ground truth as the spec and re-examined the order: mvhd is a UTC instant with unknown timezone, the filename is the device's LOCAL wall clock — and the product buckets by LOCAL season. Amended precedence (wall > instant at equal tier), recorded it in the decision log, updated the model spec with the rationale.
+**Result:** ✅ — acceptance spec green across all 18 media cases; the amendment also cleanly justified "fs-mtime never determines".
+**Lesson:** when code disagrees with a fixture's planted expectation, the fixture is a spec surface — resolve the conflict by REASONING about the domain, then record the decision in the decision log; silently editing either side loses the design insight. Fixture-first caught a real precedence flaw before any real data.   → link: MASTER_PLAN.md decision log · src/meta/evidence.mjs
+
 ### EXP-0004 · 2026-07-24 · ✅ · #meta #dates #timezone #testing #fixtures
 **Context:** building the date-evidence model — filename detectors had to be tested against fixture ground truth whose epoch case (`1374250121884` → "2013-07-19 18:08:41") is written in the OWNER'S local time.
 **Tried / did:** modeled two distinct claim shapes instead of one Date: `wall` (naive local components, what `IMG_20140121_183801` and EXIF encode) vs `instant` (absolute UTC, what epoch names and mvhd encode). Tests assert wall claims against ground-truth strings (TZ-free) and instant claims against exact epoch ms — never a locally-formatted epoch string.

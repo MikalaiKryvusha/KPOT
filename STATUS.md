@@ -61,6 +61,17 @@
   stderr. Verified against fixture ground truth (all 22 planted kinds correct, dup group collides,
   "+"-twins don't, read-only proven by stat comparison) + a real CLI smoke run. 8 new specs, suite
   **48/48**.
+- **The date pipeline is live (2026-07-24, same day):** extractors — `src/meta/exif.mjs`
+  (`exifreader ^4.41.3`, the single runtime dependency, install noted in the decision log),
+  `src/meta/mp4.mjs` (our own ISO-BMFF walk to mvhd, positioned reads, UTC instant),
+  `src/meta/dirname_date.mjs` (owner's own year/season dirs, innermost wins) — plus
+  `src/meta/resolve.mjs` (the DateVerdict resolver: implausible years → disputed, fs-mtime NEVER
+  determines, corpus-level copy-spike discounting, year-only sources → honest *partial* verdicts,
+  losers kept visible) and `src/meta/annotate.mjs` (composition; wired into `kpot scan` JSON).
+  Precedence amendment recorded in the decision log: wall-clock sources outrank UTC instants at
+  the same tier. **Phase-2 acceptance spec passes**: every planted date recovered, every planted
+  undatable *unknown*, evidence attached; CLI smoke = `15 dated · 1 partial · 2 unknown` — the
+  ground truth exactly. Suite **55/55**.
 
 ---
 
@@ -69,18 +80,18 @@
 **Phase 1 is CLOSED (2026-07-24).** Research done, every product fork decided by the owner, the
 harness foundation exists, the CLI skeleton runs, and the bottom layers are real: `src/core/`
 (paths/journal/pool) and the `src/meta/` date-evidence model (Evidence + filename detectors) are
-implemented and verified against the fixture ground truth. **Phase 2 is underway:** the scan phase
-(walk + identify-by-content + hash) is implemented and wired to `kpot scan`. What's left of
-Phase 2: the metadata extractors (EXIF via `exifreader`, our own MP4/MOV mvhd parser), the
-remaining evidence collectors (sidecar / dirname / mtime with spike discounting) and the
-DateVerdict resolver on top of `src/meta/evidence.mjs`.
+implemented and verified against the fixture ground truth. **Phase 2 is essentially closed** —
+scan (walk + identify-by-content + hash) AND the full date pipeline (EXIF/mvhd/filename/dirname/
+mtime evidence → DateVerdict) run inside `kpot scan`, and the phase's acceptance criteria are a
+green spec. One deliberate cut: THM/XMP sidecar evidence is deferred until a fixture case exists.
+Next: Phase 3 — duplicate grouping + the SortPlan.
 
 | Phase | Status | What's there |
 |-------|--------|--------------|
 | Phase 0 — foundation | ✅ done | repo, license, KAIF, docs, `npm test` gate |
 | Phase 1 — research + decisions + skeleton | ✅ done | researches 01+02, interview #001 ✅, fixtures, CLI, seasons, `src/core/`, `src/meta/` evidence model |
-| Phase 2 — scan & metadata | 🔶 in progress | scan ✅ (`kpot scan` live, fixture-verified); left: EXIF/MP4 extractors, dirname/sidecar/mtime evidence, DateVerdict resolver |
-| Phase 3 — dedup & plan | 🔲 todo | unblocked (seasons + layout decided) |
+| Phase 2 — scan & metadata | ✅ done | acceptance spec green; `kpot scan` = assets + evidence + verdicts; deferred: sidecar evidence (needs a fixture case first) |
+| Phase 3 — dedup & plan | 🔲 next | fully unblocked: seasons + layout decided, verdicts + hashes flow from scan |
 | Phase 4 — safety (backup / dry run / rollback) | 🔲 todo | backup fork: manifest+hardlink favored (551 GB reality) |
 | Phase 5 — apply & reports | 🔲 todo | nothing yet |
 
@@ -116,6 +127,13 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
       scavengers demoted to medium). 11 specs, verified against fixture `expected.json` ground truth.
 - [x] Scan phase `src/scan/` — ✅ done 2026-07-24. Identify-by-content + walk + streamed hashing,
       wired to `kpot scan` (exit 0, JSON out). 8 specs incl. read-only proof; suite 48/48.
+- [x] Phase-2 date pipeline — ✅ done 2026-07-24. Extractors (exif/mp4/dirname) + mtime spike
+      discounting + DateVerdict resolver + annotate, wired into `kpot scan`. Acceptance spec green;
+      suite 55/55.
+- [ ] Sidecar evidence (THM/XMP) — plant a fixture case first (THM next to its video twin, per the
+      survey), then a collector feeding 'sidecar' evidence into the resolver. Small, self-contained.
+- [ ] Scan-map cache keyed by (path, size, mtime) — hashing 551 GB is hours; a persistent cache in
+      `.kpot-runs/` makes re-scans and the future top-up flow (idea 01) cheap. Design it read-safe.
 - [x] Season mapping — ✅ done 2026-07-24. `src/plan/season.mjs` (`seasonForMonth`, canonical Russian
       dir names per interview #001 Q2), specs in `tests/season.test.mjs`. Suite 15/15.
 
@@ -146,20 +164,21 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
 > A concrete checklist so the next session (empty context) can start immediately: which files, which
 > commands, what to verify first.
 
-1. Verify the environment: `node -v` (≥20), `npm test` (**must be 48/48**), `git status` (clean),
+1. Verify the environment: `node -v` (≥20), `npm test` (**must be 55/55**), `git status` (clean),
    `gh auth status` (MikalaiKryvusha).
-2. **Phase 2 extractors feeding the evidence model**: `exifreader` for images (the decided
-   dependency — `npm install exifreader`, note the install in the decision log row), our own
-   ~150-line MP4/MOV mvhd parser in `src/meta/` (fixture MP4s carry real mvhd creation times, UTC),
-   and the remaining evidence collectors: dirname year/season (owner's hand-sorted subtrees),
-   THM/XMP sidecars, mtime with bulk-copy-spike detection and discounting.
-3. **The DateVerdict resolver** on top of `src/meta/evidence.mjs` precedence: one verdict per
-   asset, losers kept (disputed cases must show their overruled evidence), implausible-year claims
-   (broken clocks) diverted to disputed, corroboration when independent claims agree.
-4. Acceptance for the phase (MASTER_PLAN Phase 2): on the fixture tree every planted date is
-   recovered, every planted undatable is reported *unknown* (not guessed), each verdict lists its
-   evidence, zero writes to the input. Wire the verdicts into the `kpot scan` JSON.
-5. Decisions are all in `MASTER_PLAN.md` §Decision log (2026-07-24 block) — re-read before designing;
+2. **Phase 3 — `src/dedupe/`**: group assets by sha256 across directories (scan already emits the
+   hashes; the fixture plants a 3-copy group and the "+"-twin negative case), pick the keeper —
+   prior art bar: phockup's collision semantics (researches/01). Owner rule: duplicates are set
+   aside, never erased.
+3. **Phase 3 — `src/plan/`**: verdict → Bucket (season.mjs exists: year/season, `видео/`+`аудио/`
+   subdirs, per-year and global `прочее`, junk quarantine `ПРОЧЕЕ/_мусор` with provenance, custom
+   parent dirs preserved as nesting) → the SortPlan artifact: ordered Operations + disputed cases +
+   collisions, serializable, consumed later by apply/dry-run/rollback (internal map: "the plan is
+   an artifact, not a step"). Wire `kpot plan <dir>`, exit 3 → 0.
+4. Acceptance (MASTER_PLAN Phase 3): the pre-sort plan on the fixture tree is complete and
+   human-readable, and every planted ambiguity appears in the disputed section.
+5. Small parallel items if blocked: sidecar fixture case + collector; scan-map cache (see backlog).
+6. Decisions are all in `MASTER_PLAN.md` §Decision log (2026-07-24 block) — re-read before designing;
    do not re-ask the owner what is already decided there.
 
 ---

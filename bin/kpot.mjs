@@ -20,6 +20,7 @@ import { readFile, stat } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 import process from 'node:process';
 import { scanTree } from '../src/scan/scan.mjs';
+import { annotateAssets } from '../src/meta/annotate.mjs';
 
 export const EXIT_OK = 0;
 export const EXIT_ERROR = 1;
@@ -121,9 +122,11 @@ export async function run(argv, { out = console.log, err = console.error } = {})
  * inside the JSON and do not fail the run; only a scan-level failure exits non-zero.
  */
 async function runScan(dir, { out, err }) {
-  let result;
+  let result, verdicts;
   try {
     result = await scanTree(dir);
+    verdicts = await annotateAssets(result.root, result.assets); // dates + evidence per media asset
+    result.errors.push(...verdicts.errors);
   } catch (e) {
     err(`kpot scan: ${e.message}`);
     return EXIT_ERROR;
@@ -133,6 +136,7 @@ async function runScan(dir, { out, err }) {
   for (const a of result.assets) byKind[a.kind] = (byKind[a.kind] ?? 0) + 1;
   const kinds = Object.entries(byKind).map(([k, n]) => `${k} ${n}`).join(' · ') || 'nothing';
   err(`kpot scan: ${result.assets.length} files (${kinds})`
+    + ` · dates: ${verdicts.dated} dated, ${verdicts.partial} partial, ${verdicts.unknown} unknown`
     + (result.errors.length ? ` · ${result.errors.length} unreadable — see "errors"` : ''));
   return EXIT_OK;
 }

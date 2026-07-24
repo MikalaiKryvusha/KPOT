@@ -11,11 +11,13 @@ import {
 const NOW = new Date('2026-07-24T00:00:00Z'); // injected clock — specs never read the real one
 
 test('precedence encodes the researched order: EXIF strongest, mtime weakest', () => {
-  // Seeded from Elodie's proven order + the real-archive survey tiers (researches/01 §5, 02 §Impl.)
+  // Seeded from Elodie's proven order + the real-archive survey tiers (researches/01 §5, 02 §Impl.),
+  // with one product-driven amendment: wall-clock sources outrank UTC instants at the same tier,
+  // because the library buckets by LOCAL season (see the note in evidence.mjs / EXP-0004).
   assert.equal(EVIDENCE_PRECEDENCE[0], 'exif-original');
   assert.equal(EVIDENCE_PRECEDENCE.at(-1), 'fs-mtime');
-  assert.ok(EVIDENCE_RANK['container-created'] < EVIDENCE_RANK['filename-timestamp']);
-  assert.ok(EVIDENCE_RANK['filename-timestamp'] < EVIDENCE_RANK['filename-epoch']);
+  assert.ok(EVIDENCE_RANK['filename-timestamp'] < EVIDENCE_RANK['container-created']);
+  assert.ok(EVIDENCE_RANK['container-created'] < EVIDENCE_RANK['filename-epoch']);
   assert.ok(EVIDENCE_RANK['filename-epoch'] < EVIDENCE_RANK['dirname']);
   assert.ok(EVIDENCE_RANK['dirname'] < EVIDENCE_RANK['fs-mtime']);
   // every kind has a rank and a default confidence — no orphans in either table
