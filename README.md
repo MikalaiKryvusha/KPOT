@@ -1,9 +1,11 @@
+<p align="center">
+  <img src="KPOT.jpg" alt="KPOT — Krinik Photo Organizer Tool" width="420">
+</p>
+
 # KPOT — Krinik Photo Organizer Tool
 
-[🇬🇧 English](#english) · [🇷🇺 Русский](#русский)
-
 ![License](https://img.shields.io/badge/license-MIT-green)
-![Status](https://img.shields.io/badge/status-Phase%201%20·%20research-orange)
+![Status](https://img.shields.io/badge/status-scan%20works%20·%20Phase%203%20next-orange)
 ![Node](https://img.shields.io/badge/node-%E2%89%A520-brightgreen)
 ![Platform](https://img.shields.io/badge/platform-Windows--first-blue)
 ![Framework](https://img.shields.io/badge/powered%20by-KAIF%201.5-purple)
@@ -11,6 +13,8 @@
 ---
 
 ## English
+
+[Читать по-русски →](#русский)
 
 **KPOT — Krinik Photo Organizer Tool.** Chaos in, chronology out: a safety-first CLI tool that turns
 a messy home photo/video archive into a browsable chronological library, sorted by year and season —
@@ -57,9 +61,15 @@ sorting half a terabyte takes minutes, not hours.
 
 ### Status
 
-🚧 **Early development.** The tool is not usable yet (every phase reports "not implemented", exit
-code 3). What already exists and is verified by tests (15/15 green):
+🚧 **Early development — the scan phase already works.** Sorting itself (`plan` / `apply` /
+`rollback`) is not implemented yet (exit code 3). Verified by tests (56/56 green):
 
+- **`kpot scan <dir>` is live**: walks the tree, identifies every file by content magic bytes
+  (extensions lie), hashes it (streamed SHA-256), and resolves **when** each shot was taken — an
+  evidence-based [DateVerdict](src/meta/resolve.mjs) per media file: EXIF, MP4/MOV `mvhd` (own
+  parser), filename patterns, epoch names, folder names, neighbor-cohort inference — with disputed
+  evidence kept visible, broken camera clocks quarantined, and honest *unknown* instead of guesses.
+  Machine-readable JSON out; strictly read-only.
 - [Prior-art research](researches/01_prior_art.md) — what we reuse (`exifreader`, `node:crypto`)
   vs. write ourselves (MP4/MOV date parser, evidence-based date resolver, all product logic).
 - [Real-archive survey](researches/02_real_archive_survey.md) — anonymized study of a real 71 000-file
@@ -68,9 +78,12 @@ code 3). What already exists and is verified by tests (15/15 green):
 - All product decisions closed by the owner ([interview #001](interviews/interview_001_extractor_seasons_policies.md)):
   pure-JS metadata extraction, five season buckets, `видео/` + `аудио/` subdirs, junk quarantine
   with provenance, rename-based moves.
-- [CLI skeleton](bin/kpot.mjs) — `scan` / `plan` / `apply --dry-run` / `rollback` dispatch with a
-  stable exit-code contract · [fixture generator](tests/fixtures/make.mjs) — deterministic messy tree
-  with 25 planted chaos cases + ground-truth manifest · [season mapping](src/plan/season.mjs).
+- Foundation: [CLI](bin/kpot.mjs) with a stable exit-code contract · [core primitives](src/core/)
+  (Windows path normalization, run journal, bounded concurrency) · [fixture generator](tests/fixtures/make.mjs)
+  — deterministic messy tree with 25 planted chaos cases + ground-truth manifest ·
+  [season mapping](src/plan/season.mjs).
+
+Next up — Phase 3: duplicate grouping and the pre-sort plan (SortPlan + disputed cases).
 
 Roadmap: `MASTER_PLAN.md` · current state: `STATUS.md`.
 
@@ -88,6 +101,8 @@ MIT © 2026 Mikalai Kryvusha (KOT KRINIK)
 ---
 
 ## Русский
+
+[Read in English →](#english)
 
 **KPOT — Krinik Photo Organizer Tool.** На входе бардак, на выходе хронология: безопасный
 CLI-инструмент, который превращает захламлённый домашний фото-видео архив в удобную хронологическую
@@ -134,9 +149,15 @@ KPOT **не переместит ни одного файла**, пока не �
 
 ### Статус
 
-🚧 **Ранняя разработка.** Инструментом пользоваться пока нельзя (каждая фаза отвечает «не
-реализовано», код выхода 3). Что уже существует и проверено тестами (15/15 зелёных):
+🚧 **Ранняя разработка — фаза сканирования уже работает.** Сама сортировка (`plan` / `apply` /
+`rollback`) ещё не реализована (код выхода 3). Проверено тестами (56/56 зелёных):
 
+- **`kpot scan <dir>` работает**: обходит дерево, определяет каждый файл по магическим байтам
+  содержимого (расширения врут), хеширует (потоковый SHA-256) и устанавливает, **когда** снят
+  каждый кадр — [вердикт по уликам](src/meta/resolve.mjs) для каждого медиафайла: EXIF, `mvhd`
+  из MP4/MOV (собственный парсер), паттерны имён, epoch-имена, названия папок, вывод по соседям —
+  спорные улики сохраняются на виду, сломанные часы камер попадают в спорные, а вместо догадки —
+  честное «неизвестно». На выходе машиночитаемый JSON; строго только чтение.
 - [Исследование готовых решений](researches/01_prior_art.md) — что берём готовое (`exifreader`,
   `node:crypto`), что пишем сами (парсер дат MP4/MOV, резолвер даты по уликам, вся продуктовая логика).
 - [Обзор реального архива](researches/02_real_archive_survey.md) — обезличенное исследование
@@ -146,10 +167,12 @@ KPOT **не переместит ни одного файла**, пока не �
 - Все продуктовые решения закрыты владельцем ([интервью #001](interviews/interview_001_extractor_seasons_policies.md)):
   чистый JS для метаданных, пять сезонов, подпапки `видео/` и `аудио/`, карантин мусора с записью
   происхождения, перемещения переименованием.
-- [Скелет CLI](bin/kpot.mjs) — диспетчер `scan` / `plan` / `apply --dry-run` / `rollback` со
-  стабильным контрактом кодов выхода · [генератор фикстур](tests/fixtures/make.mjs) —
-  детерминированное «бардачное» дерево из 25 случаев хаоса с эталоном ответов ·
-  [маппинг сезонов](src/plan/season.mjs).
+- Фундамент: [CLI](bin/kpot.mjs) со стабильным контрактом кодов выхода ·
+  [примитивы ядра](src/core/) (нормализация Windows-путей, журнал запуска, ограниченная
+  конкурентность) · [генератор фикстур](tests/fixtures/make.mjs) — детерминированное «бардачное»
+  дерево из 25 случаев хаоса с эталоном ответов · [маппинг сезонов](src/plan/season.mjs).
+
+Дальше — Фаза 3: группировка дубликатов и пред-сортировочный план (SortPlan + спорные случаи).
 
 Дорожная карта: `MASTER_PLAN.md` · текущее состояние: `STATUS.md`.
 

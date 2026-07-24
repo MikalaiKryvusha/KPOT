@@ -71,6 +71,9 @@
   Precedence amendment recorded in the decision log: wall-clock sources outrank UTC instants at
   the same tier. **Phase-2 acceptance spec passes**: every planted date recovered, every planted
   undatable *unknown*, evidence attached; CLI smoke matches the ground truth exactly.
+- **README branding pass (owner request, 2026-07-24):** centered `KPOT.jpg` logo on top, flag
+  emojis removed, per-section language switchers (EN section links to RU and vice versa), status
+  sections/badges synced to reality (scan works, Phase 3 next, suite 56/56).
 - **Dir-cohort evidence (owner-approved 2026-07-24; file-size dating rejected):**
   `src/meta/cohort.mjs` — an undatable file among ≥3 confidently-dated same-year neighbors (≥80%
   consensus) gets that year as a flagged low-confidence ASSUMPTION (`verdict.assumed`, partial,
@@ -161,6 +164,10 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
   a desktop shortcut running an incremental **top-up flow** into the structured library (owner's
   own request in chat 2026-07-24; forks to close: auto-apply vs stop-at-plan, inbox location,
   emptied-folder policy, inbox default name). Touches Phases 3–5; does not block Phase 2 work.
+- ❓ **Logo source PNGs untracked** — owner dropped `KPOT_orinigal.png` (2.7 MB) and
+  `KPOT_upscale.png` (9.5 MB) into the repo root; the committed logo is `KPOT.jpg` (400 KB, used
+  by README). The two PNGs look like design sources — awaiting the owner's word: commit (maybe
+  under `assets/`), keep locally untracked, or delete. Do not commit silently (public repo, 12 MB).
 
 ---
 
