@@ -12,8 +12,10 @@
 
 ### Phase 0 — Project foundation ✅ (2026-07-24)
 - `GOAL.md` written by the owner (in Russian) — the product contract. Read it before planning anything.
-- KAIF 1.5 deployed (lang `ru`, mode `standard`, sphere `programming`, 5 agent systems). Record and
-  rationale: `KAIF_FRAMEWORK.md`.
+- KAIF deployed (lang `ru`, mode `standard`, sphere `programming`, 5 agent systems). Record and
+  rationale: `KAIF_FRAMEWORK.md`. **Updated 1.5 → 1.6 "Homeostatic KAIF" on 2026-07-26** — see the
+  update record in `KAIF_FRAMEWORK.md` and `plans/01_kaif_16_update_report.md` (findings handed to the
+  KAIF framework agent — owner to forward; no issue filed without the owner's word).
 - Repository created and published: **https://github.com/MikalaiKryvusha/KPOT** (public, MIT).
   `git init` on `main`, `origin` wired via `gh`.
 - `LICENSE` (MIT), `.gitignore`, `package.json` (`"type": "module"`, Node ≥20, `npm test` → `node --test`).

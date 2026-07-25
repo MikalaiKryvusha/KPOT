@@ -17,11 +17,32 @@
 > **Tried / did:** the approach, briefly.
 > **Result:** ✅/❌ — what happened.
 > **Lesson:** the reusable takeaway (the reason this entry exists).   → link: bugs/NN · ideas/NN · plans/NN
+> **Repro:** the ready-to-run command/check that verifies or applies the lesson — a weak session
+>   executes a pasted command reliably, an essay it won't act on. (omit only if truly none exists)
+> **Not for:** the lesson's validity range — where it does NOT apply. A documented lesson is still a
+>   hypothesis; applied outside its range it kills good ideas.
 > ```
+>
+> The `#tags` are **trigger-tags**: before a task, grep by the task's tags and QUOTE the relevant
+> lessons in your report (id + one line) — or state "no relevant lessons". An unquoted recall is
+> unverifiable; `/fable-judge` checks for this line.
+>
+> **Entries EXP-0001…EXP-0005 predate the `Repro`/`Not for` fields (added with KAIF 1.6, 2026-07-26)** —
+> they were left as written rather than back-filled, because inventing a validity range after the fact
+> is exactly the kind of plausible-but-sourceless text 1.6 hunts. New entries carry both fields.
 >
 > Skill: `/experience` (capture a lesson · recall relevant lessons).
 
 ## Entries
+
+### EXP-0006 · 2026-07-26 · ✅ · #kaif #update #framework #merge #verification
+**Context:** updating the deployed framework KAIF 1.5 → 1.6. The machinery replaces untouched files itself and hands back a list of *diverged* files to merge by hand — but it hands over no diff, and its "What's new" block turned out to describe the PREVIOUS release.
+**Tried / did:** refused to merge from the new template alone (against a project-adapted file that dilutes into noise). Fetched the PREVIOUS release's bundle from GitHub Releases, sha256-verified it against its own manifest, extracted both bundles with a 20-line re-implementation of the bundle parser, and diffed template-vs-template per file. That isolates the true upstream delta from local adaptation. Then verified completeness with a line-level parity inventory: every line upstream added → traced in the deployed file.
+**Result:** ✅ — 16 of 134 templates actually changed; only 6 of the 7 "diverged" files needed anything; the inventory caught 1 silently dropped cross-reference that all 18 keyword spot-checks had passed. Suite 56/56 before and after, no owner content touched.
+**Lesson:** to merge an upstream change into a locally-adapted file you need THREE versions, not two — old template, new template, local file. Diffing local-vs-new answers the wrong question. And a keyword spot-check ("is the new section there?") proves presence, never completeness: only a countable row-per-added-line inventory catches what you silently dropped while rewording. Corollary: a generated "what's new" section is a claim like any other — check it names the version you actually installed.   → link: plans/01_kaif_16_update_report.md · KAIF_FRAMEWORK.md
+**Repro:** `node .kaif/kaif-core.mjs version` then fetch the previous release's bundle and diff:
+  `gh release download v<prev> --repo <origin> -p KAIF-CORE-BUNDLE.md` → extract both → `git diff --no-index old/<file> new/<file>`. Parity check: for each added line, assert a distinctive fragment of it appears in the deployed file.
+**Not for:** files the machinery replaced mechanically (their sha matched the install snapshot — by construction they carry no local edits, so the three-way work is wasted), and owner-content documents where the *content* is the owner's and only the surrounding convention comes from upstream — there, merge the convention and leave the entries alone.
 
 ### EXP-0005 · 2026-07-24 · ✅ · #precedence #fixtures #design #dates
 **Context:** wiring the DateVerdict resolver: the seeded precedence (Elodie order) put container/mvhd above filename timestamps — but the fixture's VID_ case (mvhd and filename agreeing) expected `filename` to win.

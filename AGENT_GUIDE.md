@@ -27,25 +27,28 @@ relies entirely on this document to get to work.
 5. Read MEMORY.md (if present)    # user profile, key decisions
 6. Load ONLY the relevant slice   # use the Context router below — read the required minimum + task-type docs, not everything
 7. Execute by the fable loop      # /fable-method: gates + forced artifacts (INTENT/AUTH/TWINS/PENDING); /fable-loop to orchestrate; /fable-judge before claiming done
-8. Read the relevant plan         # plans/<feature>.md, if the task touches a specific feature
-9. Check the map & blast radius   # before editing code: PROJECT_ARCHITECTURE_INTERNAL_MAP.md — who is affected; update the map if relations change
-10. Run the build (if touching code)   # NO build step — pure Node ESM. The gate is `npm test`. Do NOT run `npm run build` (no such script).
-11. Use the test harness          # `npm test` (node --test) + CLI runs against tests/fixtures/ — drive/observe the software without a human
-12. Comment the code              # comment blocks, classes, modules, important lines — with a test-status marker: fresh raw content gets [NOT-TESTED]; verified-by-observation flips to [TESTED: date · how] (TESTING_FRAMEWORK.md)
-13. Reflect on bugs in bugs/      # one md per bug; follow BUG_FIXING_FRAMEWORK.md
-14. Capture experience            # after a meaningful success/failure, append a lesson to EXPERIENCE.md (skill: /experience)
-15. Periodically re-read the key guidance docs:
+8. Read the relevant plan         # plans/<feature>.md, if the task touches a specific feature. Code by citing the plan: before implementing a step, QUOTE the anchor line you are doing right now — if you can't name the line, that's scope drift caught BEFORE the diff
+9. Recon before code (external truth)  # the task rests on an external truth (a file format spec, a third-party lib's real behavior, the owner's real archive, another tool's semantics)? The FIRST artifact is a recon doc in researches/ — code is forbidden until it exists; then code by the document, not from recall. Recon docs are reused by every future session (researches/01_prior_art.md, researches/02_real_archive_survey.md)
+10. Check the map & blast radius   # before editing code: PROJECT_ARCHITECTURE_INTERNAL_MAP.md — who is affected; update the map if relations change
+11. Run the build (if touching code)   # NO build step — pure Node ESM. The gate is `npm test`. Do NOT run `npm run build` (no such script).
+12. Use the test harness          # `npm test` (node --test) + CLI runs against tests/fixtures/ — drive/observe the software without a human
+13. Comment the code              # comment blocks, classes, modules, important lines — with a test-status marker: fresh raw content gets [NOT-TESTED]; verified-by-observation flips to [TESTED: date · how] (TESTING_FRAMEWORK.md)
+14. Reflect on bugs in bugs/      # one md per bug; follow BUG_FIXING_FRAMEWORK.md
+15. Capture experience            # after a meaningful success/failure, append a lesson to EXPERIENCE.md (skill: /experience)
+16. Periodically re-read the key guidance docs:
     - PHILOSOPHY.md   ← the simplicity principle; if stuck, go here first
     - AGENT_GUIDE.md
     - STATUS.md
     - BUG_FIXING_FRAMEWORK.md
     Edit them when it would make future autonomous work more effective. The agent operates across
     sessions that lose context — these docs must let a fresh session get productive from empty context.
-16. Narrate in the chat, at least a little, in natural language — what you're doing right now — so the
+17. Narrate in the chat, at least a little, in natural language — what you're doing right now — so the
     human can glance over and follow along.
-17. Documents from the human (ideas, bugs, features): read them, fix typos, minimally restructure into a
-    clean structured format for AI consumption. After implementing from such a document, write the
-    status and the implementation date back into it.
+18. Documents from the human (ideas, bugs, features): FIRST commit the original verbatim (git add +
+    commit) — only then, in a following commit, fix typos and minimally restructure into a clean
+    structured format for AI consumption (the human's voice and every thought preserved; their original
+    wording stays reachable in git history). After implementing from such a document, write the status
+    and the implementation date back into it.
 ```
 
 → **`STATUS.md`** is the master state file. Update it after every significant task.
@@ -63,9 +66,34 @@ Don't read every document "just in case" — that fills the context you're tryin
 | Feature / idea     | `ideas/<this>` · `MASTER_PLAN.md` · the relevant `plans/<this>`        |
 | Refactor / edit    | `AGENT_GUIDE.md` · the two maps (blast radius)                         |
 | Planning           | `MASTER_PLAN.md` · `GOAL.md` · open backlog                            |
+| External truth involved (file-format spec / third-party lib / the real archive / another tool) | the recon doc in `researches/` — **create it first** if it doesn't exist (checklist step 9) |
 
 Sections in these documents are anchored — address a slice (`DOC.md#anchor`) rather than re-reading the
 whole file. The required minimum is **not** subject to laziness: `PHILOSOPHY.md` always applies.
+
+### Recon artifacts — when the task has an external truth
+
+Three artifact types live in `researches/`, each replacing a specific kind of invention with
+observation (a session that "remembers" a domain invents it):
+
+- **Recon doc** (checklist step 9) — *describes* how the external truth actually works, read from the
+  live source (the format spec, the library's real output, the running tool) — never from recall. The
+  first artifact of any task that rests on one; reused by every future session. KPOT already has two:
+  `researches/01_prior_art.md` (npm/prior-art facts, spot-verified) and
+  `researches/02_real_archive_survey.md` (the owner's real archive, observed read-only).
+- **Canon map** — for any domain with facts: a table of entities → their roles → mappings, **approved by
+  the owner**. The map precedes the canon: every edit is checked against it, ONLY the owner may change
+  it, and a conflict between text and map = stop and ask. Key facts of the map deserve guards
+  (`BUG_FIXING_FRAMEWORK.md` → Guards). For KPOT the owner-decided mappings live in `MASTER_PLAN.md`
+  §Decision log (month→season, layout, junk policy) — treat that block as the canon map and never
+  re-decide what it settles; `src/plan/season.mjs` + `tests/season.test.mjs` are exactly such a guard
+  over the month→season row.
+- **Parity inventory** — where a reference exists (a prior-art tool, a format spec, the survey's
+  catalog of real filename conventions): a **countable** checklist, one row per element — `element →
+  reference behavior → present in ours? → OK/bug`. The rule: **no inventory row — no code**; delivery is
+  judged BY THE ROWS, not by impression. A recon doc *describes*; the inventory *counts* — a session can
+  read a description and still invent, but it cannot argue with a row. `tests/fixtures/expected.json` is
+  this project's executable parity inventory: every planted case is a row.
 
 ### Task execution discipline — the fable loop
 
@@ -223,9 +251,29 @@ already excludes `/.kpot-runs/` and `*.log`. Test fixtures must be synthetic and
 > releases, deploys, external sends/publishes, force-pushes, deletions of shared data — still requires
 > the owner's quoted words (an `AUTH:` line).
 
+**Non-negotiable git hygiene (each rule exists because its violation burned a real project):**
+
+- **`git diff --stat` before every commit.** Anything in the diff you did not intend to change — STOP
+  and explain it first. This includes diffs *your tools* generated (lock files, manifests, formatters):
+  an agent trusts its tools even more blindly than itself — read those diffs line by line.
+- **Ignore first, then the tool.** Any new tool, export, dump, key, or binary enters the project ONLY
+  after its `.gitignore` line exists. A secret caught by a gate is a success of procedure; a secret
+  caught by the owner is a failure of the framework. For KPOT this is sharper than usual: the owner's
+  media, real archive paths and run journals must never reach a public repo — `/.kpot-runs/` and `*.log`
+  are already ignored; anything new that touches real data gets its ignore line BEFORE it is created.
+- **The owner's originals are inviolable.** A document from the owner is committed verbatim BEFORE any
+  edit (checklist step 18) — never "improve" an original that isn't safely in history yet.
+
 ## Commits
 
 Style: `feat:`, `fix:`, `docs:`, `refactor:`, `ci:` + one line of what was done.
+
+**A commit that touches test files carries a justification block:** *why this test changed and what it
+now guards*. A test edit without it is fraud by default (`/fable-judge` hunts exactly this — the quiet
+fitting of tests to new behavior is the most documented agent failure). After changing behavior, also
+answer: could the old tests now pass for the WRONG reason? If yes — rebuild the fixtures so each test
+guards what it claims to guard, and say so in the commit.
+
 End every commit message with the co-author trailer:
 
 ```
@@ -282,6 +330,20 @@ ideas/07_dev_menu.md      →  ideas/07_DONE_dev_menu.md
 - A file in progress / partial / research-only — do NOT mark `DONE` (🔧/🟡/🔬 = not done yet).
 - Use `git mv` (preserves history). Don't change the number.
 - Reference docs in `plans/` (master_plan, project_map, etc.) are NOT tasks — never tag them DONE.
+- **Closing any idea/bug/plan requires a "Decisions made without the owner" section** — every
+  micro-decision the agent made solo while executing, and how it chose (or an explicit "none"). An agent
+  silently makes dozens of such calls; this section puts them on the owner's table, where a divergence
+  from the vision costs one line to fix instead of a rework — and it is the best generator of the
+  owner's next questions. Unsettled assumptions (fable `PENDING:` lines) are settled here too: each one
+  *confirmed / refuted / asked*, never silently dropped.
+
+**A batch of bugs from the owner is one process incident.** When the owner's manual test pass brings a
+WAVE of bugs at once, the wave itself is a symptom that the process leaked — worth more than any bug in
+it. Fix the bugs; and on the owner's explicit ask ("figure out why so many") open a **process document**
+in `plans/` — `owner's verdict (verbatim) → honest diagnosis of the process → remedies as process
+changes → steps with checkboxes` — and execute it alongside the fixes. Health metric: the owner's next
+wave is SMALLER. If the waves don't shrink, the remedies aren't working — revise them. The goal is not
+"zero bugs"; it is "the owner stops finding them in batches."
 
 **Backlog revision skill — `/check-backlog`:** walks `bugs/` and `plans/`, collects everything without a
 `DONE` tag as the open backlog, and tags genuinely-closed files DONE (with a status section appended).
@@ -307,6 +369,26 @@ and report in the chat.
 Rule of thumb: *is it cheap to reverse?* If yes — decide yourself. If it shapes brand/architecture/UX
 for the long term — interview.
 
+**Write-gate on the owner's canon artifacts** (`GOAL.md`, the interview answers, the `MASTER_PLAN.md`
+decision log, the READMEs the owner reads — anything where the owner's word IS the content): **new
+entities** (mechanics, facts, decisions) enter only through a draft to the owner (interview/chat) and
+their "yes" — never straight into the canon; **mechanical edits** under already-accepted decisions
+(renames, arithmetic, references, notation) go ahead immediately but stay visible until the owner has
+reviewed them. Two-stage control: first the *intent* (before writing), then the *text* (the owner's
+read-through). Nothing dissolves into the canon silently, and the corridor for mechanical work stays
+wide (see the three-doors rule in `PHILOSOPHY.md`).
+
+**Provenance marks — `[AI]…[/AI]` / `[AI-ed]…[/AI-ed]`** (canonical English strings, grep-friendly,
+like `[NOT-TESTED]`). Everything the AI writes into the owner's canon artifacts carries a visible
+paired mark: `[AI]…[/AI]` — written by the AI; `[AI-ed]…[/AI-ed]` — the owner's text, edited by the AI.
+**A mark IS the acceptance queue:** only the owner's word removes it ("the chapter is accepted") — the
+agent NEVER unmarks its own text. One mechanism buys three things: *trust* (the owner sees exactly what
+is theirs vs. generated — proofreading becomes scanning marks, not rereading everything), *rollback*
+(an unaccepted block is safe to remove), and *safety for future agents* (never take unaccepted `[AI]`
+text for the owner's canon). The check is grep-cheap: AI text in a canon artifact without a mark — or a
+mark removed without the owner's word — is a fraud `/fable-judge` hunts. Mark at write time; tooling
+may mechanize the check later, the convention does not depend on it.
+
 Task-level ambiguity (which of two deliverables did the human mean *right now*) is NOT an interview:
 per fable-method Step 0, ask exactly **one pointed question** in the chat that states your recommended
 interpretation. Interviews are for vision-level forks that outlive the task.
@@ -320,6 +402,14 @@ The universal baseline:
   This is for transparency, traceability, and future maintainability across context-losing sessions.
 - No magic numbers — named constants with clear names.
 - Prefer the platform/library's idiomatic, built-in way over a hand-rolled mechanism.
+- **Canonical order for everything compared or cached:** any output that is diffed, deduplicated, or
+  cached must be deterministic — sorts with a full tie-break, serialization with sorted keys, no
+  `Date.now()`/random in compared output. Nondeterminism never shows in tests and quietly voids diffs
+  and caches on live data — this checklist line notices it so you don't have to. **KPOT lives or dies on
+  this:** the dry run must emit byte-identical operations to the real run, the SortPlan is diffed by the
+  owner, dedupe groups and the planned scan-map cache are keyed on it — so directory walks are sorted,
+  duplicate-group keepers are chosen by a total order (never "whichever the filesystem yielded first"),
+  and no timestamp of the run itself leaks into compared output.
 
 JavaScript / Node specifics for KPOT:
 - **ESM only**, `.mjs` extension, `node:`-prefixed built-in imports (`import { readdir } from 'node:fs/promises'`).

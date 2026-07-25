@@ -26,6 +26,12 @@ To fix a bug, the agent must:
   elsewhere until you have searched. Name the exact wrong construct, search the whole project for it, and
   record in the bug document (and your report): `TWINS: searched <pattern> — found <N> other sites:
   <files, or "none">`. Fix them or list them — a completeness claim with no search behind it is hollow.
+- **Close the class, not the instance.** The fix STARTS with an inventory of ALL occurrences of the
+  defect class (grep/script → the list goes into the bug document), proceeds by the list, and is judged
+  by the list: "one fixed" ≠ "class closed" — an owner who has to say "and in the other menus too" is
+  doing the agent's sweep. Where possible, fix by *form* — copy the directory instead of the file, one
+  shared component instead of clones, a named token instead of scattered literals — so the class cannot
+  drift apart again.
 - To fix a bug, it is often useful to **search the web** for the solution — forums, GitHub issues,
   Reddit, Stack Overflow, official docs.
 
@@ -80,6 +86,35 @@ Principles:
 
 ---
 
+## Guards — every fix births a check, and the check itself is checked
+
+- **A fix without a guard is a fix on loan.** When a defect is closed, add a guard for its whole class —
+  a lint rule, an assert, a watched string, a golden output — so the class cannot silently return. A
+  cancelled decision becomes a forbidden pattern; an accepted one becomes a watched line.
+- **Verify the guard on a broken version.** A guard that has never gone red proves nothing. Feed it the
+  very defect it exists to catch and watch it fail; only then trust its green. Guard with **full unique
+  strings/shapes, not short substrings** — a short pattern will happily match someone else's line and
+  stay green while the real thing rots.
+- **Byte-exact goldens for refactors:** capture the output BEFORE the change, diff AFTER. "Looks like
+  the same numbers" is not evidence; an empty diff is.
+
+---
+
+## A finding is not a finding until verified
+
+Findings produced by a model — audit results, detected issues, "I found N problems" — are roughly half
+false until proven, and acting on unverified findings creates edits out of thin air. Before any finding
+drives a change:
+
+1. **Mechanical checks run as a script BEFORE any LLM judgment.** Does the quoted line actually exist?
+   Is the file really missing X? Code verifies hundreds of such claims in seconds, exactly.
+2. **Then the skeptic pass:** the verifier's job is to REFUTE the finding; the default verdict under
+   doubt is REFUTED. A finding survives verification — only then it drives work.
+3. **Distinguish "refuted" from "the verifier failed to run."** A crashed or killed verifier returns
+   nothing — never silently treat that as an empty list of confirmations, or real findings die with it.
+
+---
+
 ## Working with logs
 
 - Always check the **current time** and the **timestamp of the log file/entries** before reading — so
@@ -115,6 +150,9 @@ Canonical structure (see `/report-bug` for the full template):
 
 ## Fix plan (or the fix, if done)
 <steps; relation to architecture / other bugs>
+
+## Decisions made without the owner
+<filled at closing: every call the agent made solo (and how it chose), or "none" — see AGENT_GUIDE.md>
 
 ## Links
 <related bugs / ideas / interviews>
