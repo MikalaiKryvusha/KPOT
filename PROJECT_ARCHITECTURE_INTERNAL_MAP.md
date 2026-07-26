@@ -42,7 +42,9 @@
 | **Operation** | One intended filesystem change: *move this Asset to this Bucket under this name* (or: skip, or: keep as duplicate) | The atomic unit of the whole tool. Produced by planning, consumed by execution, replayed by rollback |
 | **SortPlan** | The complete ordered set of Operations for a run, plus the disputed cases and the collisions found | The artifact the owner reviews **before** anything moves. The dry run and the real run execute the *same* SortPlan |
 | **RunJournal** | The append-only record of a run: the SortPlan, the backup reference, and what actually happened to each Operation | Makes a run resumable, auditable, and — critically — reversible |
-| **Backup** | The restorable snapshot of the source tree taken before the first write | The owner's undo button. Without it, `apply` must refuse to run |
+| **Backup** | The restorable snapshot of the source tree taken before the first write — a manifest of every file AND every directory, plus a hardlink shadow tree | The owner's undo button. Without it, `apply` must refuse to run. It records directories because a folder holds no bytes: nothing else remembers one existed |
+| **Decision** | The owner's answer about one directory whose NAME does not say whether it is theirs or a program's: *sort it* or *leave it as it is* | Keeps a judgement call the tool cannot make out of the tool's hands. Until it exists, the folder is set aside WHOLE in `НА_РАЗБОР/` rather than taken apart on a guess |
+| **ScanCache** | What a file's content was last time it was seen, keyed by (path, size, mtime) | Makes repetition affordable. Hashing 551 GB is hours, and the normal way the product is used — read the plan, re-run; dry run, real run — repeats it |
 
 ## How they interact
 
@@ -106,6 +108,13 @@ These hold at all times. Breaking one is a bug even if the run completes and the
    Operations completed, so the run can be continued or rolled back — never a half-state nobody can read.
 9. **Identity is content, not name.** Two Assets are the same iff their content hashes match; filenames
    and timestamps are evidence, never identity.
+10. **A judgement the tool cannot make is not made.** Where a directory's name does not say whether it
+    is the owner's or a program's, the folder is set aside whole and the owner is asked — never taken
+    apart on the more likely reading. *(2026-07-26; the same principle as invariant 3, applied to
+    structure instead of dates.)*
+11. **Sorting is idempotent.** Sorting an already-sorted tree moves nothing: KPOT recognizes its own
+    output as structure. Violating this does not merely waste work — it nests folders one level deeper
+    per run and demotes correctly-shelved files (`bugs/01_DONE_sort_not_idempotent.md`).
 
 ## Key decisions embedded in the architecture
 
@@ -123,8 +132,10 @@ These hold at all times. Breaking one is a bug even if the run completes and the
   keeps the global "прочее" bucket honest — the alternative silently fabricates chronology, which is the
   exact chaos the tool exists to remove.
 
-See `MASTER_PLAN.md` → Decision log for the dated record of these choices and what remains open
-(season boundaries, reuse-vs-write, backup mechanism).
+See `MASTER_PLAN.md` → Decision log for the dated record of these choices. As of 2026-07-26 **nothing
+in that log is open**: season boundaries, reuse-vs-write and the backup mechanism are all settled, and
+the later owner decisions (duplicate layout, technical vs custom dirs, emptied-folder deletion, the
+`НА_РАЗБОР/` approval quarantine, the GUI's timing) are recorded there too.
 
 ---
 

@@ -38,14 +38,16 @@ KPOT/
 │
 ├── bin/kpot.mjs    # ✅ CLI entry: parseArgs → phase dispatch; ALL FOUR phases are implemented
 │                   #    (scan · plan · apply [--dry-run] · rollback). Exit codes 0/1/2, 3 reserved
-├── src/            # ✅ core/ (paths · journal · pool) · meta/ (full date pipeline: model +
-│                   #    detectors + exif/mp4/dirname extractors + resolver) · scan/ (identify by
-│                   #    magic bytes · walk · hash) · dedupe/ · plan/ (season · bucket · SortPlan) ·
-│                   #    apply/ (backup · apply · rollback — the only writer). report/ folded into
-│                   #    the phase modules: each renders its own owner-facing report from its artifact
+├── src/            # ✅ core/ (paths · journal · pool · scan_cache · decisions) · meta/ (full date
+│                   #    pipeline: model + detectors + exif/mp4/dirname extractors + resolver) ·
+│                   #    scan/ (identify by magic bytes · walk · hash) · dedupe/ · plan/ (season ·
+│                   #    bucket · suspicious · SortPlan) · apply/ (backup · apply · rollback — the
+│                   #    only writer). report/ folded into the phase modules: each renders its own
+│                   #    owner-facing report from its own artifact (see the internal map)
 └── tests/          # ✅ fixtures/make.mjs (deterministic messy-tree generator, 25 cases v2,
-                    #    expected.json ground truth) + the Phase-2/3/4 acceptance specs —
-                    #    npm test 88/88
+                    #    expected.json ground truth) + the Phase-2/3/4 acceptance specs and the
+                    #    Phase-5 ones (cache · idempotence · empty dirs · quarantine) —
+                    #    npm test 122/122
 ```
 
 ## What each part is
@@ -62,13 +64,13 @@ KPOT/
 | `.kaif/kaif-core.mjs` | The framework's own machinery, backing `npm run kaif:*` | `.kaif/kaif.json` |
 | `researches/` | Desk research write-ups — first up: prior-art comparison required by `GOAL.md` | `GOAL.md` |
 | `interviews/` | Questions only the owner may answer (season boundaries, reuse-vs-write) | `STATUS.md` |
-| `bin/kpot.mjs` | ✅ CLI entry: `parseArgs`, phase dispatch, `--help`/`--version`, stable exit codes (0 ok · 1 error · 2 usage · 3 not-implemented) | `src/apply/`, `src/plan/`, `src/report/` (once they exist) |
+| `bin/kpot.mjs` | ✅ CLI entry: `parseArgs`, phase dispatch (all four implemented), `--help`/`--version`, stable exit codes (0 ok · 1 error · 2 usage · 3 reserved) | `src/apply/`, `src/plan/`, `src/scan/`, `src/core/` |
 | ✅ `src/scan/` | `identify.mjs` (kind by magic bytes — extensions lie; junk-by-name policy) + `scan.mjs` (walk without following links, bounded-concurrency sniff + streamed SHA-256, per-file errors collected). Read-only over user data; wired to `kpot scan` | `src/core/` |
 | ✅ `src/meta/` | the full date pipeline: `evidence.mjs` (model: precedence, wall/instant claims, plausibility) · `filename_date.mjs` (survey-derived detectors) · `exif.mjs` (`exifreader`) · `mp4.mjs` (own mvhd walk) · `dirname_date.mjs` · `resolve.mjs` (DateVerdict: disputed kept, mtime never determines, spike discounting) · `annotate.mjs` (composition; feeds `kpot scan`). Deferred: sidecar evidence | `src/core/` |
 | ✅ `src/dedupe/` | `dedupe.mjs` — groups identical files by sha256 and picks the keeper by an explainable total order | `src/scan/` output, `src/core/` |
 | ✅ `src/plan/` | `season.mjs` (owner-decided month→season buckets) · `bucket.mjs` (one file → its destination) · `suspicious.mjs` (folders with an unclear NAME are held for the owner's approval, not sorted) · `plan.mjs` (the SortPlan artifact + the Russian owner-facing master plan) | `src/meta/`, `src/dedupe/` |
 | ✅ `src/apply/` | The only writer. `backup.mjs` (manifest + hardlink snapshot, capability probed not assumed, refuses to degrade silently) · `apply.mjs` (journal-before-act, dry run = same loop with inert effects) · `rollback.mjs` (replays the journal backwards, idempotent, prunes only what the run created) | `src/plan/`, `src/core/` |
-| 🔲 `src/report/` | Renders human-readable reports from the machine-readable run data | `src/core/` |
+| ~~`src/report/`~~ | **Deliberately never created.** Each phase renders its own owner-facing report from its own artifact, inside the module that owns it (`renderPlan`, `renderApplyReport`, `renderRollbackReport`). The rule this directory existed to protect — reports are rendered FROM the artifact, never assembled independently — holds either way; a separate directory only added a hop. Recorded in the internal map | — |
 | ✅ `src/core/` | Shared primitives and KPOT's own on-disk files: `paths.mjs` (win32-semantics normalization/comparison, `\\?\` long paths, `RUNS_DIR_NAME`), `journal.mjs` (append-only JSONL run journal, crash-torn-tail tolerant), `pool.mjs` (bounded-concurrency settle-all mapper), `scan_cache.mjs` (persistent (path,size,mtime)→hash cache), `decisions.mjs` (the owner's editable per-folder decisions file) | nothing (the bottom layer) |
 | `tests/` | ✅ `node --test` specs; `tests/fixtures/make.mjs` generates synthetic messy trees with `expected.json` ground truth (catalog mirrors `researches/02_real_archive_survey.md`) | all of `src/` (once it exists) |
 

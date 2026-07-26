@@ -135,23 +135,43 @@
   - the reverse-order rollback rule was **unverified**: the fixture contains no chained move, so
     inverting the order left every spec green. A purpose-built chain spec now guards it.
 
+### Phase 5 — started (2026-07-26): scale, idempotence, and the owner's two new rules
+- **Scan cache** (`src/core/scan_cache.mjs`) — keyed by (path, size, mtime), as `researches/02` §4
+  prescribes. A repeat run reports `cache N/N reused (no re-hash)`; `apply` re-keys the cache from
+  its own moves so it survives a sort. Without it every repeat run on the real archive re-hashes
+  551 GB. 10 specs, three invalidation angles, corruption-tolerant.
+- **Bug 01 — the sort was not idempotent** (`bugs/01_DONE_sort_not_idempotent.md`). Found by reading
+  a smoke run, not by a test: KPOT did not recognize its OWN output layout, so every run nested one
+  level deeper, grew quarantine names by their whole path, and demoted correctly-shelved files to
+  `<год>/прочее`. Three causes, one root. Guarded by `tests/idempotence.test.mjs`.
+- **Empty-folder removal** (owner's decision) — KPOT now deletes the folders its sort emptied, and
+  only because the backup manifest records every DIRECTORY so rollback recreates them. The plan
+  lists them before the run; apply re-reads each one and uses `rmdir`, never a recursive delete.
+- **The `НА_РАЗБОР/` quarantine** (owner's decision, revised by the owner the same day) — a folder
+  whose NAME is unclear is never taken apart: it is moved WHOLE into `НА_РАЗБОР/`, keeping its
+  original parent structure, and waits there for an answer in
+  `.kpot-runs/папки-на-согласование.txt`. Stripping that one prefix recovers the original path,
+  which is what keeps the flow idempotent and `НА_РАЗБОР` out of the library.
+- Suite **122/122**. Every new guard verified by breaking it first; two guards that turned out NOT
+  to be independently falsifiable are documented as such rather than left implying coverage.
+
 ---
 
 ## Where we are now
 
-**Phases 0–4 are CLOSED. The product works end to end.** `kpot scan` walks a tree and dates every
+**Phases 0–4 are CLOSED and Phase 5 is well under way.** `kpot scan` walks a tree and dates every
 media file with evidence; `kpot plan` turns that into the pre-sort master plan the owner reads;
 `kpot apply` executes it — but only ever after a backup it verified — and `kpot rollback` undoes it
-completely. Verified live on a generated tree, not only by tests: the library built itself
-(`2015/Осень/аудио/голосовые/`, `ПРОЧЕЕ/_дубликаты/`), rollback restored all 26 files and removed
-all 32 created directories, and rolling back a *dry* run was refused with a plain-language reason.
+completely. Sorting is idempotent, repeat runs are cheap (the scan cache), emptied folders are
+cleaned up reversibly, and folders KPOT cannot judge by name are set aside for the owner instead of
+being guessed at.
 
 **KPOT may now write — and every guarantee `GOAL.md` demands before it does exists and is proven.**
 
-Deliberate cuts, small and recorded: THM/XMP sidecar evidence (needs a fixture case first) and the
-scan-map cache. **Next: Phase 5 — first real use**: progress output for large trees, resumability
-on a partially-completed run, and a first supervised run on a *copy* of a real directory (owner's
-homework — the tool must never be pointed at the original).
+Deliberate cut, small and recorded: THM/XMP sidecar evidence (needs a fixture case first).
+**What remains in Phase 5:** progress output for large trees, resumability of an interrupted
+`apply`, and a first supervised run on a *copy* of a real directory (owner's homework — the tool
+must never be pointed at the original), then README + a tagged release.
 
 | Phase | Status | What's there |
 |-------|--------|--------------|
@@ -160,7 +180,7 @@ homework — the tool must never be pointed at the original).
 | Phase 2 — scan & metadata | ✅ done | acceptance spec green; `kpot scan` = assets + evidence + verdicts; deferred: sidecar evidence (needs a fixture case first) |
 | Phase 3 — dedup & plan | ✅ done | `kpot plan` = SortPlan + owner-facing master plan; acceptance spec green (23 planted destinations + both ambiguities) |
 | Phase 4 — safety (backup / dry run / rollback) | ✅ done | interview #002 answered; `src/apply/` = backup + the single writer + rollback; all three acceptance criteria green; guards proven by breaking them |
-| Phase 5 — first real use & release | 🔲 next | progress output · resumability · supervised run on a COPY of a real dir · README + `/release` |
+| Phase 5 — first real use & release | 🔶 in progress | ✅ scan cache · ✅ idempotent sorting (bug 01) · ✅ empty-folder cleanup · ✅ the `НА_РАЗБОР/` approval quarantine · 🔲 progress output · 🔲 resumability · 🔲 supervised run on a COPY of a real dir · 🔲 README + `/release` |
 
 Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
 
@@ -279,7 +299,7 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
 > A concrete checklist so the next session (empty context) can start immediately: which files, which
 > commands, what to verify first.
 
-1. Verify the environment: `node -v` (≥20), `npm test` (**must be 88/88**), `git status` (clean),
+1. Verify the environment: `node -v` (≥20), `npm test` (**must be 122/122**), `git status` (clean),
    `gh auth status` (MikalaiKryvusha).
 2. **Run the whole product once, end to end, before designing on top of it.** It all works now:
    ```
@@ -291,19 +311,18 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
    ```
    (Fresh temp dir each time — `%TEMP%` is cleaned between sessions. The run id is printed by
    `apply`; run data lives in `<tmp>/.kpot-runs/`, which scans deliberately skip.)
-3. **Phase 5 — first real use.** The three self-contained pieces, in value order:
-   - **scan-map cache** keyed by (path, size, mtime) in `.kpot-runs/` — without it every repeat run
-     on the real archive re-hashes 551 GB (hours). This is what makes a supervised real run
-     practical at all, and idea 01's top-up flow depends on it too.
-   - **progress output** — a 71 606-file run currently prints nothing until it ends; for the owner,
-     silence looks like a hang.
+3. **Phase 5, what is left.** In value order:
+   - **progress output** — a 71 606-file run currently prints nothing until it ends; for a
+     non-technical owner watching a 551 GB run, silence is indistinguishable from a hang. Testable
+     without a human: assert the reporter is called with monotonically growing counts.
    - **resumability** of a partially-completed `apply` (the journal already records enough —
      internal map invariant 8; rollback's crash-window handling is the pattern to mirror).
+   - then the supervised real run, README refresh and `/release`.
 4. **The first run on real data is the owner's call and needs a fresh `AUTH:`** — the archive grant
    in agent memory is READ-ONLY. Phase 5's acceptance says a *copy* of a real messy directory
    (owner's homework), never the original.
-5. Two owner questions are waiting, neither blocking: empty source folders after a sort (see the
-   review section above) and idea 01's open forks.
+5. One owner question is waiting and does not block: idea 01's open forks (the inbox/top-up flow).
+   The logo PNGs in the repo root are still undecided too.
 6. Decisions are all in `MASTER_PLAN.md` §Decision log (2026-07-24 and 2026-07-26 blocks) — re-read
    before designing; do not re-ask the owner what is already decided there.
 7. Two lessons from Phase 4 worth re-reading before writing any new guard: `EXPERIENCE.md` EXP-0008
