@@ -155,6 +155,33 @@
 - Suite **140/140**. Every new guard verified by breaking it first; two guards that turned out NOT
   to be independently falsifiable are documented as such rather than left implying coverage.
 
+### Session of 2026-07-26 (late) — first contact with the owner's real archive
+The tool met real data and the owner read the output. That combination found more in one evening
+than every synthetic fixture had.
+
+- **The real-data sample exists** (owner-authorised): `D:\work\ai_sandbox\KPOT_SAMPLE`, 3397 files /
+  13 GB / 567 dirs, stratified over every class in `researches/02`. Outside the repo, gitignored by
+  name anyway. mtime preserved 3397/3397; the SOURCE archive verified untouched (0 of 71 606
+  changed). Full record: `researches/03_first_real_run.md`.
+- **A supervised `apply` ran on it** — 7 s, 3154 moves, 495 emptied folders removed, 0 failures, and
+  the multiset of sha256 hashes is IDENTICAL before and after (nothing lost, nothing invented). The
+  rollback rehearsal reports 3154 files + 495 folders restorable; the undo is verified, not spent.
+  **The sample is currently left SORTED** so the owner can look at it.
+  Undo: `node bin/kpot.mjs rollback run-20260726-145004-a39593 D:\work\ai_sandbox\KPOT_SAMPLE`
+- **Four bugs, all found by real data or by the owner's eye, all closed:**
+  - `02` — a Samsung gallery ID read as a unix epoch, moving a 2024 photo to 2001.
+  - `03` — found by the DRY RUN: paths compared with `!==` instead of `samePath`, so 15 files
+    already home under a differently-CASED folder were planned to move onto themselves.
+  - `04` — three formats unrecognised, so 38 real files were never sorted at all: 18 `.jp2` scans,
+    19 `.aac` voice notes, one 2.1 GB `.mts`. MPEG-TS has no magic string — it needs two sync bytes
+    one packet apart, which is why `SNIFF_LENGTH` went 16 → 208.
+  - (`01` earlier the same day — the sort was not idempotent.)
+- **The approval rule was sharpened twice by the owner** and now asks about **5 folders instead of
+  25** on his real data: only when sorting would actually SCATTER a folder AND its name is a
+  meaningful word or phrase. A careless name (`11`) is sorted silently; `Ukraine_Fall_2020` and
+  `Summer_2024_Belarus_Part_1` are phrases, not identifiers. See the decision log.
+- **Live progress** and **resume of an interrupted run** landed earlier the same day.
+
 ---
 
 ## Where we are now
@@ -306,7 +333,7 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
 > A concrete checklist so the next session (empty context) can start immediately: which files, which
 > commands, what to verify first.
 
-1. Verify the environment: `node -v` (≥20), `npm test` (**must be 140/140**), `git status` (clean),
+1. Verify the environment: `node -v` (≥20), `npm test` (**must be 143/143**), `git status` (clean),
    `gh auth status` (MikalaiKryvusha).
 2. **Run the whole product once, end to end, before designing on top of it.** It all works now:
    ```
@@ -318,25 +345,41 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
    ```
    (Fresh temp dir each time — `%TEMP%` is cleaned between sessions. The run id is printed by
    `apply`; run data lives in `<tmp>/.kpot-runs/`, which scans deliberately skip.)
-3. **Phase 5, what is left.**
+3. **THE NEXT PIECE OF WORK IS PLANNED IN FULL: `plans/02_lost_photo_family.md`** — dating a photo
+   that has no capture date. The owner set the value order himself; follow it, do not reorder.
+   - **Step 1 — metadata only, free, fixes the root.** An editor export (`Software` = Photoshop /
+     Picasa / Snapseed / Paint.NET) with NO `DateTimeOriginal` must stop having its SAVE date treated
+     as a capture date; it becomes an upper bound instead. Plus exact original lookup by XMP
+     `DerivedFrom` ↔ `DocumentID`, plus a new `family` evidence kind (sensor geometry, the folder's
+     camera population, the edit date as "taken no later than"). **113 files of the sample are in
+     this broken class.** Accept knowingly: they move from false years into `ПРОЧЕЕ` unless family
+     evidence yields a year — honest ignorance beats a fabricated date (invariant 3).
+   - **Step 2 — cheap pixels**, one pure-JS JPEG decoder: perceptual hash finds the actual original
+     and inherits its REAL date. Only after step 1 shows how many files family evidence could not
+     place. The owner said "пиксели не надо" for now.
+   - **Step 3 — PRNU sensor fingerprinting.** Heavy, and only wins when the original is gone. PRNU
+     answers "which camera"; the original answers "which photo" — and only the second gives a date.
+4. **Phase 5, what is left.**
    - ✅ The real-data sample EXISTS and `kpot plan` has run against it — see
      `researches/03_first_real_run.md`. **`D:\work\ai_sandbox\KPOT_SAMPLE`** (3397 files / 13 GB,
      stratified over every class in `researches/02`; a sibling of the repo, never committable).
      Rebuild scripts live in the session scratchpad, not the repo.
-   - 🔲 **A supervised `apply` + `rollback` on that sample** — the plan has been read, the sort
-     itself has not been run on real data yet. That needs the owner's go-ahead.
-   - 🔲 **README refresh + a tagged release** via `/release` afterwards.
+   - ✅ **The supervised `apply` HAS RUN** (owner authorised it: «это тестовый полигон»). 7 s, 3154
+     moves, 0 failures, content hashes identical before/after. **The sample is left SORTED** for the
+     owner to inspect; the rollback rehearsal passes and the undo command is in `researches/03`.
+   - 🔲 **README refresh + a tagged release** via `/release` — after `plans/02` step 1, since that
+     changes how a whole class of files is dated and the README should not describe the old behaviour.
    - Optional filler, self-contained: THM/XMP sidecar evidence — the sample now contains **34 real
      `.thm` files together with their video twins**, so the fixture case can be modelled on a real
      one instead of imagined.
-4. **The first run on real data is the owner's call and needs a fresh `AUTH:`** — the archive grant
+5. **The first run on real data is the owner's call and needs a fresh `AUTH:`** — the archive grant
    in agent memory is READ-ONLY. Phase 5's acceptance says a *copy* of a real messy directory
    (owner's homework), never the original.
-5. One owner question is waiting and does not block: idea 01's open forks (the inbox/top-up flow).
+6. One owner question is waiting and does not block: idea 01's open forks (the inbox/top-up flow).
    The logo PNGs in the repo root are still undecided too.
-6. Decisions are all in `MASTER_PLAN.md` §Decision log (2026-07-24 and 2026-07-26 blocks) — re-read
+7. Decisions are all in `MASTER_PLAN.md` §Decision log (2026-07-24 and 2026-07-26 blocks) — re-read
    before designing; do not re-ask the owner what is already decided there.
-7. Two lessons from Phase 4 worth re-reading before writing any new guard: `EXPERIENCE.md` EXP-0008
+8. Two lessons from Phase 4 worth re-reading before writing any new guard: `EXPERIENCE.md` EXP-0008
    (a guard that passes for the wrong reason) and EXP-0009 (invisible characters in generated
    source). Both cost real time here.
 

@@ -5,10 +5,10 @@
 # KPOT — Krinik Photo Organizer Tool
 
 ![License](https://img.shields.io/badge/license-MIT-green)
-![Status](https://img.shields.io/badge/status-scan%20works%20·%20Phase%203%20next-orange)
+![Status](https://img.shields.io/badge/status-all%20phases%20work%20·%20sorted%20a%20real%20archive-brightgreen)
 ![Node](https://img.shields.io/badge/node-%E2%89%A520-brightgreen)
 ![Platform](https://img.shields.io/badge/platform-Windows--first-blue)
-![Framework](https://img.shields.io/badge/powered%20by-KAIF%201.5-purple)
+![Framework](https://img.shields.io/badge/powered%20by-KAIF%201.6-purple)
 
 ---
 
@@ -61,29 +61,42 @@ sorting half a terabyte takes minutes, not hours.
 
 ### Status
 
-🚧 **Early development — the scan phase already works.** Sorting itself (`plan` / `apply` /
-`rollback`) is not implemented yet (exit code 3). Verified by tests (56/56 green):
+🚧 **All four phases work end to end, and the tool has now sorted a real archive.** Verified by
+143 green tests *and* by a supervised run on a 3 397-file / 13 GB sample of a genuinely messy
+551 GB collection.
 
-- **`kpot scan <dir>` is live**: walks the tree, identifies every file by content magic bytes
-  (extensions lie), hashes it (streamed SHA-256), and resolves **when** each shot was taken — an
-  evidence-based [DateVerdict](src/meta/resolve.mjs) per media file: EXIF, MP4/MOV `mvhd` (own
-  parser), filename patterns, epoch names, folder names, neighbor-cohort inference — with disputed
-  evidence kept visible, broken camera clocks quarantined, and honest *unknown* instead of guesses.
-  Machine-readable JSON out; strictly read-only.
-- [Prior-art research](researches/01_prior_art.md) — what we reuse (`exifreader`, `node:crypto`)
-  vs. write ourselves (MP4/MOV date parser, evidence-based date resolver, all product logic).
-- [Real-archive survey](researches/02_real_archive_survey.md) — anonymized study of a real 71 000-file
-  / 551 GB messy archive: the filename-pattern zoo, name hazards and duplicate rates the tool must
-  survive. Fixtures are built from this catalog, the real archive is never touched by tests.
-- All product decisions closed by the owner ([interview #001](interviews/interview_001_extractor_seasons_policies.md)):
-  pure-JS metadata extraction, five season buckets, `видео/` + `аудио/` subdirs, junk quarantine
-  with provenance, rename-based moves.
-- Foundation: [CLI](bin/kpot.mjs) with a stable exit-code contract · [core primitives](src/core/)
-  (Windows path normalization, run journal, bounded concurrency) · [fixture generator](tests/fixtures/make.mjs)
-  — deterministic messy tree with 25 planted chaos cases + ground-truth manifest ·
-  [season mapping](src/plan/season.mjs).
+```
+kpot scan <dir>               what each file is, and when it was taken — with the evidence
+kpot plan <dir>               the pre-sort master plan you read BEFORE anything moves
+kpot apply --dry-run <dir>    full rehearsal, zero writes
+kpot apply <dir>              the sort — refuses to start without a verified backup
+kpot rollback <run-id> <dir>  everything back where it was
+```
 
-Next up — Phase 3: duplicate grouping and the pre-sort plan (SortPlan + disputed cases).
+**On that real run:** 3 154 files sorted in 7 seconds, 0 failures, and the multiset of SHA-256
+content hashes was *identical* before and after — nothing lost, nothing invented. The rollback
+rehearsal restores all 3 154 files and 495 folders.
+
+What is behind that:
+
+- **Dates from evidence, never from a guess** — [DateVerdict](src/meta/resolve.mjs) per file: EXIF,
+  MP4/MOV `mvhd` (our own parser), filename conventions, epoch names, folder names, neighbour-cohort
+  inference. Losing evidence stays visible, broken camera clocks are rejected, and *unknown* is a
+  real answer instead of a plausible lie.
+- **Safety that is proven, not promised** — backup (manifest + hardlink snapshot, ~0 bytes on disk)
+  before the first write; the dry run executes the *same* code path with inert effects; every intent
+  is journalled before it happens; an interrupted run is resumable and one rollback still restores
+  the original.
+- **It asks instead of guessing** — folders whose name cannot say whether they are yours or a
+  program's are set aside in `НА_РАЗБОР/`, keeping their original structure, and only when sorting
+  would actually scatter them. You answer in a plain text file; answers survive between runs.
+- **Idempotent** — sorting an already-sorted library moves nothing.
+- Grounded in real chaos: [prior-art research](researches/01_prior_art.md) ·
+  [real-archive survey](researches/02_real_archive_survey.md) ·
+  [the first real run](researches/03_first_real_run.md), which found four bugs no synthetic fixture had.
+
+Still ahead: photos whose capture date was destroyed by a photo editor
+([plan 02](plans/02_lost_photo_family.md)), then a tagged release.
 
 Roadmap: `MASTER_PLAN.md` · current state: `STATUS.md`.
 
@@ -149,30 +162,44 @@ KPOT **не переместит ни одного файла**, пока не �
 
 ### Статус
 
-🚧 **Ранняя разработка — фаза сканирования уже работает.** Сама сортировка (`plan` / `apply` /
-`rollback`) ещё не реализована (код выхода 3). Проверено тестами (56/56 зелёных):
+🚧 **Все четыре фазы работают от начала до конца, и инструмент уже разобрал настоящий архив.**
+Проверено 143 зелёными тестами *и* контролируемым прогоном на выборке из 3 397 файлов / 13 ГБ,
+взятой из по-настоящему захламлённой коллекции на 551 ГБ.
 
-- **`kpot scan <dir>` работает**: обходит дерево, определяет каждый файл по магическим байтам
-  содержимого (расширения врут), хеширует (потоковый SHA-256) и устанавливает, **когда** снят
-  каждый кадр — [вердикт по уликам](src/meta/resolve.mjs) для каждого медиафайла: EXIF, `mvhd`
-  из MP4/MOV (собственный парсер), паттерны имён, epoch-имена, названия папок, вывод по соседям —
-  спорные улики сохраняются на виду, сломанные часы камер попадают в спорные, а вместо догадки —
-  честное «неизвестно». На выходе машиночитаемый JSON; строго только чтение.
-- [Исследование готовых решений](researches/01_prior_art.md) — что берём готовое (`exifreader`,
-  `node:crypto`), что пишем сами (парсер дат MP4/MOV, резолвер даты по уликам, вся продуктовая логика).
-- [Обзор реального архива](researches/02_real_archive_survey.md) — обезличенное исследование
-  настоящего бардака на 71 000 файлов / 551 ГБ: зоопарк паттернов имён, опасные имена и доля
-  дубликатов, которые инструмент обязан пережить. Тестовые фикстуры строятся по этому каталогу,
-  реальный архив тестами не затрагивается.
-- Все продуктовые решения закрыты владельцем ([интервью #001](interviews/interview_001_extractor_seasons_policies.md)):
-  чистый JS для метаданных, пять сезонов, подпапки `видео/` и `аудио/`, карантин мусора с записью
-  происхождения, перемещения переименованием.
-- Фундамент: [CLI](bin/kpot.mjs) со стабильным контрактом кодов выхода ·
-  [примитивы ядра](src/core/) (нормализация Windows-путей, журнал запуска, ограниченная
-  конкурентность) · [генератор фикстур](tests/fixtures/make.mjs) — детерминированное «бардачное»
-  дерево из 25 случаев хаоса с эталоном ответов · [маппинг сезонов](src/plan/season.mjs).
+```
+kpot scan <dir>               что за файл и когда снят — вместе с уликами
+kpot plan <dir>               пред-сортировочный мастер-план: читаете ДО того, как что-то тронется
+kpot apply --dry-run <dir>    полная репетиция, ноль записей
+kpot apply <dir>              сортировка — не начнётся без проверенного бэкапа
+kpot rollback <run-id> <dir>  всё возвращается как было
+```
 
-Дальше — Фаза 3: группировка дубликатов и пред-сортировочный план (SortPlan + спорные случаи).
+**Тот самый прогон:** 3 154 файла разложены за 7 секунд, 0 сбоев, а множество SHA-256 содержимого
+до и после — *идентично*: ничего не потеряно и ничего не выдумано. Репетиция отката возвращает все
+3 154 файла и 495 папок.
+
+Что за этим стоит:
+
+- **Дата из улик, а не из догадки** — [вердикт](src/meta/resolve.mjs) на каждый файл: EXIF, `mvhd`
+  из MP4/MOV (собственный парсер), конвенции имён, epoch-имена, названия папок, вывод по соседям.
+  Проигравшие улики остаются на виду, сломанные часы камер отвергаются, а «неизвестно» — это
+  честный ответ, а не правдоподобная ложь.
+- **Безопасность доказанная, а не обещанная** — бэкап (манифест + снимок жёсткими ссылками, ~0 байт
+  на диске) до первой записи; сухой прогон идёт *тем же* кодом с отключёнными эффектами; намерение
+  пишется в журнал до действия; прерванный прогон продолжается, и один откат всё равно возвращает
+  исходное состояние.
+- **Спрашивает, а не угадывает** — папки, по имени которых нельзя понять, ваши они или созданы
+  программой, откладываются в `НА_РАЗБОР/` со своей исходной структурой — и только если сортировка
+  их действительно разорвёт. Отвечаете в обычном текстовом файле, ответы сохраняются между прогонами.
+- **Идемпотентность** — сортировка уже разобранной библиотеки не двигает ничего.
+- Опирается на реальный хаос: [исследование готовых решений](researches/01_prior_art.md) ·
+  [обзор реального архива](researches/02_real_archive_survey.md) ·
+  [первый настоящий прогон](researches/03_first_real_run.md), который нашёл четыре бага, невидимых
+  ни одной синтетической фикстуре.
+
+Впереди: фотографии, у которых дату съёмки уничтожил фоторедактор
+([план 02](plans/02_lost_photo_family.md)), затем релиз с тегом.
+
 
 Дорожная карта: `MASTER_PLAN.md` · текущее состояние: `STATUS.md`.
 
