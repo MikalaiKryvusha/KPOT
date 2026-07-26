@@ -16,6 +16,7 @@ import { open, readdir, stat } from 'node:fs/promises';
 import { join } from 'node:path';
 import { pipeline } from 'node:stream/promises';
 import { mapLimit } from '../core/pool.mjs';
+import { RUNS_DIR_NAME } from '../core/paths.mjs';
 import { identify, SNIFF_LENGTH } from './identify.mjs';
 
 /** Default bounded concurrency for per-file work (open/sniff/hash). */
@@ -45,6 +46,11 @@ async function walk(root) {
       continue;
     }
     for (const entry of entries) {
+      // KPOT's own run data (journals, backup manifests, the hardlink snapshot) is not the user's
+      // archive: scanning it would make the tool plan moves for its own backup — and, because the
+      // snapshot is hardlinks to the very files being sorted, every file would appear as its own
+      // duplicate. Skipped at the walk, so no downstream phase can ever see it.
+      if (entry.isDirectory() && entry.name === RUNS_DIR_NAME) continue;
       // rel uses '/' — stable across platforms for reports, journals and tests
       const rel = dir.rel === '' ? entry.name : `${dir.rel}/${entry.name}`;
       const abs = join(dir.abs, entry.name);

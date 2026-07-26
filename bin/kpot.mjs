@@ -8,9 +8,9 @@
 // rely on the contract:
 //
 //   kpot scan <dir>              build the scan map of a tree           (✅ Phase 2 — implemented)
-//   kpot plan <dir>              emit the pre-sort master plan          (Phase 3)
-//   kpot apply [--dry-run] <dir> execute the plan (dry run = same code path, no writes)  (Phase 4/5)
-//   kpot rollback <run-id>       restore from the backup of a past run  (Phase 4)
+//   kpot plan <dir>              emit the pre-sort master plan          (✅ Phase 3 — implemented)
+//   kpot apply [--dry-run] <dir> execute the plan (dry run = same code path, no writes)  (✅ Phase 4)
+//   kpot rollback <run-id> [dir] restore from the backup of a past run  (✅ Phase 4)
 //
 // Exit codes (stable contract, mirrored in tests/cli.test.mjs):
 //   0 OK · 1 runtime error (e.g. path does not exist) · 2 usage error · 3 phase not implemented yet
@@ -19,13 +19,19 @@ import { parseArgs } from 'node:util';
 import { readFile, stat } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 import process from 'node:process';
+import { resolve } from 'node:path';
 import { scanTree } from '../src/scan/scan.mjs';
 import { annotateAssets } from '../src/meta/annotate.mjs';
 import { buildPlan, renderPlan } from '../src/plan/plan.mjs';
+import { applyPlan, renderApplyReport } from '../src/apply/apply.mjs';
+import { rollbackRun, renderRollbackReport } from '../src/apply/rollback.mjs';
+import { RUNS_DIR_NAME } from '../src/core/paths.mjs';
 
 export const EXIT_OK = 0;
 export const EXIT_ERROR = 1;
 export const EXIT_USAGE = 2;
+/** Reserved. No phase returns it since Phase 4 landed apply/rollback — kept so scripts that already
+ *  branch on the published contract keep compiling, and so a future phase has a code to use. */
 export const EXIT_NOT_IMPLEMENTED = 3;
 
 const USAGE = `KPOT — Krinik Photo Organizer Tool
@@ -36,22 +42,25 @@ Usage:
   kpot scan <dir>               scan the tree, extract date evidence, build the scan map
   kpot plan <dir>               build the pre-sort master plan (+ disputed cases)
   kpot apply [--dry-run] <dir>  execute the plan (--dry-run: full simulation, zero writes)
-  kpot rollback <run-id>        restore the tree from the backup of a previous run
+  kpot rollback <run-id> [dir]  restore the tree from the backup of a previous run
 
 Options:
   --json                        plan: emit the machine-readable SortPlan instead of the report
+  --dry-run                     apply/rollback: simulate through the same code path, write nothing
+  --allow-no-snapshot           apply: proceed where the filesystem cannot make hardlinks
+                                (exFAT/FAT32). Structure stays restorable, CONTENT is unprotected.
   -h, --help                    show this help and exit
   -v, --version                 print the version and exit
 
-Exit codes: 0 ok · 1 error · 2 usage · 3 not implemented yet (early development)
+Exit codes: 0 ok · 1 error · 2 usage · 3 reserved (every phase is implemented since Phase 4)
 Docs: https://github.com/MikalaiKryvusha/KPOT`;
 
-/** Phases, their positional argument, and (for the ones still ahead) where they land. */
+/** Phases and their positional argument. All four are implemented as of Phase 4 (2026-07-26). */
 const PHASES = {
-  scan:     { arg: 'dir' },                            // implemented — see runScan below
-  plan:     { arg: 'dir' },                            // implemented — see runPlan below
-  apply:    { arg: 'dir',    plannedIn: 'Phase 4/5' },
-  rollback: { arg: 'run-id', plannedIn: 'Phase 4' },
+  scan:     { arg: 'dir' },      // runScan
+  plan:     { arg: 'dir' },      // runPlan
+  apply:    { arg: 'dir' },      // runApply
+  rollback: { arg: 'run-id' },   // runRollback
 };
 
 /** Read our own version from package.json (single source of truth — no hardcoded copy). */
@@ -75,6 +84,7 @@ export async function run(argv, { out = console.log, err = console.error } = {})
         help: { type: 'boolean', short: 'h' },
         version: { type: 'boolean', short: 'v' },
         'dry-run': { type: 'boolean' },
+        'allow-no-snapshot': { type: 'boolean' },
         json: { type: 'boolean' },
       },
       allowPositionals: true,
@@ -115,9 +125,68 @@ export async function run(argv, { out = console.log, err = console.error } = {})
 
   if (command === 'scan') return runScan(target, { out, err });
   if (command === 'plan') return runPlan(target, { out, err, json: parsed.values.json === true });
+  if (command === 'apply') {
+    return runApply(target, {
+      out, err,
+      dryRun: parsed.values['dry-run'] === true,
+      allowNoSnapshot: parsed.values['allow-no-snapshot'] === true,
+      json: parsed.values.json === true,
+    });
+  }
+  if (command === 'rollback') {
+    // The run id alone does not say which tree it belongs to, so the optional second positional
+    // names the archive root (defaults to the current directory). The post-sort report prints the
+    // exact command, so the owner never has to work this out.
+    return runRollback(target, parsed.positionals[2] ?? process.cwd(), {
+      out, err, dryRun: parsed.values['dry-run'] === true,
+    });
+  }
 
-  err(`kpot ${command}: not implemented yet — planned in ${phase.plannedIn} (see MASTER_PLAN.md).`);
-  return EXIT_NOT_IMPLEMENTED;
+  err(`kpot: unhandled command '${command}'`);
+  return EXIT_ERROR;
+}
+
+/**
+ * The apply phase — the only command that moves files, and only after a backup exists.
+ * `--dry-run` runs the identical code path with inert filesystem effects (GOAL.md §в).
+ * Re-plans the tree immediately before executing, on purpose: applying a plan built minutes or days
+ * ago against a tree that has changed since is exactly how a sorter destroys data.
+ */
+async function runApply(dir, { out, err, dryRun, allowNoSnapshot, json }) {
+  const root = resolve(dir);
+  let result;
+  try {
+    const { result: scan } = await scanAndAnnotate(root);
+    const plan = buildPlan(scan);
+    if (plan.operations.length === 0) {
+      err('kpot apply: nothing to move — the tree already matches the plan.');
+      return EXIT_OK;
+    }
+    result = await applyPlan(root, plan, scan, { dryRun, allowNoSnapshot });
+  } catch (e) {
+    err(`kpot apply: ${e.message}`);
+    return EXIT_ERROR;
+  }
+  out(json ? JSON.stringify(result, null, 2) : renderApplyReport(result));
+  err(`kpot apply${dryRun ? ' --dry-run' : ''}: ${result.moved} moved · ${result.failed} failed`
+    + ` · backup ${result.backup.snapshot} (${result.backup.linked}/${result.backup.files} linked)`
+    + (dryRun ? ' · NOTHING MOVED (dry run)' : ` · rollback: kpot rollback ${result.runId} ${root}`));
+  return result.failed > 0 ? EXIT_ERROR : EXIT_OK;
+}
+
+/** The rollback phase — replay a run's journal backwards and put every file back. */
+async function runRollback(runId, dir, { out, err, dryRun }) {
+  const root = resolve(dir);
+  let result;
+  try {
+    result = await rollbackRun(resolve(root, RUNS_DIR_NAME, runId), { dryRun });
+  } catch (e) {
+    err(`kpot rollback: ${e.message}`);
+    return EXIT_ERROR;
+  }
+  out(renderRollbackReport(result));
+  err(`kpot rollback${dryRun ? ' --dry-run' : ''}: ${result.restored} restored · ${result.failed} failed`);
+  return result.failed > 0 ? EXIT_ERROR : EXIT_OK;
 }
 
 /** scan + annotate, shared by the scan and plan phases. Read-only over the tree (RULE 1). */

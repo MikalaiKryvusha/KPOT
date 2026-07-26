@@ -85,9 +85,9 @@ Application of `PHILOSOPHY.md` to this project:
 
 ### Phase 4 — Safety: backup, dry run, rollback
 - **Goal of the phase:** the four guarantees `GOAL.md` demands exist and are proven.
-- **Steps:** the Backup mechanism (decide: git-based commit vs. manifest+hardlink snapshot — a
-  decision-log entry, taken with sizes in mind) · the RunJournal · `apply --dry-run` executing the same
-  SortPlan through the same code path · `rollback <run-id>` · the refusal to write without a backup.
+- **Steps:** the Backup mechanism (**decided 2026-07-26 — manifest + hardlink snapshot**, interview
+  #002; see the decision log) · the RunJournal · `apply --dry-run` executing the same SortPlan through
+  the same code path · `rollback <run-id>` · the refusal to write without a backup.
 - **Acceptance:** dry-run and real-run journals are identical apart from execution flags; a full
   apply→rollback cycle on a fixture returns the tree byte-for-byte to its original state, verified by
   hashes; `apply` without a backup exits non-zero and touches nothing.
@@ -131,7 +131,8 @@ season. The measure is his, not ours — `GOAL.md`, closing paragraph.
 | 2026-07-26 | **A bare «зима» directory never picks a winter bucket** — such a file goes to `<год>/прочее` and is reported as a disputed case | A year has two winter buckets (Jan–Feb and Dec) and the owner's dir name cannot say which. Guessing would silently misplace files; `GOAL.md` requires documenting the ambiguity instead |
 | 2026-07-26 | **A UTC-instant date (mvhd) is bucketed by its UTC components, not the machine's local zone** — and a file within 12 h of a season boundary is flagged disputed | Determinism outranks a guess: local-zone conversion would sort the same archive differently on two computers. The residual boundary risk is surfaced rather than hidden |
 | 2026-07-26 | KAIF updated 1.5 → 1.6 «Homeostatic KAIF» | Framework guardrails (recon artifacts, one-step commits, judge before push, provenance marks). Migration record: `KAIF_FRAMEWORK.md`; findings for the framework's author: `plans/01_kaif_16_update_report.md` |
-| — | **OPEN:** backup mechanism — git commit vs. manifest + hardlink snapshot | Git is simple and truly restorable but poor with tens of GB of binaries; decide with real sizes in Phase 4 |
+| 2026-07-26 | **Backup = manifest + hardlink snapshot** (interview #002, owner's answer Б). Two layers, both mandatory before `apply` writes: (1) a **manifest** in `.kpot-runs/<run-id>/` — original path, size, mtime, sha256 and planned destination per file (~18 MB for the real archive); rollback renames back by it and verifies sha256. (2) a **hardlink snapshot** — a shadow tree where every file is a hardlink to the same data, so content survives even if the original directory entry is deleted by anything. Where the filesystem cannot hardlink (exFAT/FAT32, cross-volume), `apply` STOPS and demands the owner's explicit flag rather than silently running on the manifest alone | The decision was taken with measured numbers, not estimates: the archive is 551 GB on a volume with **197.8 GB free**, so a git backup (`.git` ≈ 551 GB — JPEG/MP4 do not compress) **does not physically fit**; git on Windows would also choke on the long/Cyrillic/reserved names the survey found. The hardlink layer is near-free — a probe measured **0.401 ms/link → ~29 s and ~0 bytes for all 71 606 files** — and hardlinks provably survive a rename of the original (same inode, `nlink=2`). Because moves are renames (2026-07-24 row), a backup never needs to copy data at all: the manifest restores the structure, the snapshot protects the content. Honest limit, recorded rather than hidden: a snapshot on the same physical disk does not survive disk failure — a full copy to another drive stays the owner's own call, not a precondition of the tool |
+| 2026-07-26 | **A desktop GUI is accepted as product direction but scheduled AFTER Phase 5** (owner's idea + answer, `ideas/02_electron_gui.md`) | The GUI is a second renderer over the SortPlan the core already emits, so it costs little — but it is a shell over `apply`, and `apply` does not exist yet. Building the face first would have to be rebuilt once the executor lands. Cheap discipline meanwhile: every phase keeps a `--json` artifact, so the core stays GUI-ready by construction |
 
 ---
 

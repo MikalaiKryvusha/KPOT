@@ -55,21 +55,31 @@ test('scan without <dir> → usage error (2), with missing dir → runtime error
   assert.ok(missing.err.includes('does not exist'));
 });
 
-test('unimplemented phases on a real dir → not-implemented (3) naming their planned phase', async () => {
-  // `scan` graduated to a real phase on 2026-07-24 (STATUS.md Phase-2 checklist) — see scan.test.mjs
-  // `plan` graduated on 2026-07-26 (Phase 3) — it now exits 0; see the plan specs below and
-  // tests/plan_phase3.test.mjs. What this spec still guards is that the exit-3 CONTRACT holds for
-  // phases that genuinely have not landed yet.
+// WHY THIS SPEC CHANGED (2026-07-26, Phase 4): it used to assert that `apply` and `rollback` exit 3
+// ("not implemented"). Both landed in Phase 4, so that assertion now guards a fact that is no longer
+// true — keeping it would have meant reverting working code to satisfy a test. What replaces it is
+// NOT a weaker check: the old spec proved the phases were absent, this one proves they are present
+// AND that their failure modes are the safe ones (a nothing-to-do run exits 0 quietly; an unknown
+// run id fails loudly instead of half-restoring something). The exit-3 contract itself is still
+// exported and documented — it is simply unreachable now that every phase exists.
+test('every phase is implemented: apply and rollback no longer report "not implemented"', async () => {
   const dir = await mkdtemp(join(tmpdir(), 'kpot-cli-'));
   try {
-    for (const cmd of ['apply']) {
-      const r = await cli(cmd, dir);
-      assert.equal(r.code, EXIT_NOT_IMPLEMENTED, cmd);
-      assert.ok(r.err.includes('not implemented'), cmd);
-      assert.ok(r.err.includes('Phase'), cmd);
-    }
-    const rb = await cli('rollback', 'run-000');   // run-id is not a dir — no existence check
-    assert.equal(rb.code, EXIT_NOT_IMPLEMENTED);
+    // An empty tree gives apply nothing to do — that is a success, not an error, and above all it
+    // must not create a backup or a journal for a run that moves nothing.
+    const empty = await cli('apply', dir);
+    assert.equal(empty.code, EXIT_OK);
+    assert.ok(!empty.err.includes('not implemented'));
+    assert.ok(empty.err.includes('nothing to move'));
+
+    // An unknown run id must fail loudly (1), never exit 0 pretending it restored something.
+    const rb = await cli('rollback', 'run-000', dir);
+    assert.equal(rb.code, EXIT_ERROR);
+    assert.ok(!rb.err.includes('not implemented'));
+    assert.ok(rb.err.includes('no such run directory'), rb.err);
+
+    // The contract constant still exists (scripts may branch on it) but no phase returns it.
+    assert.equal(EXIT_NOT_IMPLEMENTED, 3);
   } finally { await rm(dir, { recursive: true, force: true }); }
 });
 

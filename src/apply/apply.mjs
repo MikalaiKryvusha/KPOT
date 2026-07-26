@@ -1,0 +1,233 @@
+// src/apply/apply.mjs — the executor: the ONE place in KPOT that moves a user's file.
+// [NOT-TESTED]
+//
+// AGENT_GUIDE.md RULE 1 (the safety invariant): only this module may modify, move or delete a
+// user's file, and only after a backup exists and the run journal has recorded the intended
+// operation. Everything upstream (scan → meta → dedupe → plan) is strictly read-only.
+//
+// The three guarantees this module implements, all from GOAL.md §«перед тем как инструмент выполнит
+// реальную сортировку»:
+//   б) it REFUSES to write unless a Backup for this run exists (src/apply/backup.mjs).
+//   в) the dry run is «почти 1 в 1» the real run — enforced structurally, not by discipline: both
+//      execute the SAME SortPlan through the SAME loop below, and the only difference is whether the
+//      injected effects actually call the filesystem (see `makeEffects`). There is no second code
+//      path that could drift from the first.
+//   г) every operation is journalled BEFORE it happens, so a crash leaves a readable record and
+//      `rollback <run-id>` can undo exactly what was done.
+//
+// Error policy (AGENT_GUIDE §Code style): one file's failure never aborts the run — it is recorded
+// with its path and the loop continues. A partially-completed run stays fully rollbackable, because
+// rollback replays the journal, not the plan.
+
+import { mkdir, rename, stat } from 'node:fs/promises';
+import { dirname, join } from 'node:path';
+import { createRunJournal, newRunId } from '../core/journal.mjs';
+import { RUNS_DIR_NAME } from '../core/paths.mjs';
+import { createBackup, verifyBackup, runDirFor } from './backup.mjs';
+
+/**
+ * The filesystem effects `applyPlan` is allowed to perform, injected so the dry run and the real run
+ * share one loop. This is the whole mechanism behind the dry-run≡real-run guarantee: a dry run is
+ * not "a different function that pretends" — it is this same function with inert effects.
+ *
+ * The subtle part is `exists`. A naive dry run answers it by looking at the disk, and then diverges
+ * from the real run the moment an operation frees a path that a later operation wants: the real run
+ * sees that path as free (it emptied it itself), the dry run still sees the file sitting there and
+ * reports a conflict that would never have happened. So the effects keep a small model of what THIS
+ * RUN has done — what it filled and what it emptied — and answer `exists` from the model first, disk
+ * second. Both modes then give identical answers, and the real mode is also simply correct.
+ *
+ * @param {boolean} dryRun
+ */
+function makeEffects(dryRun) {
+  const occupied = new Set();  // relative paths this run has filled
+  const freed = new Set();     // relative paths this run has emptied
+  const real = !dryRun;
+  return {
+    async mkdir(absPath) {
+      if (real) await mkdir(absPath, { recursive: true });
+    },
+    async rename(fromAbs, toAbs, fromRel, toRel) {
+      if (real) await rename(fromAbs, toAbs);
+      freed.add(fromRel); occupied.delete(fromRel);
+      occupied.add(toRel); freed.delete(toRel);
+    },
+    async exists(rel, absPath) {
+      if (occupied.has(rel)) return true;
+      if (freed.has(rel)) return false;
+      try { await stat(absPath); return true; } catch { return false; }
+    },
+  };
+}
+
+/**
+ * Create every missing level of a target directory, journalling each level SEPARATELY.
+ *
+ * Why one record per level and not one per operation: `mkdir -p 2015/Осень/аудио` silently creates
+ * three directories, but a journal that mentions only the deepest one leaves rollback unable to
+ * clean up the other two — the tree comes back with empty `2015/` and `2015/Осень/` shells that the
+ * owner never had. Walking shallowest-first also guarantees each level is examined BEFORE anything
+ * creates it, which is what keeps the dry run's answers identical to the real run's.
+ *
+ * A level that already exists is never recorded, so rollback can never delete a directory the owner
+ * made themselves.
+ */
+async function ensureDir(root, relDir, fx, journal, considered, dirsCreated) {
+  if (relDir === '.' || relDir === '') return;
+  const parts = relDir.split('/');
+  for (let i = 1; i <= parts.length; i += 1) {
+    const level = parts.slice(0, i).join('/');
+    if (considered.has(level)) continue;
+    considered.add(level);
+    const levelAbs = abs(root, level);
+    if (await fx.exists(level, levelAbs)) continue;
+    await fx.mkdir(levelAbs);
+    await journal.append('mkdir', { dir: level });
+    dirsCreated.push(level);
+  }
+}
+
+/** Absolute path of a plan-relative ('/'-separated) path inside the root. */
+const abs = (root, rel) => join(root, ...rel.split('/'));
+
+/**
+ * Execute a SortPlan.
+ *
+ * @param {string} root  absolute path of the tree the plan was built for
+ * @param {object} plan  the SortPlan artifact from src/plan/plan.mjs
+ * @param {object} scan  the scan result the plan was built from (the backup manifest needs hashes)
+ * @param {{dryRun?: boolean, runId?: string, allowNoSnapshot?: boolean, now?: Date}} [opts]
+ * @returns {Promise<{runId, dryRun, journalPath, backup, moved, failed, dirsCreated, errors}>}
+ * @throws {Error} if the plan does not match the tree, or a backup could not be created — refusing
+ *         is the correct behaviour; a write without a backup is the one thing this tool may not do.
+ */
+export async function applyPlan(root, plan, scan, { dryRun = false, runId = newRunId(), allowNoSnapshot = false } = {}) {
+  if (plan.meta?.root && plan.meta.root !== root) {
+    throw new Error(`plan was built for a different root (${plan.meta.root}), refusing to apply it to ${root}`);
+  }
+
+  // --- GUARANTEE б: a backup first, always. A dry run creates the manifest-less shell too, so that
+  // the refusal path itself is exercised by the dry run rather than discovered on the real one.
+  const backup = await createBackup(root, scan, { runId, dryRun, allowNoSnapshot });
+  if (!dryRun) {
+    const check = await verifyBackup(root, runId);
+    if (!check.ok) throw new Error(`refusing to move anything: ${check.reason}`);
+    if (!check.hasSnapshot && !allowNoSnapshot) {
+      throw new Error('refusing to move anything: the backup snapshot is empty');
+    }
+  }
+
+  const journal = await createRunJournal(runDirFor(root, runId), {
+    runId,
+    meta: {
+      root,
+      dryRun,                                   // ← the ONLY intended difference between the two runs
+      planVersion: plan.planVersion,
+      operations: plan.operations.length,
+      backup: { snapshot: backup.snapshot, files: backup.files, linked: backup.linked },
+    },
+  });
+
+  const fx = makeEffects(dryRun);
+  const dirsCreated = [];        // recorded so rollback can prune exactly what this run added
+  const consideredDirs = new Set();
+  const errors = [];
+  let moved = 0, failed = 0;
+
+  for (const op of plan.operations) {
+    const fromAbs = abs(root, op.from);
+    const toAbs = abs(root, op.to);
+
+    // GUARANTEE г: intent is recorded BEFORE the act. A crash between these two lines leaves a
+    // 'planned-move' with no 'moved' — which rollback reads as "may or may not have happened" and
+    // resolves by looking at the filesystem, rather than guessing.
+    await journal.append('planned-move', { from: op.from, to: op.to, reason: op.reason });
+
+    try {
+      await ensureDir(root, dirname(op.to), fx, journal, consideredDirs, dirsCreated);
+      // Never overwrite. The plan already resolved collisions by renaming, so a target that exists
+      // here means the tree changed under us between plan and apply — stop on that file, don't guess.
+      if (await fx.exists(op.to, toAbs)) {
+        throw new Error('target already exists — the tree changed since the plan was built');
+      }
+
+      await fx.rename(fromAbs, toAbs, op.from, op.to);
+      await journal.append('moved', { from: op.from, to: op.to });
+      moved += 1;
+    } catch (e) {
+      // EXDEV would mean the target landed on another volume. It cannot happen with the current
+      // layout (targets are always relative to the same root), but if it ever does, the owner gets
+      // an explicit error rather than a silent copy+delete — the 2026-07-24 decision forbids that.
+      const error = e.code === 'EXDEV'
+        ? 'target is on another volume — a rename is impossible and KPOT never silently copies+deletes'
+        : (e.message ?? String(e));
+      await journal.append('error', { from: op.from, to: op.to, error });
+      errors.push({ path: op.from, error });
+      failed += 1;
+    }
+  }
+
+  // Deliberately WITHOUT `dryRun`: the flag lives in the header, once. Repeating it here would make
+  // the two journals differ in a record as well as the header, and the whole point of GOAL.md §в is
+  // that the difference between a dry run and a real run is exactly one declared flag — a property
+  // the acceptance spec asserts by comparing the journals record for record.
+  await journal.append('done', { moved, failed });
+
+  return { runId, dryRun, journalPath: journal.path, backup, moved, failed, dirsCreated, errors };
+}
+
+/**
+ * Render the post-sort report (GOAL.md §г — «пост-сортировочный отчёт с возможностью откатки»).
+ * Russian: this is an owner-facing artifact (AGENT_GUIDE §Languages). The rollback command is the
+ * point of the whole document, so it is stated plainly and last, where the eye lands.
+ *
+ * @param {object} result  the return value of applyPlan
+ * @returns {string}
+ */
+export function renderApplyReport(result) {
+  const L = [];
+  L.push(result.dryRun ? 'ОТЧЁТ О СУХОМ ПРОГОНЕ' : 'ПОСТ-СОРТИРОВОЧНЫЙ ОТЧЁТ');
+  L.push('='.repeat(60));
+  L.push(`Прогон:            ${result.runId}`);
+  if (result.dryRun) {
+    L.push('');
+    L.push('ЭТО СУХОЙ ПРОГОН. Ни один файл не тронут — показано, что произошло бы.');
+    L.push(`Было бы перемещено: ${result.moved}`);
+  } else {
+    L.push(`Перемещено:        ${result.moved}`);
+  }
+  if (result.failed > 0) L.push(`Не удалось:        ${result.failed}`);
+  L.push('');
+  L.push('БЭКАП');
+  L.push('-'.repeat(60));
+  L.push(`  Манифест:  ${result.backup.files} файлов`);
+  if (result.backup.snapshot === 'hardlink') {
+    L.push(`  Снимок:    ${result.backup.linked} жёстких ссылок (содержимое защищено, места не занимает)`);
+  } else if (result.backup.snapshot === 'unsupported') {
+    L.push('  Снимок:    НЕТ — файловая система не умеет жёсткие ссылки.');
+    L.push('             Структуру восстановить можно, содержимое НЕ защищено.');
+  } else {
+    L.push('  Снимок:    не создавался (сухой прогон)');
+  }
+  L.push(`  Журнал:    ${result.journalPath}`);
+  L.push('');
+
+  if (result.errors.length > 0) {
+    L.push('ОШИБКИ (эти файлы остались на месте)');
+    L.push('-'.repeat(60));
+    for (const e of result.errors) L.push(`  ${e.path}\n    ${e.error}`);
+    L.push('');
+  }
+
+  if (!result.dryRun && result.moved > 0) {
+    L.push('ОТКАТ');
+    L.push('-'.repeat(60));
+    L.push('  Всё вернуть на свои места одной командой:');
+    L.push('');
+    L.push(`      kpot rollback ${result.runId}`);
+    L.push('');
+  }
+  return L.join('\n');
+}
+
+export { RUNS_DIR_NAME };

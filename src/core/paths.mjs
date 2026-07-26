@@ -22,6 +22,21 @@ export const LONG_UNC_PREFIX = '\\\\?\\UNC\\';
 export const MAX_PATH = 260;
 
 /**
+ * The directory where KPOT keeps its own run data (journals, backup manifests, hardlink snapshots),
+ * created inside the scanned root. [TESTED: 2026-07-26 · tests/apply_phase4.test.mjs — a scan of a
+ * tree containing it returns no asset from inside it]
+ *
+ * It lives HERE, in the bottom layer, rather than next to the code that creates it (`src/apply/`),
+ * because `src/scan/` must skip it and RULE 2 forbids scan from importing apply. Two modules need
+ * one fact → the fact moves down (AGENT_GUIDE §RULE 2).
+ *
+ * Why inside the root at all: a hardlink cannot cross a volume, so the backup snapshot must sit on
+ * the same volume as the archive. Placing the run dir in the tree it backs up guarantees that with
+ * zero configuration — and the backup travels with the drive.
+ */
+export const RUNS_DIR_NAME = '.kpot-runs';
+
+/**
  * Strip an extended-length prefix, restoring the plain form:
  * `\\?\C:\x` → `C:\x` and `\\?\UNC\server\share\x` → `\\server\share\x`.
  * Paths without the prefix pass through unchanged.
