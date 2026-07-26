@@ -227,7 +227,8 @@ The rules that keep it objective:
 | `node --test --test-name-pattern "<re>"` | Runs a single spec while iterating. |
 | `node --test --experimental-test-coverage` | Coverage report — use it to find untested branches in date resolution. |
 | `node bin/kpot.mjs scan <dir>` | ✅ builds the scan map: JSON on stdout — assets (path/size/mtime/kind/format/sha256) + per-media `evidence` and `verdict` (DateVerdict: dated/partial/unknown, disputed kept) + errors; human one-liner on stderr. Read-only. |
-| `node bin/kpot.mjs plan <dir>` | 🔲 planned — Phase 2: emits the pre-sort master plan + disputed cases. |
+| `node bin/kpot.mjs plan <dir>` | ✅ builds the pre-sort master plan: Russian owner-facing report on stdout (what moves where and why · duplicates · disputed cases · name collisions · what stays), one-line summary on stderr. Read-only. |
+| `node bin/kpot.mjs plan <dir> --json` | ✅ the same run as the machine-readable **SortPlan** artifact (`operations`/`duplicates`/`disputed`/`collisions`/`stay`/`counts`) — what Phase 4/5 dry-run, apply and rollback consume. Deterministic apart from `meta.plannedAt`. |
 | `node bin/kpot.mjs apply --dry-run <dir>` | 🔲 planned — Phase 3: full simulation, no file touched. |
 | `node bin/kpot.mjs rollback <run-id>` | 🔲 planned — Phase 4: restores from the backup commit. |
 

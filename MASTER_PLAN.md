@@ -75,7 +75,13 @@ Application of `PHILOSOPHY.md` to this project:
   SortPlan, the disputed cases and the collisions.
 - **Acceptance:** the pre-sort master plan on the fixture tree is complete, human-readable, and every
   planted ambiguity appears in the disputed section.
-- **Status:** 🔲 todo. ~~Blocked~~ unblocked 2026-07-24 by interview #001.
+- **Status:** ✅ done 2026-07-26 — acceptance is a green spec (`tests/plan_phase3.test.mjs`): all 23
+  planted destinations assert row-by-row against the fixture ground truth, and both planted
+  ambiguities (broken-clock EXIF, assumed cohort year) appear in the disputed section. `kpot plan`
+  runs (exit 3 → 0) with a Russian owner-facing report and `--json` for the SortPlan artifact.
+  Modules: `src/dedupe/dedupe.mjs`, `src/plan/bucket.mjs`, `src/plan/plan.mjs`. Read-only proven by
+  hash comparison before/after. The last two layout forks were closed by the owner on 2026-07-26
+  (duplicates, custom dirs — see the decision log).
 
 ### Phase 4 — Safety: backup, dry run, rollback
 - **Goal of the phase:** the four guarantees `GOAL.md` demands exist and are proven.
@@ -120,6 +126,11 @@ season. The measure is his, not ours — `GOAL.md`, closing paragraph.
 | 2026-07-24 | **Video gets its own `видео/` subdir inside the season dir** (symmetric with `аудио/`; photos stay at the season root) | Owner confirmed in chat: «лучше ролики тоже в отдельную видео/» |
 | 2026-07-24 | **Wall-clock sources outrank UTC instants at the same trust tier** (filename timestamp > mvhd; EXIF stays on top) — and **fs-mtime never determines a date**, it only corroborates | The library buckets by LOCAL season; a UTC instant with unknown timezone can mis-shelve midnight/New-Year shots. mtime: the survey's 18 656-file bulk-copy spike proves it lies; defaulting to it would fabricate chronology |
 | 2026-07-24 | **Dir-cohort evidence approved; file-size dating rejected** — an undatable file among ≥3 confidently-dated same-year neighbors (≥80% consensus) gets that year as a flagged, low-confidence ASSUMPTION → `<год>/прочее`, always surfaced to the owner in the plan; file size is never used for dating | Owner in chat 2026-07-24: «вес не нужно, давай по соседям сделаем признак». Device-dump dirs make the inference realistic; size is too noisy and would fabricate precision |
+| 2026-07-26 | **Duplicates: the keeper goes to the library, every other copy → `ПРОЧЕЕ/_дубликаты/`** with its original directory flattened into the name (`копии__DSC02000.JPG`) as provenance | Owner's answer, 2026-07-26. `GOAL.md` only requires *finding* duplicates; the layout was undecided. One shot = one file in the chronological tree; nothing deleted, everything traceable and rollbackable. Keeper choice is a documented total order (`src/dedupe/dedupe.mjs`), so the same archive always yields the same keeper |
+| 2026-07-26 | **Custom parent dirs: preserve ALL of them as nesting, EXCEPT technical ones** — device dumps (`100MEDIA`-style, DCF `\d{3}[A-Z]+`), `DCIM`/`Camera`/`Screenshots`/messenger dirs, pure year/season dirs, and generic content words that would collide with our own `видео/`+`аудио/` subdirs | Owner's answer, 2026-07-26 («всё, кроме технических»). The technical list is sourced from `researches/02` §Directory structure, not invented. Layout: `<год>/<сезон>/[видео\|аудио]/<кастомные папки>/<имя>` — which makes the owner's own example `2013/Лето/<папка>/…` literally true for photos |
+| 2026-07-26 | **A bare «зима» directory never picks a winter bucket** — such a file goes to `<год>/прочее` and is reported as a disputed case | A year has two winter buckets (Jan–Feb and Dec) and the owner's dir name cannot say which. Guessing would silently misplace files; `GOAL.md` requires documenting the ambiguity instead |
+| 2026-07-26 | **A UTC-instant date (mvhd) is bucketed by its UTC components, not the machine's local zone** — and a file within 12 h of a season boundary is flagged disputed | Determinism outranks a guess: local-zone conversion would sort the same archive differently on two computers. The residual boundary risk is surfaced rather than hidden |
+| 2026-07-26 | KAIF updated 1.5 → 1.6 «Homeostatic KAIF» | Framework guardrails (recon artifacts, one-step commits, judge before push, provenance marks). Migration record: `KAIF_FRAMEWORK.md`; findings for the framework's author: `plans/01_kaif_16_update_report.md` |
 | — | **OPEN:** backup mechanism — git commit vs. manifest + hardlink snapshot | Git is simple and truly restorable but poor with tens of GB of binaries; decide with real sizes in Phase 4 |
 
 ---

@@ -35,6 +35,14 @@
 
 ## Entries
 
+### EXP-0007 · 2026-07-26 · ❌→✅ · #windows #powershell #encoding #tooling #cyrillic
+**Context:** verifying that new Phase-3 guards actually fail on broken code (TESTING_FRAMEWORK: "a check that has never failed proves nothing"). Needed to temporarily break `src/plan/plan.mjs`, run the suite, then restore it.
+**Tried / did:** did the break-and-restore in PowerShell with `Get-Content -Raw` → string replace → `Set-Content -Encoding utf8`.
+**Result:** ❌ the guards proved real (3 and 2 failures as intended) — but the restore silently corrupted the file: PowerShell 5.1's `Get-Content` read the UTF-8 bytes as ANSI, so every Cyrillic string in the module became mojibake (`ПРЕД-` → `РџР Р•Р”-`) and one spec stayed red. ✅ after rewriting the file with the Write tool.
+**Lesson:** never round-trip a non-ASCII file through PowerShell 5.1 `Get-Content`/`Set-Content` — `-Encoding utf8` only controls the WRITE side, the read already lost the bytes. This project is full of Cyrillic literals (they are the product's output), so the rule is: mutate files with the editor tools, and if a shell must do it, use `git stash`/`git checkout` for the restore — which also means doing break-and-restore experiments on COMMITTED files only, so `git checkout -- <file>` is always available as the undo.
+**Repro:** `node --test tests/plan_phase3.test.mjs` after breaking a guard; check encoding damage with `grep -P '\xd0\xb2\xd0\x82|\xd0\xa0[\xb0-\xbf]' <file>` (matches the classic UTF-8-read-as-ANSI signature) — clean files produce no output.
+**Not for:** pure-ASCII files, and the Bash tool (Git Bash handles UTF-8 correctly here) — the trap is specific to PowerShell 5.1's default read encoding.
+
 ### EXP-0006 · 2026-07-26 · ✅ · #kaif #update #framework #merge #verification
 **Context:** updating the deployed framework KAIF 1.5 → 1.6. The machinery replaces untouched files itself and hands back a list of *diverged* files to merge by hand — but it hands over no diff, and its "What's new" block turned out to describe the PREVIOUS release.
 **Tried / did:** refused to merge from the new template alone (against a project-adapted file that dilutes into noise). Fetched the PREVIOUS release's bundle from GitHub Releases, sha256-verified it against its own manifest, extracted both bundles with a 20-line re-implementation of the bundle parser, and diffed template-vs-template per file. That isolates the true upstream delta from local adaptation. Then verified completeness with a line-level parity inventory: every line upstream added → traced in the deployed file.

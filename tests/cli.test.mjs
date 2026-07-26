@@ -57,9 +57,12 @@ test('scan without <dir> → usage error (2), with missing dir → runtime error
 
 test('unimplemented phases on a real dir → not-implemented (3) naming their planned phase', async () => {
   // `scan` graduated to a real phase on 2026-07-24 (STATUS.md Phase-2 checklist) — see scan.test.mjs
+  // `plan` graduated on 2026-07-26 (Phase 3) — it now exits 0; see the plan specs below and
+  // tests/plan_phase3.test.mjs. What this spec still guards is that the exit-3 CONTRACT holds for
+  // phases that genuinely have not landed yet.
   const dir = await mkdtemp(join(tmpdir(), 'kpot-cli-'));
   try {
-    for (const cmd of ['plan', 'apply']) {
+    for (const cmd of ['apply']) {
       const r = await cli(cmd, dir);
       assert.equal(r.code, EXIT_NOT_IMPLEMENTED, cmd);
       assert.ok(r.err.includes('not implemented'), cmd);
@@ -67,6 +70,29 @@ test('unimplemented phases on a real dir → not-implemented (3) naming their pl
     }
     const rb = await cli('rollback', 'run-000');   // run-id is not a dir — no existence check
     assert.equal(rb.code, EXIT_NOT_IMPLEMENTED);
+  } finally { await rm(dir, { recursive: true, force: true }); }
+});
+
+test('plan on an empty dir → 0, human report on stdout, summary on stderr', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'kpot-cli-plan-'));
+  try {
+    const r = await cli('plan', dir);
+    assert.equal(r.code, EXIT_OK);
+    assert.ok(r.out.includes('ПРЕД-СОРТИРОВОЧНЫЙ МАСТЕР-ПЛАН'), 'the owner-facing report');
+    assert.ok(r.out.includes('Ни один файл ещё не тронут'), 'the safety statement is unconditional');
+    assert.ok(r.err.includes('NOTHING MOVED'), 'stderr summary says it too');
+  } finally { await rm(dir, { recursive: true, force: true }); }
+});
+
+test('plan --json emits the machine-readable SortPlan that Phase 4/5 will consume', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'kpot-cli-planjson-'));
+  try {
+    const r = await cli('plan', dir, '--json');
+    assert.equal(r.code, EXIT_OK);
+    const plan = JSON.parse(r.out);   // must parse — it is an artifact, not a printout
+    assert.equal(plan.planVersion, 1);
+    for (const key of ['operations', 'duplicates', 'disputed', 'collisions', 'stay', 'counts'])
+      assert.ok(key in plan, `SortPlan must carry ${key}`);
   } finally { await rm(dir, { recursive: true, force: true }); }
 });
 

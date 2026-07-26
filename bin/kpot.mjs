@@ -21,6 +21,7 @@ import { pathToFileURL } from 'node:url';
 import process from 'node:process';
 import { scanTree } from '../src/scan/scan.mjs';
 import { annotateAssets } from '../src/meta/annotate.mjs';
+import { buildPlan, renderPlan } from '../src/plan/plan.mjs';
 
 export const EXIT_OK = 0;
 export const EXIT_ERROR = 1;
@@ -38,6 +39,7 @@ Usage:
   kpot rollback <run-id>        restore the tree from the backup of a previous run
 
 Options:
+  --json                        plan: emit the machine-readable SortPlan instead of the report
   -h, --help                    show this help and exit
   -v, --version                 print the version and exit
 
@@ -47,7 +49,7 @@ Docs: https://github.com/MikalaiKryvusha/KPOT`;
 /** Phases, their positional argument, and (for the ones still ahead) where they land. */
 const PHASES = {
   scan:     { arg: 'dir' },                            // implemented — see runScan below
-  plan:     { arg: 'dir',    plannedIn: 'Phase 3' },
+  plan:     { arg: 'dir' },                            // implemented — see runPlan below
   apply:    { arg: 'dir',    plannedIn: 'Phase 4/5' },
   rollback: { arg: 'run-id', plannedIn: 'Phase 4' },
 };
@@ -73,6 +75,7 @@ export async function run(argv, { out = console.log, err = console.error } = {})
         help: { type: 'boolean', short: 'h' },
         version: { type: 'boolean', short: 'v' },
         'dry-run': { type: 'boolean' },
+        json: { type: 'boolean' },
       },
       allowPositionals: true,
     });
@@ -111,9 +114,41 @@ export async function run(argv, { out = console.log, err = console.error } = {})
   }
 
   if (command === 'scan') return runScan(target, { out, err });
+  if (command === 'plan') return runPlan(target, { out, err, json: parsed.values.json === true });
 
   err(`kpot ${command}: not implemented yet — planned in ${phase.plannedIn} (see MASTER_PLAN.md).`);
   return EXIT_NOT_IMPLEMENTED;
+}
+
+/** scan + annotate, shared by the scan and plan phases. Read-only over the tree (RULE 1). */
+async function scanAndAnnotate(dir) {
+  const result = await scanTree(dir);
+  const verdicts = await annotateAssets(result.root, result.assets);
+  result.errors.push(...verdicts.errors);
+  return { result, verdicts };
+}
+
+/**
+ * The plan phase: the pre-sort master plan (GOAL.md §а). Human-readable on stdout by default —
+ * this is the artifact the OWNER reads before anything moves — and the machine-readable SortPlan
+ * with `--json`, which is what Phase 4/5 (dry run, apply, rollback) will consume.
+ * Nothing is written and nothing is moved: planning is strictly read-only.
+ */
+async function runPlan(dir, { out, err, json }) {
+  let plan;
+  try {
+    const { result } = await scanAndAnnotate(dir);
+    plan = buildPlan(result);
+  } catch (e) {
+    err(`kpot plan: ${e.message}`);
+    return EXIT_ERROR;
+  }
+  out(json ? JSON.stringify(plan, null, 2) : renderPlan(plan));
+  const c = plan.counts;
+  err(`kpot plan: ${c.files} files · ${c.moves} moves · ${c.stay} stay · `
+    + `${c.duplicateCopies} duplicate copies · ${c.disputed} disputed · ${c.collisions} name collisions`
+    + ' · NOTHING MOVED (plan only)');
+  return EXIT_OK;
 }
 
 /**

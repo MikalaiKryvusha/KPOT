@@ -83,26 +83,49 @@
   cohort; single-file and mixed-year dirs stay honestly unknown. Fixture v2 plants the scenario
   (25 cases now); decision-log row added. Suite **56/56**.
 
+### Phase 3 — Duplicates & the sort plan ✅ (2026-07-26)
+- **Two last layout forks closed by the owner** (chat, 2026-07-26 — recorded in the decision log):
+  duplicates → `ПРОЧЕЕ/_дубликаты/` with provenance in the name; custom parent dirs → preserve all
+  **except technical** ones (device dumps, `DCIM`/`Camera`/`Screenshots`/messenger dirs, pure
+  year/season dirs, generic content words colliding with our own `видео/`+`аудио/`).
+- **`src/dedupe/dedupe.mjs`** — grouping by sha256 (media only) + keeper selection as an explainable
+  **total order**: strongest date evidence → established-not-assumed → name not marked as a copy →
+  shallowest path → path order. The plan prints WHY this copy was kept. Permutation-tested.
+- **`src/plan/bucket.mjs`** — one file → its destination. Target layout:
+  `<год>/<сезон>/[видео|аудио]/<кастомные папки>/<исходное имя>`. Handles per-year `прочее`, global
+  `ПРОЧЕЕ`, junk quarantine, assumed cohort years, and the ambiguous bare-«зима» dir (never guesses a
+  winter bucket — goes to `<год>/прочее` + disputed).
+- **`src/plan/plan.mjs`** — the **SortPlan artifact** (operations · duplicates · disputed ·
+  collisions · stay · counts · errors) + `renderPlan()`, the Russian owner-facing master plan.
+  Collisions are resolved by suffixing, never overwriting. Deterministic: only `meta.plannedAt`
+  varies, so Phase 4 can compare the actionable parts byte-for-byte.
+- **`kpot plan <dir>` is live** (exit 3 → 0), `--json` emits the SortPlan. Read-only proven by
+  before/after hash comparison of the whole tree.
+- **17 new specs** (`tests/plan_phase3.test.mjs` + 2 CLI): suite **73/73**. The guards were verified
+  by breaking the code first (disabling collision handling → 3 failures; dropping verdict-level
+  disputes → 2) rather than assumed.
+
 ---
 
 ## Where we are now
 
-**Phase 1 is CLOSED (2026-07-24).** Research done, every product fork decided by the owner, the
-harness foundation exists, the CLI skeleton runs, and the bottom layers are real: `src/core/`
-(paths/journal/pool) and the `src/meta/` date-evidence model (Evidence + filename detectors) are
-implemented and verified against the fixture ground truth. **Phase 2 is essentially closed** —
-scan (walk + identify-by-content + hash) AND the full date pipeline (EXIF/mvhd/filename/dirname/
-mtime evidence → DateVerdict) run inside `kpot scan`, and the phase's acceptance criteria are a
-green spec. One deliberate cut: THM/XMP sidecar evidence is deferred until a fixture case exists.
-Next: Phase 3 — duplicate grouping + the SortPlan.
+**Phases 0–3 are CLOSED.** The whole read-only half of the product works end to end: `kpot scan`
+walks a tree, identifies by content, hashes, and dates every media file with evidence; `kpot plan`
+turns that into the pre-sort master plan the owner reads — what moves where and why, which files are
+duplicates, which cases are disputed, what stays untouched. **Nothing writes yet, by design.**
+KAIF was updated to 1.6 on 2026-07-26 (see `plans/01_kaif_16_update_report.md`).
+
+Deliberate cuts, both small and recorded: THM/XMP sidecar evidence (needs a fixture case first) and
+the scan-map cache. **Next: Phase 4 — safety.** It gates every real-data use of the tool, and it
+opens with the one decision still marked OPEN in the decision log: the backup mechanism.
 
 | Phase | Status | What's there |
 |-------|--------|--------------|
 | Phase 0 — foundation | ✅ done | repo, license, KAIF, docs, `npm test` gate |
 | Phase 1 — research + decisions + skeleton | ✅ done | researches 01+02, interview #001 ✅, fixtures, CLI, seasons, `src/core/`, `src/meta/` evidence model |
 | Phase 2 — scan & metadata | ✅ done | acceptance spec green; `kpot scan` = assets + evidence + verdicts; deferred: sidecar evidence (needs a fixture case first) |
-| Phase 3 — dedup & plan | 🔲 next | fully unblocked: seasons + layout decided, verdicts + hashes flow from scan |
-| Phase 4 — safety (backup / dry run / rollback) | 🔲 todo | backup fork: manifest+hardlink favored (551 GB reality) |
+| Phase 3 — dedup & plan | ✅ done | `kpot plan` = SortPlan + owner-facing master plan; acceptance spec green (23 planted destinations + both ambiguities) |
+| Phase 4 — safety (backup / dry run / rollback) | 🔲 next | backup fork still OPEN: manifest+hardlink favored (551 GB reality) — decide with real sizes |
 | Phase 5 — apply & reports | 🔲 todo | nothing yet |
 
 Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
@@ -140,6 +163,10 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
 - [x] Phase-2 date pipeline — ✅ done 2026-07-24. Extractors (exif/mp4/dirname) + mtime spike
       discounting + DateVerdict resolver + annotate, wired into `kpot scan`. Acceptance spec green;
       suite 55/55.
+- [x] Phase-3 dedupe + SortPlan — ✅ done 2026-07-26. `src/dedupe/dedupe.mjs` (sha256 grouping +
+      total-order keeper choice), `src/plan/bucket.mjs` (destination rules incl. technical-vs-custom
+      dirs), `src/plan/plan.mjs` (SortPlan artifact + Russian owner report), `kpot plan` wired with
+      `--json`. 17 specs; suite 73/73; guards verified by breaking the code first.
 - [ ] Sidecar evidence (THM/XMP) — plant a fixture case first (THM next to its video twin, per the
       survey), then a collector feeding 'sidecar' evidence into the resolver. Small, self-contained.
 - [ ] Scan-map cache keyed by (path, size, mtime) — hashing 551 GB is hours; a persistent cache in
@@ -162,6 +189,12 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
   `аудио/` inside each season dir.
 - 🧰 Homework (owner only): provide a *copy* of a small, real, messy sample directory for realism
   checks — never the original archive, and never committed to the repo.
+- ✅ **Two layout forks ANSWERED 2026-07-26** (in chat): duplicates → `ПРОЧЕЕ/_дубликаты/` with
+  provenance; custom parent dirs → preserve all except technical. Both recorded in the
+  `MASTER_PLAN.md` decision log. Phase 3 is UNBLOCKED and closed.
+- ❗ **OPEN owner decision, blocks Phase 4: the backup mechanism** — git commit vs. manifest +
+  hardlink snapshot, to be decided with the real 551 GB sizes in view. `apply` must not be built
+  before it is settled.
 - ❓ **Idea 01 awaiting owner review** — `ideas/01_inbox_topup_flow.md`: inbox dir for raw dumps +
   a desktop shortcut running an incremental **top-up flow** into the structured library (owner's
   own request in chat 2026-07-24; forks to close: auto-apply vs stop-at-plan, inbox location,
@@ -178,22 +211,32 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
 > A concrete checklist so the next session (empty context) can start immediately: which files, which
 > commands, what to verify first.
 
-1. Verify the environment: `node -v` (≥20), `npm test` (**must be 56/56**), `git status` (clean),
+1. Verify the environment: `node -v` (≥20), `npm test` (**must be 73/73**), `git status` (clean),
    `gh auth status` (MikalaiKryvusha).
-2. **Phase 3 — `src/dedupe/`**: group assets by sha256 across directories (scan already emits the
-   hashes; the fixture plants a 3-copy group and the "+"-twin negative case), pick the keeper —
-   prior art bar: phockup's collision semantics (researches/01). Owner rule: duplicates are set
-   aside, never erased.
-3. **Phase 3 — `src/plan/`**: verdict → Bucket (season.mjs exists: year/season, `видео/`+`аудио/`
-   subdirs, per-year and global `прочее`, junk quarantine `ПРОЧЕЕ/_мусор` with provenance, custom
-   parent dirs preserved as nesting) → the SortPlan artifact: ordered Operations + disputed cases +
-   collisions, serializable, consumed later by apply/dry-run/rollback (internal map: "the plan is
-   an artifact, not a step"). Wire `kpot plan <dir>`, exit 3 → 0.
-4. Acceptance (MASTER_PLAN Phase 3): the pre-sort plan on the fixture tree is complete and
-   human-readable, and every planted ambiguity appears in the disputed section.
-5. Small parallel items if blocked: sidecar fixture case + collector; scan-map cache (see backlog).
-6. Decisions are all in `MASTER_PLAN.md` §Decision log (2026-07-24 block) — re-read before designing;
-   do not re-ask the owner what is already decided there.
+2. See the plan with your own eyes before designing on top of it — it is the input to everything in
+   Phase 4:
+   ```
+   node tests/fixtures/make.mjs <tmp>      # 25 planted cases + expected.json ground truth
+   node bin/kpot.mjs plan <tmp>            # the owner-facing master plan
+   node bin/kpot.mjs plan <tmp> --json     # the SortPlan artifact apply/rollback will consume
+   ```
+   (Generate fixtures into a fresh temp dir each time — `%TEMP%` gets cleaned between sessions.)
+3. **Phase 4 opens with an OPEN owner decision — the backup mechanism** (`MASTER_PLAN.md` decision
+   log, last row): git commit vs. manifest + hardlink snapshot. The archive is 551 GB, so this is
+   not a free choice. Do NOT implement `apply` before it is settled — run `/interview` with real
+   size numbers, recommendation first.
+4. **Phase 4 — `src/apply/`** (the ONLY writer, RULE 1): backup commit → RunJournal (`src/core/
+   journal.mjs` already exists: append-only JSONL, torn-tail tolerant) → `apply --dry-run` executing
+   the SAME SortPlan through the SAME code path → `rollback <run-id>` → the refusal to write with no
+   backup. Moves are **renames, not copy+delete** (owner requirement); cross-volume needs the
+   explicit copy→verify-hash→delete fallback, surfaced in the plan, never silent.
+5. Acceptance (MASTER_PLAN Phase 4): dry-run and real-run journals identical apart from execution
+   flags; a full apply→rollback cycle returns the fixture tree byte-for-byte (verify by hashes —
+   `tests/plan_phase3.test.mjs` already has the before/after hash-comparison pattern to copy);
+   `apply` without a backup exits non-zero and touches nothing.
+6. Small parallel items if blocked: sidecar fixture case + collector; scan-map cache (see backlog).
+7. Decisions are all in `MASTER_PLAN.md` §Decision log (2026-07-24 and 2026-07-26 blocks) — re-read
+   before designing; do not re-ask the owner what is already decided there.
 
 ---
 
