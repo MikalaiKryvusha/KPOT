@@ -1,5 +1,8 @@
 // src/core/scan_cache.mjs — the persistent scan cache: don't re-hash what hasn't changed.
-// [NOT-TESTED]
+// [TESTED: 2026-07-26 · tests/scan_cache.test.mjs — a cached scan is field-for-field the same scan;
+// invalidation checked from three angles (changed content, a same-size edit, a backdated mtime);
+// corruption/version/torn-tail degrade to a full scan; re-keying survives a sort. The invalidation
+// and determinism guards were verified by breaking them · plus a live run showing 26/26 reused]
 //
 // WHY (prescribed by the recon doc, not invented): `researches/02_real_archive_survey.md`
 // §"Implications for KPOT design" item 4 — «hashing 551 GB is hours, not seconds — the scan phase

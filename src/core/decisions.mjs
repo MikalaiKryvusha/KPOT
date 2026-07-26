@@ -1,5 +1,7 @@
 // src/core/decisions.mjs — the owner's per-folder decisions, in a file they can actually edit.
-// [NOT-TESTED]
+// [TESTED: 2026-07-26 · tests/suspicious_dirs.test.mjs — sloppy spacing and synonyms accepted,
+// unreadable answers reported rather than guessed, answers preserved when the file is regenerated,
+// a missing file treated as "nothing decided". The last two verified by breaking them]
 //
 // Owner's choice, 2026-07-26: a plain decisions file, over terminal prompts and over marker files
 // inside the folders. The reasons it wins are worth recording, because they constrain the format:

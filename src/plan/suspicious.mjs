@@ -1,5 +1,7 @@
 // src/plan/suspicious.mjs — directories KPOT will not sort until the owner has decided.
-// [NOT-TESTED]
+// [TESTED: 2026-07-26 · tests/suspicious_dirs.test.mjs — the criterion against both the owner's real
+// folder names and the placeholder ones, nesting raised once, and the default (undecided = untouched)
+// verified by breaking it: with holding disabled the spec goes red · plus a live end-to-end run]
 //
 // Owner's instruction, 2026-07-26: «нужно подозрительные папки помечать, и выносить в инструменте
 // на согласование владельца — сортировать их, или вносить в том виде, в каком они есть.»

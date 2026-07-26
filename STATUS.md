@@ -213,6 +213,14 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
       run reports `cache 26/26 reused (no re-hash)`, and `apply` re-keys the cache from its own moves
       so the cache survives a sort. 10 specs incl. three invalidation angles (changed content,
       same-size edit, backdated mtime) and corruption tolerance; guards verified by breaking them.
+- [x] Empty-folder removal — ✅ done 2026-07-26 (owner's decision). Backup manifest records every
+      DIRECTORY; the plan lists the folders that will disappear before the run; apply removes them
+      deepest-first (re-reading each one, and using `rmdir`, never a recursive delete); rollback
+      recreates them. 6 specs; the safety chain verified by breaking both links.
+- [x] Suspicious-folder approval — ✅ done 2026-07-26 (owner's decision). `src/plan/suspicious.mjs`
+      (criterion: an unclear NAME) + `src/core/decisions.mjs` (an editable Russian decisions file at
+      `.kpot-runs/папки-на-согласование.txt`, answers preserved across runs). Undecided = untouched.
+      9 specs; guards verified by breaking them.
 - [ ] Progress output for large trees — a scan of 71 606 files currently prints nothing until it
       finishes. For a non-technical owner watching a 551 GB run, silence is indistinguishable from a
       hang. Self-contained and testable (assert the reporter is called, not the pixels).
@@ -246,16 +254,12 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
 - ✅ **Electron GUI ANSWERED 2026-07-26** (owner's own idea, in chat) — accepted as product
   direction, scheduled **after Phase 5**. `ideas/02_electron_gui.md`; questions 2–4 (Electron vs a
   local web UI, first-version scope, public vs personal) stay open until its turn comes.
-- ❓ **Should RUSSIAN device-folder names count as technical?** `bucket.mjs` drops the English ones
-  (`screenshots`, `downloads`, `camera`, `dcim`) as device/app-generated, but keeps their Russian
-  equivalents (`скриншоты`, `загрузки` is listed, `камера` is not), so a `скриншоты/` folder is
-  preserved as if the owner had named it. Same *kind* of policy question you answered on 2026-07-26
-  ("all except technical") — surfaced rather than decided, since it changes where real files land.
-- ❓ **Empty source folders after a sort** — noticed during the Phase-4 live run: once a directory's
-  contents move into the library, the now-empty original (`Мобилка/`, `копии/`, …) stays. That is
-  correct by the current canon (KPOT deletes nothing, internal-map invariant 5), but the owner may
-  well expect emptied source folders to disappear. Overlaps idea 01 question 3. **Not decided
-  alone** — behaviour left as-is until the owner says.
+- ✅ **Russian device-folder names — ANSWERED 2026-07-26** by the owner's choice of the "unclear
+  name" criterion: they are neither silently dropped as technical nor silently preserved, but put on
+  the owner's table via the decisions file.
+- ✅ **Empty source folders — ANSWERED 2026-07-26** (in chat): KPOT may delete the folders its sort
+  emptied, provided their paths are in the backup so a rollback recreates them. Implemented; see the
+  decision log and `tests/empty_dirs.test.mjs`.
 - ❓ **Idea 01 awaiting owner review** — `ideas/01_inbox_topup_flow.md`: inbox dir for raw dumps +
   a desktop shortcut running an incremental **top-up flow** into the structured library (owner's
   own request in chat 2026-07-24; forks to close: auto-apply vs stop-at-plan, inbox location,
