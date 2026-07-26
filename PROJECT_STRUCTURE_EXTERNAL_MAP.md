@@ -36,15 +36,16 @@ KPOT/
 ├── .claude/skills/ # the CANONICAL skill set — edit here only
 ├── .agents/ .grok/ .cline/ .roo/   # derived copies for the other 4 agent systems (auto-resynced)
 │
-├── bin/kpot.mjs    # ✅ CLI entry: parseArgs → phase dispatch (scan/plan/apply/rollback), exit-code
-│                   #    contract 0/1/2/3; phases themselves land in Phases 2–5
-├── src/            # 🔶 in progress: core/ ✅ (paths · journal · pool) · meta/ ✅ (full date
-│                   #    pipeline: model + detectors + exif/mp4/dirname extractors + resolver) ·
-│                   #    scan/ ✅ (identify by magic bytes · walk · hash) · plan/season.mjs ✅;
-│                   #    dedupe/ rest of plan/ apply/ report/ are 🔲 planned
+├── bin/kpot.mjs    # ✅ CLI entry: parseArgs → phase dispatch; ALL FOUR phases are implemented
+│                   #    (scan · plan · apply [--dry-run] · rollback). Exit codes 0/1/2, 3 reserved
+├── src/            # ✅ core/ (paths · journal · pool) · meta/ (full date pipeline: model +
+│                   #    detectors + exif/mp4/dirname extractors + resolver) · scan/ (identify by
+│                   #    magic bytes · walk · hash) · dedupe/ · plan/ (season · bucket · SortPlan) ·
+│                   #    apply/ (backup · apply · rollback — the only writer). report/ folded into
+│                   #    the phase modules: each renders its own owner-facing report from its artifact
 └── tests/          # ✅ fixtures/make.mjs (deterministic messy-tree generator, 25 cases v2,
-                    #    expected.json ground truth) + specs incl. the Phase-2 acceptance spec —
-                    #    npm test 56/56
+                    #    expected.json ground truth) + the Phase-2/3/4 acceptance specs —
+                    #    npm test 88/88
 ```
 
 ## What each part is
@@ -64,9 +65,9 @@ KPOT/
 | `bin/kpot.mjs` | ✅ CLI entry: `parseArgs`, phase dispatch, `--help`/`--version`, stable exit codes (0 ok · 1 error · 2 usage · 3 not-implemented) | `src/apply/`, `src/plan/`, `src/report/` (once they exist) |
 | ✅ `src/scan/` | `identify.mjs` (kind by magic bytes — extensions lie; junk-by-name policy) + `scan.mjs` (walk without following links, bounded-concurrency sniff + streamed SHA-256, per-file errors collected). Read-only over user data; wired to `kpot scan` | `src/core/` |
 | ✅ `src/meta/` | the full date pipeline: `evidence.mjs` (model: precedence, wall/instant claims, plausibility) · `filename_date.mjs` (survey-derived detectors) · `exif.mjs` (`exifreader`) · `mp4.mjs` (own mvhd walk) · `dirname_date.mjs` · `resolve.mjs` (DateVerdict: disputed kept, mtime never determines, spike discounting) · `annotate.mjs` (composition; feeds `kpot scan`). Deferred: sidecar evidence | `src/core/` |
-| 🔲 `src/dedupe/` | Groups identical/near-identical files across directories | `src/scan/` output, `src/core/` |
-| 🔶 `src/plan/` | ✅ `season.mjs` (owner-decided month→season buckets); the target-tree builder and SortPlan emitter are 🔲 Phase 3 | `src/meta/`, `src/dedupe/` |
-| 🔲 `src/apply/` | The only writer: backup commit, dry run, real move, post-report, rollback | `src/plan/`, `src/core/` |
+| ✅ `src/dedupe/` | `dedupe.mjs` — groups identical files by sha256 and picks the keeper by an explainable total order | `src/scan/` output, `src/core/` |
+| ✅ `src/plan/` | `season.mjs` (owner-decided month→season buckets) · `bucket.mjs` (one file → its destination) · `plan.mjs` (the SortPlan artifact + the Russian owner-facing master plan) | `src/meta/`, `src/dedupe/` |
+| ✅ `src/apply/` | The only writer. `backup.mjs` (manifest + hardlink snapshot, capability probed not assumed, refuses to degrade silently) · `apply.mjs` (journal-before-act, dry run = same loop with inert effects) · `rollback.mjs` (replays the journal backwards, idempotent, prunes only what the run created) | `src/plan/`, `src/core/` |
 | 🔲 `src/report/` | Renders human-readable reports from the machine-readable run data | `src/core/` |
 | ✅ `src/core/` | Shared primitives: `paths.mjs` (win32-semantics normalization/comparison, `\\?\` long-path handling), `journal.mjs` (append-only JSONL run journal, crash-torn-tail tolerant), `pool.mjs` (bounded-concurrency settle-all mapper) | nothing (the bottom layer) |
 | `tests/` | ✅ `node --test` specs; `tests/fixtures/make.mjs` generates synthetic messy trees with `expected.json` ground truth (catalog mirrors `researches/02_real_archive_survey.md`) | all of `src/` (once it exists) |

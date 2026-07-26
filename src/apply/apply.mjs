@@ -1,5 +1,8 @@
 // src/apply/apply.mjs — the executor: the ONE place in KPOT that moves a user's file.
-// [NOT-TESTED]
+// [TESTED: 2026-07-26 · tests/apply_phase4.test.mjs — the three MASTER_PLAN Phase-4 acceptance
+// criteria (dry≡real journals record-for-record · apply→rollback byte-for-byte · no backup means no
+// write), plus a live CLI run on a generated tree. Guards verified by breaking them first: putting
+// dryRun back into the 'done' record and journalling only the deepest mkdir level both went red]
 //
 // AGENT_GUIDE.md RULE 1 (the safety invariant): only this module may modify, move or delete a
 // user's file, and only after a backup exists and the run journal has recorded the intended

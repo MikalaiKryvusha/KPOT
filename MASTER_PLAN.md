@@ -91,7 +91,13 @@ Application of `PHILOSOPHY.md` to this project:
 - **Acceptance:** dry-run and real-run journals are identical apart from execution flags; a full
   apply→rollback cycle on a fixture returns the tree byte-for-byte to its original state, verified by
   hashes; `apply` without a backup exits non-zero and touches nothing.
-- **Status:** 🔲 todo. **This phase gates every real-data use of the tool.**
+- **Status:** ✅ done 2026-07-26 — all three criteria are green specs in `tests/apply_phase4.test.mjs`
+  (the journals are compared record for record and differ in exactly one header flag; the cycle is
+  checked by a sha256 census of every file before and after; a run that cannot back up throws having
+  touched nothing). Modules: `src/apply/backup.mjs` (manifest + hardlink snapshot),
+  `src/apply/apply.mjs` (the single writer), `src/apply/rollback.mjs`. `kpot apply [--dry-run]` and
+  `kpot rollback <run-id> [dir]` are live. Every guard was verified by breaking it first.
+  **The tool may now write — but only ever after a backup it verified.**
 
 ### Phase 5 — Apply, reports, and first real use
 - **Goal of the phase:** the owner's chaos becomes a library he can browse by year.

@@ -229,8 +229,9 @@ The rules that keep it objective:
 | `node bin/kpot.mjs scan <dir>` | ✅ builds the scan map: JSON on stdout — assets (path/size/mtime/kind/format/sha256) + per-media `evidence` and `verdict` (DateVerdict: dated/partial/unknown, disputed kept) + errors; human one-liner on stderr. Read-only. |
 | `node bin/kpot.mjs plan <dir>` | ✅ builds the pre-sort master plan: Russian owner-facing report on stdout (what moves where and why · duplicates · disputed cases · name collisions · what stays), one-line summary on stderr. Read-only. |
 | `node bin/kpot.mjs plan <dir> --json` | ✅ the same run as the machine-readable **SortPlan** artifact (`operations`/`duplicates`/`disputed`/`collisions`/`stay`/`counts`) — what Phase 4/5 dry-run, apply and rollback consume. Deterministic apart from `meta.plannedAt`. |
-| `node bin/kpot.mjs apply --dry-run <dir>` | 🔲 planned — Phase 3: full simulation, no file touched. |
-| `node bin/kpot.mjs rollback <run-id>` | 🔲 planned — Phase 4: restores from the backup commit. |
+| `node bin/kpot.mjs apply --dry-run <dir>` | ✅ full simulation through the SAME code path as the real run — inert filesystem effects only. Emits the dry-run report; writes a journal (in `.kpot-runs/`) that differs from a real run's by exactly one header flag. |
+| `node bin/kpot.mjs apply <dir>` | ✅ the ONLY writing command. Re-plans the tree, creates the backup (manifest + hardlink snapshot), refuses to move anything if that backup is not verifiable, journals each intent before acting, then renames. Prints the post-sort report ending in the rollback command. `--allow-no-snapshot` is the explicit override for filesystems without hardlinks (exFAT/FAT32). |
+| `node bin/kpot.mjs rollback <run-id> [dir]` | ✅ replays a run's journal backwards and puts every file back; prunes only the directories that run created. Idempotent. Refuses to "roll back" a dry run. `[dir]` is the archive root (defaults to the current directory) — the post-sort report prints the exact command. |
 
 > Full harness guide: `TESTING_FRAMEWORK.md` (the 7 principles and the `[NOT-TESTED]` / `[TESTED]`
 > markers). Fixture generator and specs live in `tests/` once Phase 0 lands.

@@ -105,19 +105,53 @@
   by breaking the code first (disabling collision handling → 3 failures; dropping verdict-level
   disputes → 2) rather than assumed.
 
+### Phase 4 — Safety: backup, dry run, rollback ✅ (2026-07-26)
+- **The last OPEN decision was closed by the owner** (interview #002, answered in chat): the backup
+  is a **manifest + hardlink snapshot**. Grounded in measurements, not estimates — the archive is
+  551 GB on a volume with **197.8 GB free**, so a git backup does not physically fit; a probe
+  measured hardlinks at **0.401 ms/link → ~29 s and ~0 bytes for all 71 606 files**, and proved a
+  hardlink survives a rename of the original (same inode, `nlink=2`).
+- **`src/apply/backup.mjs`** — the manifest (path/size/mtime/sha256 per file, deterministic) plus a
+  hardlink snapshot of the whole tree, each link verified by inode equality. Hardlink support is
+  **probed, never inferred** from the filesystem's name; where it is impossible the run refuses
+  unless the owner passes `--allow-no-snapshot`. A backup that silently degrades would be worse
+  than none, because the owner would trust it.
+- **`src/apply/apply.mjs`** — the ONLY writer (RULE 1). Refuses to move anything until it has
+  verified a backup on disk, journals intent BEFORE each act, never overwrites. The dry run is not
+  a second code path: it is the same loop with inert effects, which is what makes drift impossible.
+  The effects keep a model of what the run itself has filled/emptied, so the dry run answers "is
+  this target free?" exactly as the real run does.
+- **`src/apply/rollback.mjs`** — replays the journal backwards, resolves the crash window (intent
+  recorded, outcome not) by looking at the filesystem instead of guessing, is idempotent, and prunes
+  only the directories that run created.
+- **`kpot apply [--dry-run] <dir>`** and **`kpot rollback <run-id> [dir]`** are live. Every phase is
+  now implemented; nothing returns exit 3.
+- **All three MASTER_PLAN acceptance criteria are green specs** (`tests/apply_phase4.test.mjs`,
+  13 specs). Suite **88/88**. Every guard was verified by breaking the code first — and that pass
+  found two things a green suite had hidden:
+  - the no-hardlink refusal spec **passed with the guard deleted** (it had been simulating a bad
+    filesystem by planting a file at `.kpot-runs`, so the run died of `ENOTDIR` instead). Fixed by
+    making the capability probe injectable, so the spec can only pass when the guard fires;
+  - the reverse-order rollback rule was **unverified**: the fixture contains no chained move, so
+    inverting the order left every spec green. A purpose-built chain spec now guards it.
+
 ---
 
 ## Where we are now
 
-**Phases 0–3 are CLOSED.** The whole read-only half of the product works end to end: `kpot scan`
-walks a tree, identifies by content, hashes, and dates every media file with evidence; `kpot plan`
-turns that into the pre-sort master plan the owner reads — what moves where and why, which files are
-duplicates, which cases are disputed, what stays untouched. **Nothing writes yet, by design.**
-KAIF was updated to 1.6 on 2026-07-26 (see `plans/01_kaif_16_update_report.md`).
+**Phases 0–4 are CLOSED. The product works end to end.** `kpot scan` walks a tree and dates every
+media file with evidence; `kpot plan` turns that into the pre-sort master plan the owner reads;
+`kpot apply` executes it — but only ever after a backup it verified — and `kpot rollback` undoes it
+completely. Verified live on a generated tree, not only by tests: the library built itself
+(`2015/Осень/аудио/голосовые/`, `ПРОЧЕЕ/_дубликаты/`), rollback restored all 26 files and removed
+all 32 created directories, and rolling back a *dry* run was refused with a plain-language reason.
 
-Deliberate cuts, both small and recorded: THM/XMP sidecar evidence (needs a fixture case first) and
-the scan-map cache. **Next: Phase 4 — safety.** It gates every real-data use of the tool, and it
-opens with the one decision still marked OPEN in the decision log: the backup mechanism.
+**KPOT may now write — and every guarantee `GOAL.md` demands before it does exists and is proven.**
+
+Deliberate cuts, small and recorded: THM/XMP sidecar evidence (needs a fixture case first) and the
+scan-map cache. **Next: Phase 5 — first real use**: progress output for large trees, resumability
+on a partially-completed run, and a first supervised run on a *copy* of a real directory (owner's
+homework — the tool must never be pointed at the original).
 
 | Phase | Status | What's there |
 |-------|--------|--------------|
@@ -125,8 +159,8 @@ opens with the one decision still marked OPEN in the decision log: the backup me
 | Phase 1 — research + decisions + skeleton | ✅ done | researches 01+02, interview #001 ✅, fixtures, CLI, seasons, `src/core/`, `src/meta/` evidence model |
 | Phase 2 — scan & metadata | ✅ done | acceptance spec green; `kpot scan` = assets + evidence + verdicts; deferred: sidecar evidence (needs a fixture case first) |
 | Phase 3 — dedup & plan | ✅ done | `kpot plan` = SortPlan + owner-facing master plan; acceptance spec green (23 planted destinations + both ambiguities) |
-| Phase 4 — safety (backup / dry run / rollback) | 🔲 next | backup fork still OPEN: manifest+hardlink favored (551 GB reality) — decide with real sizes |
-| Phase 5 — apply & reports | 🔲 todo | nothing yet |
+| Phase 4 — safety (backup / dry run / rollback) | ✅ done | interview #002 answered; `src/apply/` = backup + the single writer + rollback; all three acceptance criteria green; guards proven by breaking them |
+| Phase 5 — first real use & release | 🔲 next | progress output · resumability · supervised run on a COPY of a real dir · README + `/release` |
 
 Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
 
@@ -167,10 +201,23 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
       total-order keeper choice), `src/plan/bucket.mjs` (destination rules incl. technical-vs-custom
       dirs), `src/plan/plan.mjs` (SortPlan artifact + Russian owner report), `kpot plan` wired with
       `--json`. 17 specs; suite 73/73; guards verified by breaking the code first.
+- [x] Phase-4 safety — ✅ done 2026-07-26. `src/apply/backup.mjs` (manifest + hardlink snapshot,
+      probed capability, explicit refusal), `src/apply/apply.mjs` (the single writer; dry run = the
+      same loop with inert effects), `src/apply/rollback.mjs` (journal replayed backwards,
+      idempotent, prunes only what the run created). `kpot apply`/`rollback` wired. 13 specs;
+      suite 88/88; every guard verified by breaking it first.
 - [ ] Sidecar evidence (THM/XMP) — plant a fixture case first (THM next to its video twin, per the
       survey), then a collector feeding 'sidecar' evidence into the resolver. Small, self-contained.
 - [ ] Scan-map cache keyed by (path, size, mtime) — hashing 551 GB is hours; a persistent cache in
       `.kpot-runs/` makes re-scans and the future top-up flow (idea 01) cheap. Design it read-safe.
+      **Now the highest-value autonomous item**: Phase 5's first real run is otherwise an hours-long
+      re-hash every time it is repeated.
+- [ ] Progress output for large trees — a scan of 71 606 files currently prints nothing until it
+      finishes. For a non-technical owner watching a 551 GB run, silence is indistinguishable from a
+      hang. Self-contained and testable (assert the reporter is called, not the pixels).
+- [ ] Resumability of a partially-completed `apply` — the journal already records enough (internal
+      map, invariant 8); what is missing is the code path that reads a journal and continues rather
+      than starting a new run. Rollback already handles the crash window; resume is its twin.
 - [x] Season mapping — ✅ done 2026-07-24. `src/plan/season.mjs` (`seasonForMonth`, canonical Russian
       dir names per interview #001 Q2), specs in `tests/season.test.mjs`. Suite 15/15.
 
@@ -192,9 +239,17 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
 - ✅ **Two layout forks ANSWERED 2026-07-26** (in chat): duplicates → `ПРОЧЕЕ/_дубликаты/` with
   provenance; custom parent dirs → preserve all except technical. Both recorded in the
   `MASTER_PLAN.md` decision log. Phase 3 is UNBLOCKED and closed.
-- ❗ **OPEN owner decision, blocks Phase 4: the backup mechanism** — git commit vs. manifest +
-  hardlink snapshot, to be decided with the real 551 GB sizes in view. `apply` must not be built
-  before it is settled.
+- ✅ **Interview #002 ANSWERED 2026-07-26** (in chat) — the backup is a **manifest + hardlink
+  snapshot** (answer Б). Recorded in the `MASTER_PLAN.md` decision log; Phase 4 is closed. The
+  interview document keeps the measurements the decision rests on.
+- ✅ **Electron GUI ANSWERED 2026-07-26** (owner's own idea, in chat) — accepted as product
+  direction, scheduled **after Phase 5**. `ideas/02_electron_gui.md`; questions 2–4 (Electron vs a
+  local web UI, first-version scope, public vs personal) stay open until its turn comes.
+- ❓ **Empty source folders after a sort** — noticed during the Phase-4 live run: once a directory's
+  contents move into the library, the now-empty original (`Мобилка/`, `копии/`, …) stays. That is
+  correct by the current canon (KPOT deletes nothing, internal-map invariant 5), but the owner may
+  well expect emptied source folders to disappear. Overlaps idea 01 question 3. **Not decided
+  alone** — behaviour left as-is until the owner says.
 - ❓ **Idea 01 awaiting owner review** — `ideas/01_inbox_topup_flow.md`: inbox dir for raw dumps +
   a desktop shortcut running an incremental **top-up flow** into the structured library (owner's
   own request in chat 2026-07-24; forks to close: auto-apply vs stop-at-plan, inbox location,
@@ -211,32 +266,36 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
 > A concrete checklist so the next session (empty context) can start immediately: which files, which
 > commands, what to verify first.
 
-1. Verify the environment: `node -v` (≥20), `npm test` (**must be 73/73**), `git status` (clean),
+1. Verify the environment: `node -v` (≥20), `npm test` (**must be 88/88**), `git status` (clean),
    `gh auth status` (MikalaiKryvusha).
-2. See the plan with your own eyes before designing on top of it — it is the input to everything in
-   Phase 4:
+2. **Run the whole product once, end to end, before designing on top of it.** It all works now:
    ```
-   node tests/fixtures/make.mjs <tmp>      # 25 planted cases + expected.json ground truth
-   node bin/kpot.mjs plan <tmp>            # the owner-facing master plan
-   node bin/kpot.mjs plan <tmp> --json     # the SortPlan artifact apply/rollback will consume
+   node tests/fixtures/make.mjs <tmp>          # 25 planted cases + expected.json ground truth
+   node bin/kpot.mjs plan <tmp>                # the owner-facing master plan
+   node bin/kpot.mjs apply --dry-run <tmp>     # full simulation, zero writes
+   node bin/kpot.mjs apply <tmp>               # the real sort (backup first, always)
+   node bin/kpot.mjs rollback <run-id> <tmp>   # everything back where it was
    ```
-   (Generate fixtures into a fresh temp dir each time — `%TEMP%` gets cleaned between sessions.)
-3. **Phase 4 opens with an OPEN owner decision — the backup mechanism** (`MASTER_PLAN.md` decision
-   log, last row): git commit vs. manifest + hardlink snapshot. The archive is 551 GB, so this is
-   not a free choice. Do NOT implement `apply` before it is settled — run `/interview` with real
-   size numbers, recommendation first.
-4. **Phase 4 — `src/apply/`** (the ONLY writer, RULE 1): backup commit → RunJournal (`src/core/
-   journal.mjs` already exists: append-only JSONL, torn-tail tolerant) → `apply --dry-run` executing
-   the SAME SortPlan through the SAME code path → `rollback <run-id>` → the refusal to write with no
-   backup. Moves are **renames, not copy+delete** (owner requirement); cross-volume needs the
-   explicit copy→verify-hash→delete fallback, surfaced in the plan, never silent.
-5. Acceptance (MASTER_PLAN Phase 4): dry-run and real-run journals identical apart from execution
-   flags; a full apply→rollback cycle returns the fixture tree byte-for-byte (verify by hashes —
-   `tests/plan_phase3.test.mjs` already has the before/after hash-comparison pattern to copy);
-   `apply` without a backup exits non-zero and touches nothing.
-6. Small parallel items if blocked: sidecar fixture case + collector; scan-map cache (see backlog).
-7. Decisions are all in `MASTER_PLAN.md` §Decision log (2026-07-24 and 2026-07-26 blocks) — re-read
+   (Fresh temp dir each time — `%TEMP%` is cleaned between sessions. The run id is printed by
+   `apply`; run data lives in `<tmp>/.kpot-runs/`, which scans deliberately skip.)
+3. **Phase 5 — first real use.** The three self-contained pieces, in value order:
+   - **scan-map cache** keyed by (path, size, mtime) in `.kpot-runs/` — without it every repeat run
+     on the real archive re-hashes 551 GB (hours). This is what makes a supervised real run
+     practical at all, and idea 01's top-up flow depends on it too.
+   - **progress output** — a 71 606-file run currently prints nothing until it ends; for the owner,
+     silence looks like a hang.
+   - **resumability** of a partially-completed `apply` (the journal already records enough —
+     internal map invariant 8; rollback's crash-window handling is the pattern to mirror).
+4. **The first run on real data is the owner's call and needs a fresh `AUTH:`** — the archive grant
+   in agent memory is READ-ONLY. Phase 5's acceptance says a *copy* of a real messy directory
+   (owner's homework), never the original.
+5. Two owner questions are waiting, neither blocking: empty source folders after a sort (see the
+   review section above) and idea 01's open forks.
+6. Decisions are all in `MASTER_PLAN.md` §Decision log (2026-07-24 and 2026-07-26 blocks) — re-read
    before designing; do not re-ask the owner what is already decided there.
+7. Two lessons from Phase 4 worth re-reading before writing any new guard: `EXPERIENCE.md` EXP-0008
+   (a guard that passes for the wrong reason) and EXP-0009 (invisible characters in generated
+   source). Both cost real time here.
 
 ---
 

@@ -1,5 +1,8 @@
 // src/apply/rollback.mjs — the undo button: put every file back where it was.
-// [NOT-TESTED]
+// [TESTED: 2026-07-26 · tests/apply_phase4.test.mjs — full apply→rollback census equality,
+// idempotence, directory pruning, the dry-run refusal, and a purpose-built CHAINED-move tree
+// (the fixture has no chain, so without it the reverse-order rule stayed an unverified comment).
+// Prune order and undo order were each verified by inverting them and watching the specs go red]
 //
 // GOAL.md §г) — «пост-сортировочный отчёт с возможностью откатки к комит-бекапу». This module is
 // that possibility. It replays the RunJournal BACKWARDS, which is deliberately different from

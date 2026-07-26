@@ -18,15 +18,19 @@
 
 ## The core abstractions
 
-> ⚠️ **Model first, code following.** The logical shape below was agreed before the code. As of
-> 2026-07-24 the first abstractions are implemented and tested: **Evidence** (`src/meta/evidence.mjs` —
-> precedence order, wall/instant claim shapes, plausibility window; filename detectors in
-> `src/meta/filename_date.mjs`), **RunJournal** (`src/core/journal.mjs` — append-only JSONL, torn-tail
-> tolerant), Bucket's season half (`src/plan/season.mjs`), **Asset** production — the scan phase
-> (`src/scan/`: identity by content magic bytes + streamed SHA-256, wired to `kpot scan`) — and
-> **DateVerdict** (`src/meta/resolve.mjs` + extractors: one explainable verdict per media asset,
-> losers kept in `disputed`, fs-mtime never determines, partial verdicts for year-only evidence).
-> Still ahead of the code: DuplicateGroup, SortPlan, Operation, Backup. Sphere: programming.
+> ✅ **Model first, code following — as of 2026-07-26 every abstraction below exists in code and is
+> covered by specs.** Evidence (`src/meta/evidence.mjs` + `filename_date.mjs`) · DateVerdict
+> (`src/meta/resolve.mjs`) · Asset (`src/scan/`) · DuplicateGroup (`src/dedupe/dedupe.mjs`) · Bucket
+> (`src/plan/season.mjs` + `bucket.mjs`) · SortPlan and Operation (`src/plan/plan.mjs`) · RunJournal
+> (`src/core/journal.mjs`) · **Backup** (`src/apply/backup.mjs` — manifest + hardlink snapshot,
+> Phase 4). Sphere: programming.
+>
+> One deviation from the originally planned file layout, decided by the agent while building Phase 4
+> and cheap to reverse: there is no separate `src/report/`. Each phase renders its own owner-facing
+> report from its own artifact, in the module that owns that artifact (`renderPlan` in `plan.mjs`,
+> `renderApplyReport` in `apply.mjs`, `renderRollbackReport` in `rollback.mjs`). The rule the layout
+> was protecting — "reports are rendered FROM the artifact, never assembled independently" — is
+> preserved; a separate directory would only have added a hop (KISS, `PHILOSOPHY.md`).
 
 | Abstraction | What it *is* (essence) | Responsibility |
 |-------------|------------------------|----------------|

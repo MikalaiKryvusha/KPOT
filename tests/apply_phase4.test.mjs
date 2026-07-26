@@ -177,6 +177,40 @@ test('rollback prunes the directories the run created, and leaves the owner\'s o
   } finally { await rm(root, { recursive: true, force: true }); }
 });
 
+// The fixture tree happens to contain no CHAIN of moves (one file's target being another file's
+// source), so it cannot exercise the rule that rollback must undo in reverse — proven by breaking
+// the code: flipping the order left every fixture spec green. This spec builds the chain on purpose.
+// Without it, the reverse-order rule would be an unverified comment.
+test('rollback undoes chained moves in reverse — the order is load-bearing, not decorative', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'kpot-p4-chain-'));
+  try {
+    // a.jpg wants b.jpg's place, and b.jpg moves on to c.jpg. Apply must vacate b.jpg first.
+    await writeFile(join(root, 'a.jpg'), 'AAA', 'utf8');
+    await writeFile(join(root, 'b.jpg'), 'BBB', 'utf8');
+    const before = await census(root);
+
+    const scan = await scanTree(root);
+    const plan = {
+      planVersion: 1,
+      meta: { root },
+      operations: [
+        { op: 'move', from: 'b.jpg', to: 'c.jpg', reason: 'chain: vacate b.jpg first' },
+        { op: 'move', from: 'a.jpg', to: 'b.jpg', reason: 'chain: a.jpg takes the freed name' },
+      ],
+    };
+
+    const applied = await applyPlan(root, plan, scan, { runId: 'run-chain' });
+    assert.equal(applied.failed, 0, JSON.stringify(applied.errors));
+    assert.equal(applied.moved, 2);
+
+    // Undoing forwards would try to put c.jpg back as b.jpg while a.jpg still sits there.
+    const rolled = await rollbackRun(runDirFor(root, 'run-chain'));
+    assert.equal(rolled.failed, 0, `reverse order is required here: ${JSON.stringify(rolled.errors)}`);
+    assert.equal(rolled.restored, 2);
+    assert.deepEqual([...(await census(root))].sort(), [...before].sort());
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
 test('rollback is idempotent — running it twice changes nothing and reports no failure', async () => {
   const root = await fixture();
   try {

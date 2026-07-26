@@ -1,5 +1,7 @@
 // src/apply/backup.mjs — the Backup: the owner's undo button, created BEFORE anything moves.
-// [NOT-TESTED]
+// [TESTED: 2026-07-26 · tests/apply_phase4.test.mjs — snapshot inode equality per file, manifest
+// round-trip, verifyBackup's three refusal cases, and the no-hardlink refusal exercised through an
+// injected probe. The refusal guard was verified by DELETING it and watching the spec go red]
 //
 // GOAL.md §б) demands «коммит-бекап, к которому можно откатить исходную директорию пользователя».
 // Interview #002 (owner's answer Б, 2026-07-26) decided WHAT that is, with measured numbers rather
