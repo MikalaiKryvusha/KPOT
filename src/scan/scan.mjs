@@ -17,6 +17,7 @@ import { join } from 'node:path';
 import { pipeline } from 'node:stream/promises';
 import { mapLimit } from '../core/pool.mjs';
 import { RUNS_DIR_NAME } from '../core/paths.mjs';
+import { cacheLookup } from '../core/scan_cache.mjs';
 import { identify, SNIFF_LENGTH } from './identify.mjs';
 
 /** Default bounded concurrency for per-file work (open/sniff/hash). */
@@ -79,18 +80,37 @@ async function sniff(absPath) {
  * Scan a tree: every file becomes an Asset — identity (path, size, mtime), kind by content
  * (magic bytes), and a streamed content hash.
  *
+ * With a `cache` (from `src/core/scan_cache.mjs`) a file whose path, size and mtime all match a
+ * cached entry reuses its kind/format/sha256 and is neither opened nor read. This is what makes a
+ * repeated run on the real 551 GB archive take seconds instead of hours (`researches/02` §4). The
+ * OUTPUT is identical either way — a cache hit must be indistinguishable from a fresh hash, which
+ * is asserted by spec; if it ever were not, the cache would be corrupting the scan.
+ *
+ * Reading only: `scanTree` never writes the cache. The caller decides when to persist it, so the
+ * scan phase stays read-only over the filesystem (RULE 1).
+ *
  * @param {string} root  directory to scan (must exist; caller validates)
- * @param {{concurrency?: number}} [opts]
- * @returns {Promise<{root: string, scannedAt: string, assets: object[],
+ * @param {{concurrency?: number, cache?: Map}} [opts]
+ * @returns {Promise<{root: string, scannedAt: string, assets: object[], cache: {hits: number, misses: number},
  *                    errors: Array<{path: string, error: string}>}>}
  *          assets sorted by rel path: { path, size, mtimeMs, kind, format, sha256 }
  */
-export async function scanTree(root, { concurrency = DEFAULT_CONCURRENCY } = {}) {
+export async function scanTree(root, { concurrency = DEFAULT_CONCURRENCY, cache = null } = {}) {
   const scannedAt = new Date().toISOString();
   const { files, errors } = await walk(root);
+  let hits = 0, misses = 0;
 
   const results = await mapLimit(files, concurrency, async (f) => {
-    const [s, head] = [await stat(f.abs), await sniff(f.abs)];
+    const s = await stat(f.abs);
+    // The stat above is unavoidable (it IS the cache key), so a hit costs one stat and saves the
+    // sniff plus the full streamed read — on video files, effectively the entire cost of the scan.
+    const cached = cache ? cacheLookup(cache, f.rel, s) : null;
+    if (cached) {
+      hits += 1;
+      return { path: f.rel, size: s.size, mtimeMs: s.mtimeMs, ...cached };
+    }
+    misses += 1;
+    const head = await sniff(f.abs);
     const { kind, format } = identify(f.rel.split('/').at(-1), head);
     return {
       path: f.rel,
@@ -109,5 +129,5 @@ export async function scanTree(root, { concurrency = DEFAULT_CONCURRENCY } = {})
   }
   assets.sort((a, b) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0));
 
-  return { root, scannedAt, assets, errors };
+  return { root, scannedAt, assets, cache: { hits, misses }, errors };
 }

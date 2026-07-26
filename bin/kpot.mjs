@@ -26,6 +26,7 @@ import { buildPlan, renderPlan } from '../src/plan/plan.mjs';
 import { applyPlan, renderApplyReport } from '../src/apply/apply.mjs';
 import { rollbackRun, renderRollbackReport } from '../src/apply/rollback.mjs';
 import { RUNS_DIR_NAME } from '../src/core/paths.mjs';
+import { loadScanCache, saveScanCache, rekeyScanCache } from '../src/core/scan_cache.mjs';
 
 export const EXIT_OK = 0;
 export const EXIT_ERROR = 1;
@@ -49,6 +50,9 @@ Options:
   --dry-run                     apply/rollback: simulate through the same code path, write nothing
   --allow-no-snapshot           apply: proceed where the filesystem cannot make hardlinks
                                 (exFAT/FAT32). Structure stays restorable, CONTENT is unprotected.
+  --no-cache                    ignore and do not refresh the scan cache — re-hash everything
+
+KPOT writes NOTHING outside its own <dir>/.kpot-runs/ directory until you run apply.
   -h, --help                    show this help and exit
   -v, --version                 print the version and exit
 
@@ -85,6 +89,7 @@ export async function run(argv, { out = console.log, err = console.error } = {})
         version: { type: 'boolean', short: 'v' },
         'dry-run': { type: 'boolean' },
         'allow-no-snapshot': { type: 'boolean' },
+        'no-cache': { type: 'boolean' },
         json: { type: 'boolean' },
       },
       allowPositionals: true,
@@ -123,11 +128,13 @@ export async function run(argv, { out = console.log, err = console.error } = {})
     }
   }
 
-  if (command === 'scan') return runScan(target, { out, err });
-  if (command === 'plan') return runPlan(target, { out, err, json: parsed.values.json === true });
+  const cache = parsed.values['no-cache'] !== true;
+
+  if (command === 'scan') return runScan(target, { out, err, cache });
+  if (command === 'plan') return runPlan(target, { out, err, cache, json: parsed.values.json === true });
   if (command === 'apply') {
     return runApply(target, {
-      out, err,
+      out, err, cache,
       dryRun: parsed.values['dry-run'] === true,
       allowNoSnapshot: parsed.values['allow-no-snapshot'] === true,
       json: parsed.values.json === true,
@@ -152,17 +159,24 @@ export async function run(argv, { out = console.log, err = console.error } = {})
  * Re-plans the tree immediately before executing, on purpose: applying a plan built minutes or days
  * ago against a tree that has changed since is exactly how a sorter destroys data.
  */
-async function runApply(dir, { out, err, dryRun, allowNoSnapshot, json }) {
+async function runApply(dir, { out, err, dryRun, allowNoSnapshot, json, cache }) {
   const root = resolve(dir);
   let result;
   try {
-    const { result: scan } = await scanAndAnnotate(root);
+    const { result: scan } = await scanAndAnnotate(root, { cache });
     const plan = buildPlan(scan);
     if (plan.operations.length === 0) {
       err('kpot apply: nothing to move — the tree already matches the plan.');
       return EXIT_OK;
     }
     result = await applyPlan(root, plan, scan, { dryRun, allowNoSnapshot });
+    // The run just renamed files the cache still indexes by their OLD paths. Carrying each entry
+    // across is provably safe (a rename cannot change content) and is what stops the NEXT run from
+    // re-hashing the whole archive for a tree whose bytes did not change.
+    if (cache && !dryRun && result.moved > 0) {
+      const moves = plan.operations.filter((o) => !result.errors.some((e) => e.path === o.from));
+      await rekeyScanCache(root, moves);
+    }
   } catch (e) {
     err(`kpot apply: ${e.message}`);
     return EXIT_ERROR;
@@ -189,11 +203,20 @@ async function runRollback(runId, dir, { out, err, dryRun }) {
   return result.failed > 0 ? EXIT_ERROR : EXIT_OK;
 }
 
-/** scan + annotate, shared by the scan and plan phases. Read-only over the tree (RULE 1). */
-async function scanAndAnnotate(dir) {
-  const result = await scanTree(dir);
+/**
+ * scan + annotate, shared by the scan, plan and apply phases.
+ *
+ * Never touches a USER file (RULE 1). It does read and refresh KPOT's own scan cache under
+ * `.kpot-runs/`, which is what makes a repeated run on the real archive take seconds instead of
+ * re-hashing 551 GB (`researches/02` §4) — the plan→apply pair alone pays that cost twice without it.
+ * `--no-cache` opts out entirely.
+ */
+async function scanAndAnnotate(dir, { cache = true } = {}) {
+  const loaded = cache ? await loadScanCache(dir) : { entries: null };
+  const result = await scanTree(dir, { cache: loaded.entries });
   const verdicts = await annotateAssets(result.root, result.assets);
   result.errors.push(...verdicts.errors);
+  if (cache) await saveScanCache(dir, result.assets);
   return { result, verdicts };
 }
 
@@ -203,10 +226,11 @@ async function scanAndAnnotate(dir) {
  * with `--json`, which is what Phase 4/5 (dry run, apply, rollback) will consume.
  * Nothing is written and nothing is moved: planning is strictly read-only.
  */
-async function runPlan(dir, { out, err, json }) {
-  let plan;
+async function runPlan(dir, { out, err, json, cache }) {
+  let plan, scan;
   try {
-    const { result } = await scanAndAnnotate(dir);
+    const { result } = await scanAndAnnotate(dir, { cache });
+    scan = result;
     plan = buildPlan(result);
   } catch (e) {
     err(`kpot plan: ${e.message}`);
@@ -216,8 +240,15 @@ async function runPlan(dir, { out, err, json }) {
   const c = plan.counts;
   err(`kpot plan: ${c.files} files · ${c.moves} moves · ${c.stay} stay · `
     + `${c.duplicateCopies} duplicate copies · ${c.disputed} disputed · ${c.collisions} name collisions`
-    + ' · NOTHING MOVED (plan only)');
+    + `${cacheNote(scan)} · NOTHING MOVED (plan only)`);
   return EXIT_OK;
+}
+
+/** " · cache 23/26" — visible proof the cache is working, or silence when it is off/cold. */
+function cacheNote(scan) {
+  const c = scan?.cache;
+  if (!c || c.hits === 0) return '';
+  return ` · cache ${c.hits}/${c.hits + c.misses} reused (no re-hash)`;
 }
 
 /**
@@ -225,12 +256,10 @@ async function runPlan(dir, { out, err, json }) {
  * `kpot scan dir > map.json` just works. Read-only over the tree (RULE 1). Per-file errors are
  * inside the JSON and do not fail the run; only a scan-level failure exits non-zero.
  */
-async function runScan(dir, { out, err }) {
+async function runScan(dir, { out, err, cache }) {
   let result, verdicts;
   try {
-    result = await scanTree(dir);
-    verdicts = await annotateAssets(result.root, result.assets); // dates + evidence per media asset
-    result.errors.push(...verdicts.errors);
+    ({ result, verdicts } = await scanAndAnnotate(dir, { cache }));
   } catch (e) {
     err(`kpot scan: ${e.message}`);
     return EXIT_ERROR;
@@ -241,6 +270,7 @@ async function runScan(dir, { out, err }) {
   const kinds = Object.entries(byKind).map(([k, n]) => `${k} ${n}`).join(' · ') || 'nothing';
   err(`kpot scan: ${result.assets.length} files (${kinds})`
     + ` · dates: ${verdicts.dated} dated, ${verdicts.partial} partial, ${verdicts.unknown} unknown`
+    + cacheNote(result)
     + (result.errors.length ? ` · ${result.errors.length} unreadable — see "errors"` : ''));
   return EXIT_OK;
 }
