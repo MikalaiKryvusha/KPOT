@@ -116,6 +116,17 @@ test('approving a quarantined folder sorts it as if it had never moved — «Н�
   assert.equal(plan.operations[0].to.includes('НА_РАЗБОР'), false);
 });
 
+// `stripReviewPrefix` only removes a LEADING prefix, so a folder named НА_РАЗБОР sitting deeper in
+// the tree reaches the bucket logic intact. Without the quarantine being registered as one of
+// KPOT's own layout directories it would be recreated inside the library as if the owner had named
+// a folder that — bug 01's exact class, caught here before it could ship.
+test('a nested folder named НА_РАЗБОР is structure too, not an owner name', () => {
+  const plan = buildPlan(scanOf('Отпуск/НА_РАЗБОР/a.jpg'));
+  assert.deepEqual(plan.suspicious, [], 'this path is about the layout rule, not about suspicion');
+  assert.equal(plan.operations[0].to, '2016/Весна/Отпуск/a.jpg',
+    'KPOT must never rebuild its own quarantine folder inside the library');
+});
+
 test('the report puts the request for a decision where it will be read', () => {
   const plan = buildPlan(scanOf('Разное/a.jpg'));
   const text = renderPlan(plan);

@@ -217,10 +217,13 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
       DIRECTORY; the plan lists the folders that will disappear before the run; apply removes them
       deepest-first (re-reading each one, and using `rmdir`, never a recursive delete); rollback
       recreates them. 6 specs; the safety chain verified by breaking both links.
-- [x] Suspicious-folder approval — ✅ done 2026-07-26 (owner's decision). `src/plan/suspicious.mjs`
-      (criterion: an unclear NAME) + `src/core/decisions.mjs` (an editable Russian decisions file at
-      `.kpot-runs/папки-на-согласование.txt`, answers preserved across runs). Undecided = untouched.
-      9 specs; guards verified by breaking them.
+- [x] Suspicious-folder approval + the `НА_РАЗБОР/` quarantine — ✅ done 2026-07-26 (owner's decision,
+      revised by the owner the same day). `src/plan/suspicious.mjs` (criterion: an unclear NAME) +
+      `src/core/decisions.mjs` (an editable Russian decisions file at
+      `.kpot-runs/папки-на-согласование.txt`, answers preserved across runs). Such a folder is moved
+      WHOLE into a top-level `НА_РАЗБОР/` keeping its original parent structure; «как есть» leaves it
+      there. Stripping that one prefix recovers the original path, which is what makes the flow
+      idempotent and keeps `НА_РАЗБОР` out of the library. 12 specs; every guard verified by breaking it.
 - [ ] Progress output for large trees — a scan of 71 606 files currently prints nothing until it
       finishes. For a non-technical owner watching a 551 GB run, silence is indistinguishable from a
       hang. Self-contained and testable (assert the reporter is called, not the pixels).
