@@ -50,9 +50,29 @@ export function buildPlan(scan, { now = new Date(), decisions = new Map() } = {}
   // that a folder already sitting in `НА_РАЗБОР/` is still recognized as the same folder, keeps the
   // same key in the decisions file, and a second run is a no-op rather than a re-quarantining.
   const originalOf = new Map(scan.assets.map((a) => [a.path, stripReviewPrefix(a.path)]));
-  const suspicious = findSuspiciousDirs(
+  const candidates = findSuspiciousDirs(
     scan.assets.map((a) => ({ ...a, path: originalOf.get(a.path) })), isTechnicalDir,
-  ).map((s) => ({ ...s, decision: decisions.get(s.dir) ?? null }));
+  );
+
+  // Would sorting actually BREAK each candidate folder up? Owner's rule, 2026-07-26: ask only when
+  // it would. Custom folders are preserved as nesting, so a folder whose files all land in one
+  // <год>/<сезон> arrives intact — its name and grouping survive, and there is nothing to decide.
+  // Measured on the owner's real archive when this rule was added: 15 of 25 flagged folders would
+  // have arrived intact, i.e. 15 questions that protected nothing.
+  const bucketsOf = new Map();     // candidate dir → set of <год>/<сезон> its files would land in
+  for (const asset of scan.assets) {
+    const orig = originalOf.get(asset.path);
+    const dir = candidates.find((c) => orig.startsWith(`${c.dir}/`))?.dir;
+    if (!dir) continue;
+    const d = planBucket({ ...asset, path: orig }, { isDuplicateCopy: copyPaths.has(asset.path) });
+    const bucket = d.action === 'stay' ? 'stay' : d.segments.slice(0, 2).join('/');
+    if (!bucketsOf.has(dir)) bucketsOf.set(dir, new Set());
+    bucketsOf.get(dir).add(bucket);
+  }
+
+  const suspicious = candidates
+    .filter((c) => (bucketsOf.get(c.dir)?.size ?? 0) > 1)
+    .map((s) => ({ ...s, decision: decisions.get(s.dir) ?? null }));
   const held = new Map(suspicious.filter((s) => s.decision !== 'sort').map((s) => [s.dir, s.decision]));
 
   const operations = [];

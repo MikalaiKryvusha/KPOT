@@ -53,15 +53,31 @@ const LOCALIZED_DEVICE_NAMES = new Set([
   'видеозаписи', 'ролики', 'звукозаписи', 'записи', 'полученные', 'отправленные', 'входящие',
 ]);
 
-/** A name made only of digits and punctuation — `123`, `#1`, `__`, `2 (2)`. Says nothing. */
+/**
+ * A CARELESS name: digits and punctuation only (`11`, `113`, `---`, `05.05.13`), or a bare hash.
+ *
+ * These are explicitly NOT worth asking about — the owner's rule, 2026-07-26: «11 — это
+ * неосмысленное название, название на отъебись, можно было бы и сортировать без разбора владельца.
+ * Осознанные названия — обычно это слова, фразы.» A name that says nothing carries no grouping to
+ * protect, so KPOT sorts such a folder without troubling anyone. Asking about it was the tool
+ * looking careful while actually wasting the owner's attention.
+ */
 const NO_LETTERS_RE = /^[^\p{L}]+$/u;
-
-/** Hash- or id-looking names: long runs of hex, or base64-ish blobs with no word in them. */
 const HASHY_RE = /^[0-9a-f]{8,}$/i;
-const IDLIKE_RE = /^[A-Za-z0-9_-]{16,}$/;
 
 /**
- * Is this directory name unclear — neither plainly technical nor plainly the owner's own word?
+ * Is this directory name a MEANINGFUL word or phrase whose grouping might be worth preserving —
+ * yet unclear enough that only the owner can say whether it is his or a program's?
+ *
+ * Two kinds qualify, and both are words:
+ *   · a placeholder (`Разное`, `Новая папка`, `misc`) — a real word that names no content;
+ *   · a localized device/app folder (`скриншоты`, `Камера`) — the English forms are already dropped
+ *     as technical, and these are the same folders on a Russian system.
+ *
+ * Careless names are deliberately absent (see NO_LETTERS_RE above), and so is any "looks like an
+ * identifier" rule: it fired on `Ukraine_Fall_2020` and `Summer_2024_Belarus_Part_1`, which are
+ * plainly phrases. By the owner's criterion those are meaningful names, and a regex that cannot
+ * tell a phrase from an id has no business making that call.
  *
  * @param {string} segment  a single path segment
  * @returns {{suspicious: boolean, reason: string|null}}
@@ -70,17 +86,14 @@ export function inspectDirName(segment) {
   const s = (segment ?? '').trim();
   const lower = s.toLowerCase();
 
+  if (NO_LETTERS_RE.test(s) || HASHY_RE.test(s)) {
+    return { suspicious: false, reason: null };   // careless name — nothing to protect, just sort it
+  }
   if (PLACEHOLDER_NAMES.has(lower)) {
     return { suspicious: true, reason: 'имя-заглушка: по нему нельзя понять, что внутри' };
   }
   if (LOCALIZED_DEVICE_NAMES.has(lower)) {
     return { suspicious: true, reason: 'похоже на системную папку телефона или Windows, но по-русски' };
-  }
-  if (NO_LETTERS_RE.test(s)) {
-    return { suspicious: true, reason: 'в имени нет ни одной буквы — оно ничего не говорит о содержимом' };
-  }
-  if (HASHY_RE.test(s) || IDLIKE_RE.test(s)) {
-    return { suspicious: true, reason: 'имя выглядит как технический идентификатор, а не как название' };
   }
   return { suspicious: false, reason: null };
 }
