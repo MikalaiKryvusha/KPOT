@@ -117,6 +117,10 @@ test('apply removes the emptied folders and keeps the ones that still hold somet
   } finally { await rm(root, { recursive: true, force: true }); }
 });
 
+// This spec guards a CHAIN, not a single line: apply re-reads each directory before deleting it,
+// AND uses `rmdir` rather than a recursive remove. Breaking either alone keeps this green (the
+// other link holds); breaking BOTH turns it red, which is exactly right — it goes red precisely
+// when a user's file would actually be destroyed. Verified by doing all three breaks.
 test('a stale plan cannot delete a folder that is no longer empty', async () => {
   const root = await fixture();
   try {
@@ -139,7 +143,12 @@ test('a stale plan cannot delete a folder that is no longer empty', async () => 
 });
 
 // ─── the restoration half — what makes the deletion legitimate ───────────────────────────────────
-test('rollback recreates every deleted folder — the tree regains its SHAPE, not just its files', async () => {
+// What this spec proves is the OUTCOME the owner was promised — the tree regains its directory set.
+// It does NOT prove that rollback's explicit directory-restoration loop is load-bearing: breaking
+// that loop leaves this green, because restoring a file into a folder recreates the folder anyway.
+// That is recorded in rollback.mjs rather than papered over here (see EXP-0008: a spec that cannot
+// distinguish the guard from an accident proves nothing about the guard).
+test('rollback restores the tree\'s directory SET, not just its files', async () => {
   const root = await fixture();
   try {
     const dirsBefore = await dirSet(root);
@@ -151,7 +160,7 @@ test('rollback recreates every deleted folder — the tree regains its SHAPE, no
     const rolled = await rollbackRun(runDirFor(root, 'run-shape'));
     assert.equal(rolled.failed, 0, JSON.stringify(rolled.errors));
     assert.equal(rolled.dirsRestored.length, applied.dirsRemoved.length,
-      'every deleted folder must be recreated');
+      'rollback must account for every deleted folder');
 
     const dirsAfter = await dirSet(root);
     const missing = [...dirsBefore].filter((d) => !dirsAfter.has(d));

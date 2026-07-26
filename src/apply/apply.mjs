@@ -182,8 +182,14 @@ export async function applyPlan(root, plan, scan, {
   // them. Two safeguards beyond that:
   //   · the plan is never trusted about emptiness. Each directory is read again, right now, and
   //     skipped if anything is inside. A stale plan must not be able to delete a folder with files.
+  //   · `rmdir` — NEVER a recursive remove. It physically cannot delete a non-empty directory.
   //   · only directories THIS run emptied are considered — a folder that was already empty before
   //     the run was not ours to remove.
+  //
+  // The first two are a CHAIN, and deliberately so: breaking either one alone still loses no file
+  // (verified by breaking each — the specs stayed green, because the other link held), while
+  // breaking both destroys a user's file and turns `tests/empty_dirs.test.mjs` red. Do not "simplify
+  // away" the readdir as redundant with rmdir, or vice versa: each is the other's last line.
   const dirsRemoved = [];
   for (const dir of plan.emptied ?? []) {
     const dirAbs = abs(root, dir);

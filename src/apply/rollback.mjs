@@ -84,6 +84,14 @@ export async function rollbackRun(runDir, { dryRun = false } = {}) {
   // directory that no longer exists. This is the other half of the owner's condition for allowing
   // KPOT to delete emptied folders at all (2026-07-26): the backup records them, rollback rebuilds
   // them, and the tree comes back with its original shape and not merely its original files.
+  //
+  // HONEST NOTE ON COVERAGE (found by deliberately breaking this loop and watching every spec stay
+  // green): under the current rules its effect is SUBSUMED — a folder is only ever deleted because
+  // this run moved its files out, and restoring those files recreates the folder on the way. The
+  // loop is kept as defence in depth, because "the shape is restored" should not depend on files
+  // happening to land back inside it, and because it is what lets the report state plainly how many
+  // folders came back. Do not read the specs below as proof that it is load-bearing; they prove the
+  // OUTCOME (the directory set is restored), which is the guarantee the owner was actually given.
   const dirsRestored = [];
   const removedDirs = records.filter((r) => r.kind === 'rmdir').map((r) => r.dir);
   for (const d of [...new Set(removedDirs)].sort((a, b) => a.split('/').length - b.split('/').length || (a < b ? -1 : 1))) {
