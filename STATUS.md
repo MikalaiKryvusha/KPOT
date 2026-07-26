@@ -208,10 +208,11 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
       suite 88/88; every guard verified by breaking it first.
 - [ ] Sidecar evidence (THM/XMP) — plant a fixture case first (THM next to its video twin, per the
       survey), then a collector feeding 'sidecar' evidence into the resolver. Small, self-contained.
-- [ ] Scan-map cache keyed by (path, size, mtime) — hashing 551 GB is hours; a persistent cache in
-      `.kpot-runs/` makes re-scans and the future top-up flow (idea 01) cheap. Design it read-safe.
-      **Now the highest-value autonomous item**: Phase 5's first real run is otherwise an hours-long
-      re-hash every time it is repeated.
+- [x] Scan-map cache keyed by (path, size, mtime) — ✅ done 2026-07-26. `src/core/scan_cache.mjs`
+      (load/lookup/save/re-key), wired into every phase via the CLI, `--no-cache` opts out. A repeat
+      run reports `cache 26/26 reused (no re-hash)`, and `apply` re-keys the cache from its own moves
+      so the cache survives a sort. 10 specs incl. three invalidation angles (changed content,
+      same-size edit, backdated mtime) and corruption tolerance; guards verified by breaking them.
 - [ ] Progress output for large trees — a scan of 71 606 files currently prints nothing until it
       finishes. For a non-technical owner watching a 551 GB run, silence is indistinguishable from a
       hang. Self-contained and testable (assert the reporter is called, not the pixels).
@@ -245,6 +246,11 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
 - ✅ **Electron GUI ANSWERED 2026-07-26** (owner's own idea, in chat) — accepted as product
   direction, scheduled **after Phase 5**. `ideas/02_electron_gui.md`; questions 2–4 (Electron vs a
   local web UI, first-version scope, public vs personal) stay open until its turn comes.
+- ❓ **Should RUSSIAN device-folder names count as technical?** `bucket.mjs` drops the English ones
+  (`screenshots`, `downloads`, `camera`, `dcim`) as device/app-generated, but keeps their Russian
+  equivalents (`скриншоты`, `загрузки` is listed, `камера` is not), so a `скриншоты/` folder is
+  preserved as if the owner had named it. Same *kind* of policy question you answered on 2026-07-26
+  ("all except technical") — surfaced rather than decided, since it changes where real files land.
 - ❓ **Empty source folders after a sort** — noticed during the Phase-4 live run: once a directory's
   contents move into the library, the now-empty original (`Мобилка/`, `копии/`, …) stays. That is
   correct by the current canon (KPOT deletes nothing, internal-map invariant 5), but the owner may
@@ -301,5 +307,14 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
 
 ## Open bugs
 
-None — there is no code yet. File defects as one md per bug in `bugs/` via `/report-bug`, per
-`BUG_FIXING_FRAMEWORK.md`.
+**None open.** Closed so far:
+
+- ✅ `bugs/01_DONE_sort_not_idempotent.md` (2026-07-26) — sorting twice kept moving files: KPOT did
+  not recognize its OWN output layout. Three causes, one root: the season directories it creates
+  (`Зима начало года`), its buckets (`прочее`, `ПРОЧЕЕ`, `_мусор`, `_дубликаты`) and its two-segment
+  `<год>/<сезон>/` form were all invisible to the modules that read a path. Consequences were real —
+  unbounded nesting, quarantine names growing by their whole path each run, and correctly shelved
+  files being demoted to `<год>/прочее`. Guarded by `tests/idempotence.test.mjs`; each fix verified
+  by reverting it.
+
+File defects as one md per bug in `bugs/` via `/report-bug`, per `BUG_FIXING_FRAMEWORK.md`.

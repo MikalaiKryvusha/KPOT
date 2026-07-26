@@ -1,6 +1,8 @@
 // src/plan/bucket.mjs — where does ONE file belong? Verdict + kind + original path → target segments.
 // [TESTED: 2026-07-26 · tests/plan_phase3.test.mjs — technical-vs-custom dirs, date-structure dirs,
-// the ambiguous «зима» case, and all 23 planted destinations against the fixture ground truth]
+// the ambiguous «зима» case, and all 23 planted destinations against the fixture ground truth ·
+// tests/idempotence.test.mjs — KPOT's own shelves are structure, quarantine names do not stack, and
+// a second plan on a sorted tree is empty (bug 01; each fix verified by reverting it)]
 //
 // This is the owner's desired layout (GOAL.md §«Желаемый формат на выходе») made executable. Every
 // rule here is an owner decision from `MASTER_PLAN.md` §Decision log — none of it is this module's
@@ -66,6 +68,25 @@ const TECHNICAL_DIR_NAMES = new Set([
 /** `100MEDIA`, `101APPLE`, `100ANDRO`, `100CANON` … — the DCF device-dump directory pattern. */
 const DEVICE_DUMP_RE = /^\d{3}[A-Za-z][A-Za-z0-9_-]{0,9}$/;
 
+/**
+ * KPOT's OWN layout directories — the shelves this module itself creates.
+ *
+ * They must be structural, exactly like a year directory: a file already living in
+ * `2014/Зима начало года/` must not have that season folder re-added as if the owner had named it,
+ * or every run nests one level deeper (`Зима начало года/Зима начало года/…`). This is the
+ * idempotent-merge requirement in `researches/02` §Directory structure, and it is not a new policy:
+ * the owner's 2026-07-26 decision already lists "pure year/season dirs" among the technical ones —
+ * `isDateStructureDir` simply could not see the two long winter names, because stripping the token
+ * «зима» from «Зима начало года» leaves «начало года» behind.
+ *
+ * Derived from the constants above rather than retyped, so this set cannot drift from the layout it
+ * describes: rename a bucket and this follows automatically (bug 01).
+ */
+const OWN_LAYOUT_DIRS = new Set(
+  [...Object.values(SEASONS), YEAR_OTHER, GLOBAL_OTHER, JUNK_DIR, DUPES_DIR]
+    .map((d) => d.toLowerCase()),
+);
+
 /** Year and season tokens, used to recognize a purely structural date directory. */
 const YEAR_TOKEN_RE = /(?:^|[^\d])(?:19|20)\d{2}(?=[^\d]|$)/g;
 const SEASON_TOKEN_RE = /(зима|весна|лето|осень)/gi;
@@ -92,6 +113,7 @@ export function isTechnicalDir(segment) {
   const s = segment.trim().toLowerCase();
   if (s === '') return true;
   if (TECHNICAL_DIR_NAMES.has(s)) return true;
+  if (OWN_LAYOUT_DIRS.has(s)) return true;          // our own shelves — structure, not a name (bug 01)
   if (DEVICE_DUMP_RE.test(segment.trim())) return true;
   return isDateStructureDir(segment.trim());
 }
@@ -103,6 +125,14 @@ export function isTechnicalDir(segment) {
  */
 export function customDirs(relPath) {
   return relPath.split('/').slice(0, -1).filter((seg) => !isTechnicalDir(seg));
+}
+
+/** Is this file already sitting in one of the two quarantine areas we would send it to? (bug 01) */
+export function isAlreadyQuarantined(relPath) {
+  const segments = relPath.split('/');
+  return segments.length > 2
+    && segments[0] === GLOBAL_OTHER
+    && (segments[1] === JUNK_DIR || segments[1] === DUPES_DIR);
 }
 
 /** Year/month of a 'dated' verdict. Wall-clock when we have it; otherwise the instant read as UTC. */
@@ -150,7 +180,9 @@ export function planBucket(asset, { isDuplicateCopy = false } = {}) {
   const disputed = [];
   // Provenance-preserving flat name for the two quarantine areas: the original directory travels
   // WITH the file, so a quarantined item is always traceable back to where it came from.
-  const flatName = asset.path.split('/').join('__');
+  // A file ALREADY in quarantine keeps its name — its provenance is in there already, and re-flattening
+  // would stack the prefix again on every run (`ПРОЧЕЕ___дубликаты__копии__X.JPG`, bug 01).
+  const flatName = isAlreadyQuarantined(asset.path) ? name : asset.path.split('/').join('__');
 
   if (isDuplicateCopy) {
     return { action: 'move', segments: [GLOBAL_OTHER, DUPES_DIR], name: flatName,
