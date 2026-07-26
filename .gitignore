@@ -15,3 +15,9 @@ node_modules/
 Thumbs.db
 .DS_Store
 desktop.ini
+
+# The owner's real photographs — a sample copy used for realism testing.
+# It lives OUTSIDE this repo by design; this line exists so it can never arrive by accident.
+/KPOT_SAMPLE/
+KPOT_SAMPLE/
+sample_report.json

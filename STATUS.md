@@ -286,6 +286,10 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
 - ✅ **Empty source folders — ANSWERED 2026-07-26** (in chat): KPOT may delete the folders its sort
   emptied, provided their paths are in the backup so a rollback recreates them. Implemented; see the
   decision log and `tests/empty_dirs.test.mjs`.
+- ❓ **Should a "1 January 00:00"-ish EXIF date be trusted?** The first real run put one file in
+  `2000/` on an EXIF `DateTimeOriginal` of `2000-01-01 00:25:13`. That is the classic reset-camera-
+  clock default, and the archive otherwise starts in 2007. Distrusting it is a policy decision about
+  the owner's photos, so it was surfaced rather than decided (`researches/03_first_real_run.md`).
 - ❓ **Idea 01 awaiting owner review** — `ideas/01_inbox_topup_flow.md`: inbox dir for raw dumps +
   a desktop shortcut running an incremental **top-up flow** into the structured library (owner's
   own request in chat 2026-07-24; forks to close: auto-apply vs stop-at-plan, inbox location,
@@ -314,12 +318,17 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
    ```
    (Fresh temp dir each time — `%TEMP%` is cleaned between sessions. The run id is printed by
    `apply`; run data lives in `<tmp>/.kpot-runs/`, which scans deliberately skip.)
-3. **Phase 5, what is left.** Every autonomous piece is built — what remains needs the owner:
-   - **a supervised first run on a COPY of a real messy directory** (the owner's homework). This is
-     the phase's acceptance criterion and the first time the tool meets real chaos.
-   - **README refresh + a tagged release** via `/release` once that run has been seen.
-   - Optional and self-contained if a filler is wanted: THM/XMP sidecar evidence (plant the fixture
-     case first — a THM next to its video twin, per `researches/02`).
+3. **Phase 5, what is left.**
+   - ✅ The real-data sample EXISTS and `kpot plan` has run against it — see
+     `researches/03_first_real_run.md`. **`D:\work\ai_sandbox\KPOT_SAMPLE`** (3397 files / 13 GB,
+     stratified over every class in `researches/02`; a sibling of the repo, never committable).
+     Rebuild scripts live in the session scratchpad, not the repo.
+   - 🔲 **A supervised `apply` + `rollback` on that sample** — the plan has been read, the sort
+     itself has not been run on real data yet. That needs the owner's go-ahead.
+   - 🔲 **README refresh + a tagged release** via `/release` afterwards.
+   - Optional filler, self-contained: THM/XMP sidecar evidence — the sample now contains **34 real
+     `.thm` files together with their video twins**, so the fixture case can be modelled on a real
+     one instead of imagined.
 4. **The first run on real data is the owner's call and needs a fresh `AUTH:`** — the archive grant
    in agent memory is READ-ONLY. Phase 5's acceptance says a *copy* of a real messy directory
    (owner's homework), never the original.
@@ -336,6 +345,12 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
 ## Open bugs
 
 **None open.** Closed so far:
+
+- ✅ `bugs/02_DONE_epoch_false_positive.md` (2026-07-26) — found on the FIRST real-data run. A
+  Samsung gallery *sequence number* has exactly the shape of a unix epoch, decoded to 2001-09-09,
+  and moved a photo the owner keeps in his `2024/` folder into a year his archive has nothing in.
+  Fixed by bounding filename-epoch decodes at 2008, the year the convention itself began — a claim
+  decoding to before Android existed contradicts itself. Guard verified by reverting the fix.
 
 - ✅ `bugs/01_DONE_sort_not_idempotent.md` (2026-07-26) — sorting twice kept moving files: KPOT did
   not recognize its OWN output layout. Three causes, one root: the season directories it creates
