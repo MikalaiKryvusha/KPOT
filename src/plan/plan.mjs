@@ -16,6 +16,7 @@
 // enumeration order. Two plans of the same tree are byte-identical apart from `meta.plannedAt`,
 // which is deliberately isolated in `meta` so Phase 4 can compare the actionable parts directly.
 
+import { samePath } from '../core/paths.mjs';
 import { groupDuplicates } from '../dedupe/dedupe.mjs';
 import { planBucket, isTechnicalDir, stripReviewPrefix, REVIEW_DIR } from './bucket.mjs';
 import { findSuspiciousDirs, heldBy } from './suspicious.mjs';
@@ -117,7 +118,16 @@ export function buildPlan(scan, { now = new Date(), decisions = new Map() } = {}
 
   // A file already sitting exactly where the plan wants it is not an operation — it is a no-op that
   // would otherwise make a re-run look like work and, worse, make `apply` rename a file onto itself.
-  const actionable = operations.filter((o) => o.from !== o.to);
+  //
+  // Compared with `samePath`, NOT `!==` (bug 03, found by the dry run on the owner's real archive).
+  // His season folders are capitalised — `2025/Зима Конец Года/` — where KPOT's canonical name is
+  // `Зима конец года`. On Windows those are the SAME directory, so the file is already home; string
+  // inequality saw a move, and `apply` then refused it with "target already exists" — 15 times.
+  // AGENT_GUIDE §Code style mandates exactly this helper for exactly this reason.
+  //
+  // Consequence, deliberate: the owner's own capitalisation stays (invariant 6, "the user's names
+  // survive"). KPOT does not rename his folder to match its own spelling.
+  const actionable = operations.filter((o) => !samePath(o.from, o.to));
   const alreadyInPlace = operations.length - actionable.length;
 
   // Canonical order: by destination, then by source. The owner reads the plan grouped by where

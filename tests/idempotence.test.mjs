@@ -120,6 +120,27 @@ test('the sorted library still rolls back byte-for-byte after a no-op second pas
   } finally { await rm(root, { recursive: true, force: true }); }
 });
 
+// Bug 03, found by the DRY RUN on the owner's real archive — the rehearsal earning its keep. His
+// season folders are capitalised (`Зима Конец Года`) where KPOT's canonical name is lowercase. On
+// Windows those are one directory, so the file is already home; comparing the paths as strings saw
+// a move, and apply refused it with "target already exists" 15 times over. The fix is the helper
+// AGENT_GUIDE already mandates for this exact reason.
+test('a file already home under a differently-CASED folder name is not moved again', () => {
+  const dated = (path) => ({
+    path, kind: 'photo', size: 10, mtimeMs: 0, sha256: path,
+    verdict: { status: 'dated', date: '2025-12-07 16:16:50', winner: 'filename-timestamp' },
+  });
+  // The owner's capitalisation vs KPOT's canonical spelling of the same season.
+  const plan = buildPlan({ root: '/x', dirs: [], assets: [dated('2025/Зима Конец Года/IMG.jpg')] });
+  assert.deepEqual(plan.operations, [], 'the same directory in different case is not a destination');
+  assert.equal(plan.counts.alreadyInPlace, 1, 'it must be counted as already home, not dropped silently');
+
+  // …and a genuinely different folder still moves.
+  const moved = buildPlan({ root: '/x', dirs: [], assets: [dated('Мобилка/IMG.jpg')] });
+  assert.equal(moved.operations.length, 1);
+  assert.equal(moved.operations[0].to, '2025/Зима конец года/Мобилка/IMG.jpg');
+});
+
 // ─── the three root causes, each pinned at unit level ────────────────────────────────────────────
 test('every directory KPOT itself creates counts as structure, not as an owner name', () => {
   // Derived from the layout constants, so adding a bucket without teaching isTechnicalDir about it

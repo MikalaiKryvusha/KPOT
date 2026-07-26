@@ -346,6 +346,11 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
 
 **None open.** Closed so far:
 
+- ✅ `bugs/03_DONE_case_insensitive_noop.md` (2026-07-26) — found by the **dry run** during the first
+  supervised sort. The owner capitalises his season folders (`Зима Конец Года`); on Windows that is
+  the SAME directory as KPOT's canonical `Зима конец года`, so 15 files already home were planned to
+  move onto themselves and `apply` refused them. Cause: `buildPlan` compared paths with `!==`
+  instead of the `samePath` helper `AGENT_GUIDE` mandates for exactly this. 15 failed → 0 failed.
 - ✅ `bugs/02_DONE_epoch_false_positive.md` (2026-07-26) — found on the FIRST real-data run. A
   Samsung gallery *sequence number* has exactly the shape of a unix epoch, decoded to 2001-09-09,
   and moved a photo the owner keeps in his `2024/` folder into a year his archive has nothing in.

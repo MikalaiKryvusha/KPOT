@@ -92,8 +92,35 @@ Coverage: **2007–2026 with a file in nearly every year**, which matches the ow
    `2000-01-01 00:25:13` — 1 January at ~00:00 is the classic reset-camera-clock default, and the
    archive otherwise starts in 2007. Whether to distrust such values is a policy decision about the
    owner's photos. Recorded in `STATUS.md`.
-3. **Nothing structural broke.** Zero name collisions across 3169 planned moves, zero read errors
+3. **A second defect, caught by the DRY RUN before anything moved**
+   (`bugs/03_DONE_case_insensitive_noop.md`). The rehearsal reported 15 failures: the owner
+   capitalises his season folders (`2025/Зима Конец Года/`), which on Windows is the same directory
+   as KPOT's canonical `Зима конец года`, so files already home were planned to move onto
+   themselves. `buildPlan` had compared paths with `!==` where `AGENT_GUIDE` mandates the
+   `samePath` helper. 15 failed → 0. This is the dry run earning its place in the design.
+4. **Nothing structural broke.** Zero name collisions across 3169 planned moves, zero read errors
    across 3397 files, no crash on Cyrillic extensions, trailing-dot names or depth-7 paths.
+
+## The supervised sort itself (owner authorised it after reading the plan)
+
+`kpot apply` on the sample: **7 seconds**, 3154 moves, 495 emptied folders removed, 0 failures.
+
+**Nothing was lost, and that is measured rather than asserted:** the multiset of sha256 content
+hashes over the whole tree is *identical* before and after — 3397 files / 12.11 GB either side, 0
+hashes missing, 0 appearing from nowhere.
+
+The backup: a manifest of 3397 files **and 593 directories**, plus 3397 hardlinks. Real disk cost of
+the snapshot ≈ **nothing** — the volume's free space fell by 12.2 GB across the whole exercise,
+which is the sample copy alone. Journal: 3154 `planned-move` + 3154 `moved` + 1112 `mkdir` + 495
+`rmdir` + `done`.
+
+A rollback **rehearsal** (`rollback --dry-run`) reports 3154 files restored and 495 folders
+recreated, 0 failures — the undo is verified as ready without being spent.
+
+Resulting shape: years 2007–2026, each with its seasons, `видео/` subdirs where videos exist, the
+owner's own folder names preserved as nesting inside the seasons, `ПРОЧЕЕ/_дубликаты/` holding 223
+copies, and `НА_РАЗБОР/` holding 480 files from 25 folders awaiting his decision. The 66 non-media
+files stayed exactly where they were, as interview #001 decided.
 
 ## Why this sample is worth keeping
 
