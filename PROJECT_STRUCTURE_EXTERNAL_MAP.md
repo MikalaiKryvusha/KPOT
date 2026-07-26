@@ -47,7 +47,7 @@ KPOT/
 └── tests/          # ✅ fixtures/make.mjs (deterministic messy-tree generator, 25 cases v2,
                     #    expected.json ground truth) + the Phase-2/3/4 acceptance specs and the
                     #    Phase-5 ones (cache · idempotence · empty dirs · quarantine) —
-                    #    npm test 131/131
+                    #    npm test 140/140
 ```
 
 ## What each part is
@@ -69,7 +69,7 @@ KPOT/
 | ✅ `src/meta/` | the full date pipeline: `evidence.mjs` (model: precedence, wall/instant claims, plausibility) · `filename_date.mjs` (survey-derived detectors) · `exif.mjs` (`exifreader`) · `mp4.mjs` (own mvhd walk) · `dirname_date.mjs` · `resolve.mjs` (DateVerdict: disputed kept, mtime never determines, spike discounting) · `annotate.mjs` (composition; feeds `kpot scan`). Deferred: sidecar evidence | `src/core/` |
 | ✅ `src/dedupe/` | `dedupe.mjs` — groups identical files by sha256 and picks the keeper by an explainable total order | `src/scan/` output, `src/core/` |
 | ✅ `src/plan/` | `season.mjs` (owner-decided month→season buckets) · `bucket.mjs` (one file → its destination) · `suspicious.mjs` (folders with an unclear NAME are held for the owner's approval, not sorted) · `plan.mjs` (the SortPlan artifact + the Russian owner-facing master plan) | `src/meta/`, `src/dedupe/` |
-| ✅ `src/apply/` | The only writer. `backup.mjs` (manifest + hardlink snapshot, capability probed not assumed, refuses to degrade silently) · `apply.mjs` (journal-before-act, dry run = same loop with inert effects) · `rollback.mjs` (replays the journal backwards, idempotent, prunes only what the run created) | `src/plan/`, `src/core/` |
+| ✅ `src/apply/` | The only writer. `backup.mjs` (manifest + hardlink snapshot, capability probed not assumed, refuses to degrade silently) · `apply.mjs` (journal-before-act, dry run = same loop with inert effects) · `rollback.mjs` (replays the journal backwards, idempotent, prunes only what the run created) · `resume.mjs` (finds an interrupted run; a new one is blocked until the owner continues or undoes it) | `src/plan/`, `src/core/` |
 | ~~`src/report/`~~ | **Deliberately never created.** Each phase renders its own owner-facing report from its own artifact, inside the module that owns it (`renderPlan`, `renderApplyReport`, `renderRollbackReport`). The rule this directory existed to protect — reports are rendered FROM the artifact, never assembled independently — holds either way; a separate directory only added a hop. Recorded in the internal map | — |
 | ✅ `src/core/` | Shared primitives and KPOT's own on-disk files: `paths.mjs` (win32-semantics normalization/comparison, `\\?\` long paths, `RUNS_DIR_NAME`), `journal.mjs` (append-only JSONL run journal, crash-torn-tail tolerant), `pool.mjs` (bounded-concurrency settle-all mapper), `progress.mjs` (stderr-only live progress, inert unless a TTY), `scan_cache.mjs` (persistent (path,size,mtime)→hash cache), `decisions.mjs` (the owner's editable per-folder decisions file) | nothing (the bottom layer) |
 | `tests/` | ✅ `node --test` specs; `tests/fixtures/make.mjs` generates synthetic messy trees with `expected.json` ground truth (catalog mirrors `researches/02_real_archive_survey.md`) | all of `src/` (once it exists) |

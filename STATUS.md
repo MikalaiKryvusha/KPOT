@@ -152,7 +152,7 @@
   original parent structure, and waits there for an answer in
   `.kpot-runs/папки-на-согласование.txt`. Stripping that one prefix recovers the original path,
   which is what keeps the flow idempotent and `НА_РАЗБОР` out of the library.
-- Suite **131/131**. Every new guard verified by breaking it first; two guards that turned out NOT
+- Suite **140/140**. Every new guard verified by breaking it first; two guards that turned out NOT
   to be independently falsifiable are documented as such rather than left implying coverage.
 
 ---
@@ -180,7 +180,7 @@ must never be pointed at the original), then README + a tagged release.
 | Phase 2 — scan & metadata | ✅ done | acceptance spec green; `kpot scan` = assets + evidence + verdicts; deferred: sidecar evidence (needs a fixture case first) |
 | Phase 3 — dedup & plan | ✅ done | `kpot plan` = SortPlan + owner-facing master plan; acceptance spec green (23 planted destinations + both ambiguities) |
 | Phase 4 — safety (backup / dry run / rollback) | ✅ done | interview #002 answered; `src/apply/` = backup + the single writer + rollback; all three acceptance criteria green; guards proven by breaking them |
-| Phase 5 — first real use & release | 🔶 in progress | ✅ scan cache · ✅ idempotent sorting (bug 01) · ✅ empty-folder cleanup · ✅ the `НА_РАЗБОР/` approval quarantine · ✅ progress output · 🔲 resumability · 🔲 supervised run on a COPY of a real dir · 🔲 README + `/release` |
+| Phase 5 — first real use & release | 🔶 in progress | ✅ scan cache · ✅ idempotent sorting (bug 01) · ✅ empty-folder cleanup · ✅ the `НА_РАЗБОР/` approval quarantine · ✅ progress output · ✅ resumability · 🔲 supervised run on a COPY of a real dir · 🔲 README + `/release` |
 
 Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
 
@@ -249,9 +249,10 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
       pipes and the JSON artifacts are untouched; repaints throttled to 5/s (measured: 17 904 per
       hour of work instead of 71 606); the ETA comes from the rate actually observed and appears
       only once there is enough of it. 9 specs; the three that matter verified by breaking them.
-- [ ] Resumability of a partially-completed `apply` — the journal already records enough (internal
-      map, invariant 8); what is missing is the code path that reads a journal and continues rather
-      than starting a new run. Rollback already handles the crash window; resume is its twin.
+- [x] Resumability of an interrupted `apply` — ✅ done 2026-07-26. `src/apply/resume.mjs` +
+      `openRunJournal`. An unfinished run BLOCKS a new one and offers two ways out; `--resume`
+      reuses the same run id, journal and BACKUP, so one rollback still restores the true original.
+      9 specs; all three guards verified by breaking them.
 - [x] Season mapping — ✅ done 2026-07-24. `src/plan/season.mjs` (`seasonForMonth`, canonical Russian
       dir names per interview #001 Q2), specs in `tests/season.test.mjs`. Suite 15/15.
 
@@ -301,7 +302,7 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
 > A concrete checklist so the next session (empty context) can start immediately: which files, which
 > commands, what to verify first.
 
-1. Verify the environment: `node -v` (≥20), `npm test` (**must be 131/131**), `git status` (clean),
+1. Verify the environment: `node -v` (≥20), `npm test` (**must be 140/140**), `git status` (clean),
    `gh auth status` (MikalaiKryvusha).
 2. **Run the whole product once, end to end, before designing on top of it.** It all works now:
    ```
@@ -313,10 +314,12 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
    ```
    (Fresh temp dir each time — `%TEMP%` is cleaned between sessions. The run id is printed by
    `apply`; run data lives in `<tmp>/.kpot-runs/`, which scans deliberately skip.)
-3. **Phase 5, what is left.** In value order:
-   - **resumability** of a partially-completed `apply` (the journal already records enough —
-     internal map invariant 8; rollback's crash-window handling is the pattern to mirror).
-   - then the supervised real run, README refresh and `/release`.
+3. **Phase 5, what is left.** Every autonomous piece is built — what remains needs the owner:
+   - **a supervised first run on a COPY of a real messy directory** (the owner's homework). This is
+     the phase's acceptance criterion and the first time the tool meets real chaos.
+   - **README refresh + a tagged release** via `/release` once that run has been seen.
+   - Optional and self-contained if a filler is wanted: THM/XMP sidecar evidence (plant the fixture
+     case first — a THM next to its video twin, per `researches/02`).
 4. **The first run on real data is the owner's call and needs a fresh `AUTH:`** — the archive grant
    in agent memory is READ-ONLY. Phase 5's acceptance says a *copy* of a real messy directory
    (owner's homework), never the original.

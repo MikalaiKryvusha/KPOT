@@ -1,5 +1,8 @@
 // src/apply/resume.mjs — finding a run that was interrupted, so it can be continued or undone.
-// [NOT-TESTED]
+// [TESTED: 2026-07-26 · tests/resume.test.mjs — detection (a finished run and a dry run are both
+// excluded), the refusal to start a new run, and the guarantee that ONE rollback after a resume
+// restores the true original. All three guards verified by breaking them; plus a live
+// crash-and-resume run on the fixture (6 of 23 moves, resumed 17, one rollback restored 23)]
 //
 // Internal map, invariant 8: «A run is resumable. An interrupted `apply` leaves a journal that
 // describes exactly which Operations completed, so the run can be continued or rolled back — never
