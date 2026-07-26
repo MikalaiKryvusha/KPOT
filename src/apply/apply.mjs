@@ -106,7 +106,7 @@ const abs = (root, rel) => join(root, ...rel.split('/'));
  *         is the correct behaviour; a write without a backup is the one thing this tool may not do.
  */
 export async function applyPlan(root, plan, scan, {
-  dryRun = false, runId = newRunId(), allowNoSnapshot = false, probeSupport,
+  dryRun = false, runId = newRunId(), allowNoSnapshot = false, probeSupport, progress = null,
 } = {}) {
   if (plan.meta?.root && plan.meta.root !== root) {
     throw new Error(`plan was built for a different root (${plan.meta.root}), refusing to apply it to ${root}`);
@@ -114,7 +114,7 @@ export async function applyPlan(root, plan, scan, {
 
   // --- GUARANTEE б: a backup first, always. A dry run creates the manifest-less shell too, so that
   // the refusal path itself is exercised by the dry run rather than discovered on the real one.
-  const backup = await createBackup(root, scan, { runId, dryRun, allowNoSnapshot, probeSupport });
+  const backup = await createBackup(root, scan, { runId, dryRun, allowNoSnapshot, probeSupport, progress });
   if (!dryRun) {
     // Defence in depth: `createBackup` already throws on failure, so this re-check is not
     // independently reachable in a test — it exists because "the backup call returned" and "a
@@ -143,6 +143,8 @@ export async function applyPlan(root, plan, scan, {
   const consideredDirs = new Set();
   const errors = [];
   let moved = 0, failed = 0;
+
+  progress?.start(dryRun ? 'Проверяю (сухой прогон)' : 'Перемещаю', plan.operations.length);
 
   for (const op of plan.operations) {
     const fromAbs = abs(root, op.from);
@@ -175,6 +177,7 @@ export async function applyPlan(root, plan, scan, {
       errors.push({ path: op.from, error });
       failed += 1;
     }
+    progress?.tick(0);
   }
 
   // --- the folders the sort emptied. The owner allowed this on 2026-07-26 — the ONLY deletion KPOT

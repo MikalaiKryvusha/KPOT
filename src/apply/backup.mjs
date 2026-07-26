@@ -106,7 +106,7 @@ export async function probeHardlinkSupport(dir) {
  *         owner would trust it.
  */
 export async function createBackup(root, scan, {
-  runId, dryRun = false, allowNoSnapshot = false, probeSupport = probeHardlinkSupport,
+  runId, dryRun = false, allowNoSnapshot = false, probeSupport = probeHardlinkSupport, progress = null,
 } = {}) {
   const dir = runDirFor(root, runId);
   const manifestPath = join(dir, MANIFEST_NAME);
@@ -159,6 +159,9 @@ export async function createBackup(root, scan, {
     await mkdir(snapshotDir, { recursive: true });
     for (const d of [...dirs].sort()) await mkdir(join(snapshotDir, d), { recursive: true });
 
+    // ~29 s and 71 606 links on the real archive — long enough that silence here reads as a hang.
+    progress?.start('Делаю бэкап', scan.assets.length);
+
     const results = await mapLimit(scan.assets, LINK_CONCURRENCY, async (a) => {
       const from = join(root, ...a.path.split('/'));
       const to = join(snapshotDir, ...a.path.split('/'));
@@ -166,6 +169,7 @@ export async function createBackup(root, scan, {
       // Verify by observation, per file: a link that is secretly a copy is not a backup.
       const [s1, s2] = [await stat(from), await stat(to)];
       if (s1.ino !== s2.ino) throw new Error('snapshot entry is not the same inode as the original');
+      progress?.tick(0);
       return true;
     });
     for (const [i, r] of results.entries()) {

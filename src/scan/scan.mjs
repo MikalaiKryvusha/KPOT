@@ -98,15 +98,25 @@ async function sniff(absPath) {
  * scan phase stays read-only over the filesystem (RULE 1).
  *
  * @param {string} root  directory to scan (must exist; caller validates)
- * @param {{concurrency?: number, cache?: Map}} [opts]
+ * @param {{concurrency?: number, cache?: Map, progress?: object}} [opts]
+ *        `progress` — an optional reporter from `src/core/progress.mjs`. It is called, never read:
+ *        nothing about the scan's RESULT depends on it, so a run with and without progress produces
+ *        byte-identical output.
  * @returns {Promise<{root: string, scannedAt: string, assets: object[], cache: {hits: number, misses: number},
  *                    errors: Array<{path: string, error: string}>}>}
  *          assets sorted by rel path: { path, size, mtimeMs, kind, format, sha256 }
  */
-export async function scanTree(root, { concurrency = DEFAULT_CONCURRENCY, cache = null } = {}) {
+export async function scanTree(root, {
+  concurrency = DEFAULT_CONCURRENCY, cache = null, progress = null,
+} = {}) {
   const scannedAt = new Date().toISOString();
+  progress?.start('Осматриваю папки');
   const { files, dirs, errors } = await walk(root);
   let hits = 0, misses = 0;
+
+  // The total is known only after the walk, which is why the reporter starts twice: the first phase
+  // has no denominator (we do not know how many files there are until we have found them all).
+  progress?.start('Читаю файлы', files.length);
 
   const results = await mapLimit(files, concurrency, async (f) => {
     const s = await stat(f.abs);
@@ -115,12 +125,13 @@ export async function scanTree(root, { concurrency = DEFAULT_CONCURRENCY, cache 
     const cached = cache ? cacheLookup(cache, f.rel, s) : null;
     if (cached) {
       hits += 1;
+      progress?.tick(0);   // a cache hit reads no bytes — counting them would overstate the work
       return { path: f.rel, size: s.size, mtimeMs: s.mtimeMs, ...cached };
     }
     misses += 1;
     const head = await sniff(f.abs);
     const { kind, format } = identify(f.rel.split('/').at(-1), head);
-    return {
+    const asset = {
       path: f.rel,
       size: s.size,
       mtimeMs: s.mtimeMs,
@@ -128,6 +139,8 @@ export async function scanTree(root, { concurrency = DEFAULT_CONCURRENCY, cache 
       format,
       sha256: await hashFile(f.abs),
     };
+    progress?.tick(s.size);
+    return asset;
   });
 
   const assets = [];
