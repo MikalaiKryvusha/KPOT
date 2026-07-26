@@ -27,6 +27,7 @@ import { applyPlan, renderApplyReport } from '../src/apply/apply.mjs';
 import { rollbackRun, renderRollbackReport } from '../src/apply/rollback.mjs';
 import { RUNS_DIR_NAME } from '../src/core/paths.mjs';
 import { loadScanCache, saveScanCache, rekeyScanCache } from '../src/core/scan_cache.mjs';
+import { loadDecisions, saveDecisions } from '../src/core/decisions.mjs';
 
 export const EXIT_OK = 0;
 export const EXIT_ERROR = 1;
@@ -164,7 +165,13 @@ async function runApply(dir, { out, err, dryRun, allowNoSnapshot, json, cache })
   let result;
   try {
     const { result: scan } = await scanAndAnnotate(root, { cache });
-    const plan = buildPlan(scan);
+    const { plan, decisionsPath } = await planWithDecisions(root, scan);
+    // Folders awaiting a decision are announced BEFORE the run, not after: the owner asked to be
+    // consulted, and a run that quietly leaves files behind is not a consultation.
+    if (plan.counts.awaitingDecision > 0) {
+      err(`kpot apply: ${plan.counts.awaitingDecision} папок ждут вашего решения — их файлы НЕ тронуты.`);
+      err(`             Ответьте в файле и запустите снова: ${decisionsPath}`);
+    }
     if (plan.operations.length === 0) {
       err('kpot apply: nothing to move — the tree already matches the plan.');
       return EXIT_OK;
@@ -221,25 +228,42 @@ async function scanAndAnnotate(dir, { cache = true } = {}) {
 }
 
 /**
+ * Build the plan with the owner's folder decisions applied, then refresh the decisions file so any
+ * newly-found folder appears in it and previous answers are preserved. The file's path is put in the
+ * plan's meta, because the report has to tell the owner where to go and answer.
+ */
+async function planWithDecisions(dir, scan) {
+  const { decisions, unreadable, path } = await loadDecisions(dir);
+  const plan = buildPlan(scan, { decisions });
+  plan.meta.decisionsPath = path;
+  await saveDecisions(dir, plan.suspicious ?? [], decisions);
+  return { plan, unreadable, decisionsPath: path };
+}
+
+/**
  * The plan phase: the pre-sort master plan (GOAL.md §а). Human-readable on stdout by default —
  * this is the artifact the OWNER reads before anything moves — and the machine-readable SortPlan
  * with `--json`, which is what Phase 4/5 (dry run, apply, rollback) will consume.
  * Nothing is written and nothing is moved: planning is strictly read-only.
  */
 async function runPlan(dir, { out, err, json, cache }) {
-  let plan, scan;
+  let plan, scan, unreadable;
   try {
     const { result } = await scanAndAnnotate(dir, { cache });
     scan = result;
-    plan = buildPlan(result);
+    ({ plan, unreadable } = await planWithDecisions(dir, result));
   } catch (e) {
     err(`kpot plan: ${e.message}`);
     return EXIT_ERROR;
   }
   out(json ? JSON.stringify(plan, null, 2) : renderPlan(plan));
+  for (const u of unreadable) {
+    err(`kpot plan: не понял строку ${u.line} в файле решений — «${u.text.trim()}»`);
+  }
   const c = plan.counts;
   err(`kpot plan: ${c.files} files · ${c.moves} moves · ${c.stay} stay · `
     + `${c.duplicateCopies} duplicate copies · ${c.disputed} disputed · ${c.collisions} name collisions`
+    + (c.awaitingDecision > 0 ? ` · ${c.awaitingDecision} folders AWAITING YOUR DECISION` : '')
     + `${cacheNote(scan)} · NOTHING MOVED (plan only)`);
   return EXIT_OK;
 }

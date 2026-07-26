@@ -20,6 +20,21 @@ import { groupDuplicates, chooseKeeper, looksLikeACopy } from '../src/dedupe/ded
 import { buildPlan, renderPlan } from '../src/plan/plan.mjs';
 import { customDirs, isTechnicalDir, isDateStructureDir, planBucket } from '../src/plan/bucket.mjs';
 
+/**
+ * The owner's folder decisions this spec runs under.
+ *
+ * WHY THIS EXISTS (added 2026-07-26, with the "suspicious folders" feature): the owner asked for
+ * ambiguously-named folders to be held for approval instead of sorted, and «Разное» is one of the
+ * examples they picked the criterion by. Its files therefore no longer move until it is approved —
+ * which is correct behaviour, and would otherwise silently gut this spec.
+ *
+ * This supplies the missing PRECONDITION; it does not weaken the assertion. What this file tests is
+ * "given a file with this evidence, where does it land" — so it must run in the state where sorting
+ * happens. The new behaviour (that the folder is held at all, and that its files stay untouched
+ * until decided) is asserted in tests/suspicious_dirs.test.mjs, not quietly dropped here.
+ */
+const APPROVED_FOR_SORTING = new Map([['Разное', 'sort'], ['скриншоты', 'sort']]);
+
 /** Build the fixture, scan+annotate it, and produce the plan — the whole pipeline, once. */
 async function withPlan(fn) {
   const dir = await mkdtemp(join(tmpdir(), 'kpot-plan-'));
@@ -28,7 +43,11 @@ async function withPlan(fn) {
     const scan = await scanTree(dir);
     await annotateAssets(scan.root, scan.assets);
     const expected = JSON.parse(await readFile(join(dir, 'expected.json'), 'utf8'));
-    return await fn({ plan: buildPlan(scan, { now: new Date('2026-07-26T00:00:00Z') }), scan, expected, dir });
+    const plan = buildPlan(scan, {
+      now: new Date('2026-07-26T00:00:00Z'),
+      decisions: APPROVED_FOR_SORTING,
+    });
+    return await fn({ plan, scan, expected, dir, decisions: APPROVED_FOR_SORTING });
   } finally {
     await rm(dir, { recursive: true, force: true });
   }
@@ -181,17 +200,21 @@ test('Phase 3 acceptance: every planted ambiguity appears in the disputed sectio
 });
 
 test('the plan is deterministic — the same tree yields byte-identical actionable output', async () => {
-  await withPlan(({ scan }) => {
-    const a = buildPlan(scan, { now: new Date('2020-01-01T00:00:00Z') });
-    const b = buildPlan(scan, { now: new Date('2031-12-31T23:59:59Z') });
+  await withPlan(({ scan, decisions }) => {
+    const a = buildPlan(scan, { now: new Date('2020-01-01T00:00:00Z'), decisions });
+    const b = buildPlan(scan, { now: new Date('2031-12-31T23:59:59Z'), decisions });
     // Everything the executor acts on must be identical; only `meta` may carry the clock.
     for (const key of ['operations', 'duplicates', 'disputed', 'collisions', 'stay', 'counts']) {
       assert.deepEqual(a[key], b[key], `${key} must not depend on the clock`);
     }
     assert.notEqual(a.meta.plannedAt, b.meta.plannedAt, 'the timestamp is deliberately in meta');
-    // and shuffling the scan's asset order must not change the plan either
+    // and shuffling the scan's asset order must not change the plan either — same decisions, since
+    // this checks independence from the filesystem's enumeration order, not from the owner's answers
     const shuffled = { ...scan, assets: [...scan.assets].reverse() };
-    assert.deepEqual(buildPlan(shuffled, { now: new Date('2020-01-01T00:00:00Z') }).operations, a.operations);
+    assert.deepEqual(
+      buildPlan(shuffled, { now: new Date('2020-01-01T00:00:00Z'), decisions }).operations,
+      a.operations,
+    );
   });
 });
 

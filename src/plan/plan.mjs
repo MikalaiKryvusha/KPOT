@@ -17,7 +17,8 @@
 // which is deliberately isolated in `meta` so Phase 4 can compare the actionable parts directly.
 
 import { groupDuplicates } from '../dedupe/dedupe.mjs';
-import { planBucket } from './bucket.mjs';
+import { planBucket, isTechnicalDir } from './bucket.mjs';
+import { findSuspiciousDirs, heldBy } from './suspicious.mjs';
 
 export const PLAN_VERSION = 1;
 
@@ -40,14 +41,34 @@ function suffixed(name, n) {
  * @param {{now?: Date}} [opts]  injectable clock — the ONLY nondeterminism, kept inside `meta`
  * @returns {object} the SortPlan artifact
  */
-export function buildPlan(scan, { now = new Date() } = {}) {
+export function buildPlan(scan, { now = new Date(), decisions = new Map() } = {}) {
   const { groups, copyPaths } = groupDuplicates(scan.assets);
+
+  // Folders whose NAME does not say whether they are the owner's or a program's. The owner decides
+  // each one (2026-07-26); until then their files are not touched — `held` is the set still waiting.
+  const suspicious = findSuspiciousDirs(scan.assets, isTechnicalDir)
+    .map((s) => ({ ...s, decision: decisions.get(s.dir) ?? null }));
+  const held = new Map(suspicious.filter((s) => s.decision !== 'sort').map((s) => [s.dir, s.decision]));
 
   const operations = [];
   const stay = [];
   const disputed = [];
 
   for (const asset of scan.assets) {
+    // A file inside an undecided (or "leave as-is") folder stays exactly where it is. "As-is" means
+    // the folder is not moved at all — the owner's answer to where such a folder should go.
+    const holder = heldBy(asset.path, held);
+    if (holder) {
+      stay.push({
+        path: asset.path,
+        kind: asset.kind,
+        reason: held.get(holder) === 'as-is'
+          ? `папка «${holder}» оставлена как есть по вашему решению`
+          : `папка «${holder}» ждёт вашего решения — файлы внутри не тронуты`,
+      });
+      continue;
+    }
+
     const isDuplicateCopy = copyPaths.has(asset.path);
     const decision = planBucket(asset, { isDuplicateCopy });
 
@@ -111,6 +132,8 @@ export function buildPlan(scan, { now = new Date() } = {}) {
       disputed: disputed.length,
       collisions: collisions.length,
       emptiedDirs: emptied.length,
+      suspiciousDirs: suspicious.length,
+      awaitingDecision: suspicious.filter((s) => s.decision === null).length,
     },
     operations: actionable,
     stay,
@@ -118,6 +141,7 @@ export function buildPlan(scan, { now = new Date() } = {}) {
     disputed,
     collisions,
     emptied,
+    suspicious,
     errors: scan.errors ?? [],
   };
 }
@@ -214,9 +238,29 @@ export function renderPlan(plan) {
   L.push(`Спорных случаев:   ${c.disputed}`);
   L.push(`Конфликтов имён:   ${c.collisions}`);
   L.push(`Опустевших папок:  ${c.emptiedDirs ?? 0}  (будут удалены, откат воссоздаст)`);
+  if (c.awaitingDecision > 0) L.push(`Ждут вашего решения: ${c.awaitingDecision} папок — см. ниже`);
   L.push('');
   L.push('ЭТО ТОЛЬКО ПЛАН. Ни один файл ещё не тронут.');
   L.push('');
+
+  // The approval list goes FIRST after the summary: it is the only section that asks the owner to
+  // do something, and a request buried under a hundred lines of moves is a request nobody answers.
+  const waiting = (plan.suspicious ?? []).filter((s) => s.decision === null);
+  if (waiting.length > 0) {
+    L.push('⚠ ПАПКИ, ПО КОТОРЫМ НУЖНО ВАШЕ РЕШЕНИЕ');
+    L.push('-'.repeat(60));
+    L.push('  У этих папок непонятные названия — неясно, ваши они или их создала программа.');
+    L.push('  Пока вы не решите, KPOT их НЕ ТРОГАЕТ: файлы внутри остались на месте.');
+    L.push('');
+    for (const s of waiting) {
+      L.push(`  ${s.dir}/   — ${s.reason}`);
+      L.push(`      медиафайлов внутри: ${s.files}`);
+    }
+    L.push('');
+    L.push('  Откройте файл решений, впишите «сортировать» или «как есть», и запустите KPOT снова:');
+    L.push(`      ${plan.meta.decisionsPath ?? '<корень>/.kpot-runs/папки-на-согласование.txt'}`);
+    L.push('');
+  }
 
   // Moves, grouped by destination directory — the owner reads the future library, not a flat list.
   L.push('ЧТО КУДА ПЕРЕЕДЕТ');
