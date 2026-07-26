@@ -17,7 +17,7 @@
 // which is deliberately isolated in `meta` so Phase 4 can compare the actionable parts directly.
 
 import { groupDuplicates } from '../dedupe/dedupe.mjs';
-import { planBucket, isTechnicalDir } from './bucket.mjs';
+import { planBucket, isTechnicalDir, stripReviewPrefix, REVIEW_DIR } from './bucket.mjs';
 import { findSuspiciousDirs, heldBy } from './suspicious.mjs';
 
 export const PLAN_VERSION = 1;
@@ -44,10 +44,14 @@ function suffixed(name, n) {
 export function buildPlan(scan, { now = new Date(), decisions = new Map() } = {}) {
   const { groups, copyPaths } = groupDuplicates(scan.assets);
 
-  // Folders whose NAME does not say whether they are the owner's or a program's. The owner decides
-  // each one (2026-07-26); until then their files are not touched — `held` is the set still waiting.
-  const suspicious = findSuspiciousDirs(scan.assets, isTechnicalDir)
-    .map((s) => ({ ...s, decision: decisions.get(s.dir) ?? null }));
+  // Folders whose NAME does not say whether they are the owner's or a program's (2026-07-26).
+  // Suspicion is judged on the ORIGINAL path — the one the file had before any quarantining — so
+  // that a folder already sitting in `НА_РАЗБОР/` is still recognized as the same folder, keeps the
+  // same key in the decisions file, and a second run is a no-op rather than a re-quarantining.
+  const originalOf = new Map(scan.assets.map((a) => [a.path, stripReviewPrefix(a.path)]));
+  const suspicious = findSuspiciousDirs(
+    scan.assets.map((a) => ({ ...a, path: originalOf.get(a.path) })), isTechnicalDir,
+  ).map((s) => ({ ...s, decision: decisions.get(s.dir) ?? null }));
   const held = new Map(suspicious.filter((s) => s.decision !== 'sort').map((s) => [s.dir, s.decision]));
 
   const operations = [];
@@ -55,22 +59,32 @@ export function buildPlan(scan, { now = new Date(), decisions = new Map() } = {}
   const disputed = [];
 
   for (const asset of scan.assets) {
-    // A file inside an undecided (or "leave as-is") folder stays exactly where it is. "As-is" means
-    // the folder is not moved at all — the owner's answer to where such a folder should go.
-    const holder = heldBy(asset.path, held);
+    const origPath = originalOf.get(asset.path);
+
+    // Undecided, and "как есть", both resolve to the same place: the quarantine, holding the
+    // folder's original parent structure (owner, 2026-07-26). One destination for both answers is
+    // what makes the flow idempotent — a folder already there plans a move onto itself, which the
+    // `from !== to` filter below drops.
+    const holder = heldBy(origPath, held);
     if (holder) {
-      stay.push({
-        path: asset.path,
+      const target = `${REVIEW_DIR}/${origPath}`;
+      operations.push({
+        op: 'move',
+        from: asset.path,
+        to: target,
         kind: asset.kind,
         reason: held.get(holder) === 'as-is'
-          ? `папка «${holder}» оставлена как есть по вашему решению`
-          : `папка «${holder}» ждёт вашего решения — файлы внутри не тронуты`,
+          ? `папка «${holder}» оставлена как есть по вашему решению — лежит в ${REVIEW_DIR}/`
+          : `папка «${holder}» ждёт вашего решения — отложена в ${REVIEW_DIR}/ как есть`,
+        review: holder,
       });
       continue;
     }
 
     const isDuplicateCopy = copyPaths.has(asset.path);
-    const decision = planBucket(asset, { isDuplicateCopy });
+    // An approved folder is sorted as if it had never been quarantined: the ORIGINAL path decides
+    // its custom-dir nesting, so `НА_РАЗБОР` never appears inside the library.
+    const decision = planBucket({ ...asset, path: origPath }, { isDuplicateCopy });
 
     for (const d of decision.disputed) {
       disputed.push({ path: asset.path, issue: d.issue, detail: d.detail });
@@ -250,11 +264,12 @@ export function renderPlan(plan) {
     L.push('⚠ ПАПКИ, ПО КОТОРЫМ НУЖНО ВАШЕ РЕШЕНИЕ');
     L.push('-'.repeat(60));
     L.push('  У этих папок непонятные названия — неясно, ваши они или их создала программа.');
-    L.push('  Пока вы не решите, KPOT их НЕ ТРОГАЕТ: файлы внутри остались на месте.');
+    L.push(`  Они НЕ РАЗБИРАЮТСЯ, а целиком откладываются в ${REVIEW_DIR}/ — как есть, со своей`);
+    L.push('  исходной структурой папок. Ничего внутри них не переименовано и не рассортировано.');
     L.push('');
     for (const s of waiting) {
       L.push(`  ${s.dir}/   — ${s.reason}`);
-      L.push(`      медиафайлов внутри: ${s.files}`);
+      L.push(`      медиафайлов внутри: ${s.files}   →   ${REVIEW_DIR}/${s.dir}/`);
     }
     L.push('');
     L.push('  Откройте файл решений, впишите «сортировать» или «как есть», и запустите KPOT снова:');

@@ -6,6 +6,11 @@
 // Owner's instruction, 2026-07-26: «нужно подозрительные папки помечать, и выносить в инструменте
 // на согласование владельца — сортировать их, или вносить в том виде, в каком они есть.»
 //
+// Revised by the owner the same day: such a folder is not left where it is — it is moved WHOLE into
+// a top-level `НА_РАЗБОР/` (see `bucket.mjs` → REVIEW_DIR), keeping its original parent structure,
+// so everything awaiting a decision sits in one browsable place. «Как есть» then means it stays
+// there. This module only decides WHICH folders those are; where they go is `plan.mjs`.
+//
 // The CRITERION is the owner's too, chosen from four offered: **an unclear NAME** — a directory
 // whose name is neither plainly technical (a device or app created it) nor plainly meaningful (the
 // owner named it). The wider criteria (folders spanning several years, folders of mostly-undatable

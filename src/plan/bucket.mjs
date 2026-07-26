@@ -32,6 +32,29 @@ export const DUPES_DIR = '_дубликаты';
 /** Per-year bucket for "this year for sure, but which season is unknown" (GOAL.md). */
 export const YEAR_OTHER = 'прочее';
 
+/**
+ * Where folders with an unclear name wait for the owner's decision. Owner's naming and placement,
+ * 2026-07-26: a top-level `НА_РАЗБОР/` — visible enough that it will not be forgotten for years.
+ *
+ * Inside it, a folder keeps its ORIGINAL parent structure: `Фото/архив/Разное/` becomes
+ * `НА_РАЗБОР/Фото/архив/Разное/`. That was the owner's own idea and it is what makes the whole
+ * mechanism reversible by construction — stripping this one prefix recovers the original path
+ * exactly, so an approved folder is sorted as if it had never moved, and the quarantine's name
+ * never leaks into the library.
+ */
+export const REVIEW_DIR = 'НА_РАЗБОР';
+
+/**
+ * The path a file would have had if it had never been quarantined. Everything that reasons about a
+ * file's ORIGIN — which folder is suspicious, which parent dirs are the owner's — must work on this
+ * form, or a second run would see the quarantine itself as part of the owner's structure.
+ * @param {string} relPath
+ * @returns {string}
+ */
+export function stripReviewPrefix(relPath) {
+  return relPath.startsWith(`${REVIEW_DIR}/`) ? relPath.slice(REVIEW_DIR.length + 1) : relPath;
+}
+
 /** Media-kind subdirectory inside a season (photos stay at the season root). */
 const KIND_SUBDIR = { video: 'видео', audio: 'аудио', photo: null };
 
@@ -83,7 +106,7 @@ const DEVICE_DUMP_RE = /^\d{3}[A-Za-z][A-Za-z0-9_-]{0,9}$/;
  * describes: rename a bucket and this follows automatically (bug 01).
  */
 const OWN_LAYOUT_DIRS = new Set(
-  [...Object.values(SEASONS), YEAR_OTHER, GLOBAL_OTHER, JUNK_DIR, DUPES_DIR]
+  [...Object.values(SEASONS), YEAR_OTHER, GLOBAL_OTHER, JUNK_DIR, DUPES_DIR, REVIEW_DIR]
     .map((d) => d.toLowerCase()),
 );
 

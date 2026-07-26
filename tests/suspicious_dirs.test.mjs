@@ -61,20 +61,28 @@ test('only folders that actually hold media are raised, and a nested one is rais
   assert.equal(found.some((f) => f.dir === 'Разное/вложенное'), false);
 });
 
-// ─── the default: undecided means untouched ──────────────────────────────────────────────────────
-test('an undecided folder is NOT sorted — its files stay exactly where they are', () => {
-  const plan = buildPlan(scanOf('Разное/a.jpg', 'Мобилка/b.jpg'));
+// ─── the quarantine: undecided folders are set aside WHOLE, never taken apart ────────────────────
+// Owner's revision, 2026-07-26: instead of being left in place, a folder under question is moved
+// into `НА_РАЗБОР/` keeping its original parent structure, so everything needing a decision sits in
+// one browsable place. "как есть" then means it simply stays there.
+test('an undecided folder is set aside whole, with its original parent structure', () => {
+  const plan = buildPlan(scanOf('Фото/архив/Разное/a.jpg', 'Мобилка/b.jpg'));
   assert.equal(plan.counts.awaitingDecision, 1);
-  assert.equal(plan.operations.some((o) => o.from.startsWith('Разное/')), false,
-    'a folder awaiting approval must not be sorted');
-  const held = plan.stay.find((s) => s.path === 'Разное/a.jpg');
-  assert.ok(held, 'the file must be reported as staying, not silently dropped from the plan');
+
+  const held = plan.operations.find((o) => o.from === 'Фото/архив/Разное/a.jpg');
+  assert.ok(held, 'the file must appear in the plan, not vanish from it');
+  assert.equal(held.to, 'НА_РАЗБОР/Фото/архив/Разное/a.jpg',
+    'the folder keeps its original parent path inside the quarantine');
   assert.match(held.reason, /ждёт вашего решения/);
+  assert.equal(held.review, 'Фото/архив/Разное', 'the plan records WHICH folder is under question');
+
+  // Nothing inside it is sorted into the library…
+  assert.equal(plan.operations.some((o) => o.from.startsWith('Фото/архив/Разное/') && /^\d{4}\//.test(o.to)), false);
   // …while everything else is sorted as usual.
-  assert.ok(plan.operations.some((o) => o.from === 'Мобилка/b.jpg'));
+  assert.ok(plan.operations.some((o) => o.from === 'Мобилка/b.jpg' && /^\d{4}\//.test(o.to)));
 });
 
-test('«сортировать» releases the folder; «как есть» leaves it exactly where it is', () => {
+test('«сортировать» releases the folder into the library; «как есть» leaves it in the quarantine', () => {
   const scan = scanOf('Разное/a.jpg');
 
   const sorted = buildPlan(scan, { decisions: new Map([['Разное', 'sort']]) });
@@ -83,17 +91,37 @@ test('«сортировать» releases the folder; «как есть» leaves
     'an approved folder is sorted like any other, keeping its name as nesting');
 
   const asIs = buildPlan(scan, { decisions: new Map([['Разное', 'as-is']]) });
-  assert.equal(asIs.operations.length, 0, '"as-is" means the folder is not moved at all');
-  assert.match(asIs.stay[0].reason, /оставлена как есть/);
+  assert.equal(asIs.operations[0].to, 'НА_РАЗБОР/Разное/a.jpg', '"as-is" means it stays in the quarantine');
+  assert.match(asIs.operations[0].reason, /оставлена как есть/);
   assert.equal(asIs.counts.awaitingDecision, 0, 'an answered folder no longer awaits anything');
+});
+
+// The property the owner's "preserve the original structure" idea buys: stripping one prefix
+// recovers the original path exactly, so quarantining is invisible afterwards and repeatable.
+test('a folder already in the quarantine is not re-quarantined — the second run is a no-op', () => {
+  const plan = buildPlan(scanOf('НА_РАЗБОР/Фото/архив/Разное/a.jpg'));
+  assert.deepEqual(plan.operations, [], 'a file already where it belongs must plan no move');
+  assert.equal(plan.counts.awaitingDecision, 1, 'but it is still listed as awaiting a decision');
+  assert.equal(plan.suspicious[0].dir, 'Фото/архив/Разное',
+    'the decisions file must key on the ORIGINAL path, so the answer survives the move');
+});
+
+test('approving a quarantined folder sorts it as if it had never moved — «НА_РАЗБОР» never leaks', () => {
+  // «Отпуск» is one of the owner's own names, so it survives as nesting — which is exactly what
+  // must be reconstructed from the ORIGINAL path rather than from where the file physically sits.
+  const plan = buildPlan(scanOf('НА_РАЗБОР/Отпуск/Разное/a.jpg'),
+    { decisions: new Map([['Отпуск/Разное', 'sort']]) });
+  assert.equal(plan.operations[0].to, '2016/Весна/Отпуск/Разное/a.jpg',
+    'the library path is built from the ORIGINAL location, not from the quarantine one');
+  assert.equal(plan.operations[0].to.includes('НА_РАЗБОР'), false);
 });
 
 test('the report puts the request for a decision where it will be read', () => {
   const plan = buildPlan(scanOf('Разное/a.jpg'));
   const text = renderPlan(plan);
   assert.match(text, /ПАПКИ, ПО КОТОРЫМ НУЖНО ВАШЕ РЕШЕНИЕ/);
-  assert.match(text, /KPOT их НЕ ТРОГАЕТ/);
-  assert.ok(text.includes('Разное/'));
+  assert.match(text, /НЕ РАЗБИРАЮТСЯ/);
+  assert.match(text, /НА_РАЗБОР\/Разное\//, 'the owner must see where the folder is going');
   // It must come before the long list of moves, or nobody answers it.
   assert.ok(text.indexOf('НУЖНО ВАШЕ РЕШЕНИЕ') < text.indexOf('ЧТО КУДА ПЕРЕЕДЕТ'));
 });
