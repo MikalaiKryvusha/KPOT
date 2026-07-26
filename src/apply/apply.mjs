@@ -22,7 +22,7 @@
 // with its path and the loop continues. A partially-completed run stays fully rollbackable, because
 // rollback replays the journal, not the plan.
 
-import { mkdir, rename, stat } from 'node:fs/promises';
+import { mkdir, readdir, rename, rmdir, stat } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { createRunJournal, newRunId } from '../core/journal.mjs';
 import { RUNS_DIR_NAME } from '../core/paths.mjs';
@@ -177,13 +177,37 @@ export async function applyPlan(root, plan, scan, {
     }
   }
 
+  // --- the folders the sort emptied. The owner allowed this on 2026-07-26 — the ONLY deletion KPOT
+  // performs — and attached a condition: the paths must be in the backup so a rollback recreates
+  // them. Two safeguards beyond that:
+  //   · the plan is never trusted about emptiness. Each directory is read again, right now, and
+  //     skipped if anything is inside. A stale plan must not be able to delete a folder with files.
+  //   · only directories THIS run emptied are considered — a folder that was already empty before
+  //     the run was not ours to remove.
+  const dirsRemoved = [];
+  for (const dir of plan.emptied ?? []) {
+    const dirAbs = abs(root, dir);
+    try {
+      if (!dryRun) {
+        const left = await readdir(dirAbs);
+        if (left.length > 0) continue;      // someone put something here — leave it alone
+        await rmdir(dirAbs);
+      }
+      await journal.append('rmdir', { dir });
+      dirsRemoved.push(dir);
+    } catch (e) {
+      // A folder that cannot be removed is not a failed run: every file already arrived safely.
+      await journal.append('rmdir-skipped', { dir, error: e.message ?? String(e) });
+    }
+  }
+
   // Deliberately WITHOUT `dryRun`: the flag lives in the header, once. Repeating it here would make
   // the two journals differ in a record as well as the header, and the whole point of GOAL.md §в is
   // that the difference between a dry run and a real run is exactly one declared flag — a property
   // the acceptance spec asserts by comparing the journals record for record.
   await journal.append('done', { moved, failed });
 
-  return { runId, dryRun, journalPath: journal.path, backup, moved, failed, dirsCreated, errors };
+  return { runId, dryRun, journalPath: journal.path, backup, moved, failed, dirsCreated, dirsRemoved, errors };
 }
 
 /**
@@ -207,6 +231,9 @@ export function renderApplyReport(result) {
     L.push(`Перемещено:        ${result.moved}`);
   }
   if (result.failed > 0) L.push(`Не удалось:        ${result.failed}`);
+  if (result.dirsRemoved?.length > 0) {
+    L.push(`Удалено пустых папок: ${result.dirsRemoved.length}  (их пути в бэкапе — откат воссоздаст)`);
+  }
   L.push('');
   L.push('БЭКАП');
   L.push('-'.repeat(60));

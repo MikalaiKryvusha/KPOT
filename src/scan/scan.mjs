@@ -31,14 +31,21 @@ export async function hashFile(absPath) {
 }
 
 /**
- * Recursively list all files under `root`. Directory read failures are collected, not thrown.
- * @returns {Promise<{files: Array<{abs: string, rel: string}>, errors: Array<{path: string, error: string}>}>}
+ * Recursively list all files AND directories under `root`. Directory read failures are collected,
+ * not thrown.
+ *
+ * Directories are returned because they are part of what must be restorable: since 2026-07-26 the
+ * owner allows KPOT to delete folders its sort emptied, and a folder can only be recreated by
+ * rollback if the backup recorded that it existed (owner's condition, decision log).
+ *
+ * @returns {Promise<{files: Array<{abs: string, rel: string}>, dirs: string[], errors: Array<{path: string, error: string}>}>}
  */
 async function walk(root) {
-  const files = [], errors = [];
+  const files = [], errors = [], seenDirs = [];
   const dirs = [{ abs: root, rel: '' }];
   while (dirs.length > 0) {
     const dir = dirs.pop();
+    if (dir.rel !== '') seenDirs.push(dir.rel);
     let entries;
     try {
       entries = await readdir(dir.abs, { withFileTypes: true });
@@ -61,7 +68,8 @@ async function walk(root) {
       // can be tricked into planning moves outside the target tree
     }
   }
-  return { files, errors };
+  seenDirs.sort();   // canonical order — the manifest and the plan are compared artifacts
+  return { files, dirs: seenDirs, errors };
 }
 
 /** Read the first SNIFF_LENGTH bytes of a file without loading the rest. */
@@ -97,7 +105,7 @@ async function sniff(absPath) {
  */
 export async function scanTree(root, { concurrency = DEFAULT_CONCURRENCY, cache = null } = {}) {
   const scannedAt = new Date().toISOString();
-  const { files, errors } = await walk(root);
+  const { files, dirs, errors } = await walk(root);
   let hits = 0, misses = 0;
 
   const results = await mapLimit(files, concurrency, async (f) => {
@@ -129,5 +137,5 @@ export async function scanTree(root, { concurrency = DEFAULT_CONCURRENCY, cache 
   }
   assets.sort((a, b) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0));
 
-  return { root, scannedAt, assets, cache: { hits, misses }, errors };
+  return { root, scannedAt, assets, dirs, cache: { hits, misses }, errors };
 }

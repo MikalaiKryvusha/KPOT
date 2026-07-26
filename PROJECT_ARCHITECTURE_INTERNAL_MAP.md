@@ -90,8 +90,13 @@ These hold at all times. Breaking one is a bug even if the run completes and the
    "прочее" — it is never quietly assigned to a plausible year.
 4. **Conflicts surface, they do not resolve themselves.** Contradicting Evidence, ambiguous seasons and
    destination collisions are recorded in the SortPlan's disputed section and shown to the owner.
-5. **Nothing is destroyed.** Operations move; they never delete. Duplicates are set aside, not erased —
-   removing a user's file is the owner's decision, not the tool's.
+5. **Nothing the owner put there is destroyed.** Operations move; they never delete a file. Duplicates
+   are set aside, not erased — removing a user's file is the owner's decision, not the tool's.
+   *Amended 2026-07-26 (decision log):* the one exception is a **directory the sort itself emptied**,
+   which KPOT may remove — and only because the Backup records every directory that existed, so
+   rollback recreates it. The invariant that actually holds is therefore: nothing disappears that the
+   RunJournal and the Backup cannot bring back. A folder that was already empty before the run, or
+   that still holds anything at the moment of deletion, is never touched.
 6. **The user's names survive.** An Asset's original filename is preserved; meaningful source directory
    names are preserved as far as the target layout allows. Renaming is a fallback for collisions only,
    and every rename is recorded.

@@ -94,6 +94,10 @@ export function buildPlan(scan, { now = new Date() } = {}) {
   stay.sort((a, b) => (a.path < b.path ? -1 : 1));
   disputed.sort((a, b) => (a.path < b.path ? -1 : a.path > b.path ? 1 : a.issue < b.issue ? -1 : 1));
 
+  // Folders the sort would leave empty. Recorded here so the owner sees the deletions in advance —
+  // the condition attached to the owner's permission to delete them at all.
+  const emptied = emptiedDirs(scan.dirs ?? [], actionable, stay);
+
   return {
     planVersion: PLAN_VERSION,
     meta: { root: scan.root, plannedAt: now.toISOString(), scannedAt: scan.scannedAt ?? null },
@@ -106,14 +110,47 @@ export function buildPlan(scan, { now = new Date() } = {}) {
       duplicateCopies: copyPaths.size,
       disputed: disputed.length,
       collisions: collisions.length,
+      emptiedDirs: emptied.length,
     },
     operations: actionable,
     stay,
     duplicates: groups,
     disputed,
     collisions,
+    emptied,
     errors: scan.errors ?? [],
   };
+}
+
+/**
+ * Which of the tree's directories will be left empty by these moves?
+ *
+ * The owner allowed KPOT to delete them (2026-07-26) on one condition — that they are recorded so a
+ * rollback can put them back. This function is the "shown to you first" half of that: the list goes
+ * into the plan, so the owner reads exactly which folders would disappear BEFORE anything runs.
+ *
+ * Bottom-up, because emptiness is recursive: `копии/` only disappears if `копии/старое/` does too.
+ * A directory that RECEIVES a file is never empty, which is what keeps a folder that is both a
+ * source and a target (the owner's own `2013/`) safely off the list.
+ *
+ * @param {string[]} dirs         every directory in the tree, relative, '/'-separated
+ * @param {object[]} operations   the actionable moves
+ * @param {object[]} stay         files that are not moving at all
+ * @returns {string[]} deepest-first — the order they must be removed in
+ */
+function emptiedDirs(dirs, operations, stay) {
+  const survivors = new Set();   // directories that still hold something afterwards
+  const keep = (relPath) => {
+    const parts = relPath.split('/');
+    for (let i = parts.length - 1; i >= 1; i--) survivors.add(parts.slice(0, i).join('/'));
+  };
+  for (const s of stay) keep(s.path);          // a file that stays keeps its folder alive
+  for (const op of operations) keep(op.to);    // a destination folder is occupied by definition
+
+  // Anything not kept alive is emptied. Deepest first, so a child is removed before its parent.
+  return dirs
+    .filter((d) => !survivors.has(d))
+    .sort((a, b) => b.split('/').length - a.split('/').length || (a < b ? 1 : -1));
 }
 
 /** Which keeper does this copy belong to? (small N per group — a linear scan is honest here) */
@@ -176,6 +213,7 @@ export function renderPlan(plan) {
   L.push(`Дубликаты:         ${c.duplicateGroups} групп, ${c.duplicateCopies} копий в сторону`);
   L.push(`Спорных случаев:   ${c.disputed}`);
   L.push(`Конфликтов имён:   ${c.collisions}`);
+  L.push(`Опустевших папок:  ${c.emptiedDirs ?? 0}  (будут удалены, откат воссоздаст)`);
   L.push('');
   L.push('ЭТО ТОЛЬКО ПЛАН. Ни один файл ещё не тронут.');
   L.push('');
@@ -223,6 +261,16 @@ export function renderPlan(plan) {
       L.push(`  ${col.target}`);
       for (const r of col.resolved) L.push(`    ${r.from}  →  ${r.to}`);
     }
+    L.push('');
+  }
+
+  if (plan.emptied?.length > 0) {
+    L.push('ПАПКИ, КОТОРЫЕ ОПУСТЕЮТ И БУДУТ УДАЛЕНЫ');
+    L.push('-'.repeat(60));
+    L.push('  Все файлы из них переедут, пустые папки убираются. Их пути записаны в бэкап —');
+    L.push('  откат воссоздаст каждую папку.');
+    L.push('');
+    for (const d of [...plan.emptied].sort()) L.push(`  ${d}/`);
     L.push('');
   }
 

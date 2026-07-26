@@ -124,13 +124,23 @@ export async function createBackup(root, scan, {
     );
   }
 
-  // --- layer 1: the manifest. Sorted by path (assets already are) so two runs of the same tree
-  // produce a byte-identical manifest — the determinism rule in AGENT_GUIDE §Code style.
+  // --- layer 1: the manifest. Sorted by path (assets and dirs already are) so two runs of the same
+  // tree produce a byte-identical manifest — the determinism rule in AGENT_GUIDE §Code style.
+  //
+  // DIRECTORIES are recorded alongside the files. They were not, until the owner allowed KPOT to
+  // delete the folders its sort empties (2026-07-26) — and made it conditional: «главное, чтобы пути
+  // и названия были записаны в коммит-бекап план, чтобы бекапер мог откатить всё, как было, и
+  // создать папки». A folder holds no bytes, so nothing but this line remembers that it existed.
+  const dirs = scan.dirs ?? [];
   const lines = [
-    JSON.stringify({ kind: 'manifest-header', manifestVersion: MANIFEST_VERSION, runId, root, files: scan.assets.length }),
+    JSON.stringify({
+      kind: 'manifest-header', manifestVersion: MANIFEST_VERSION, runId, root,
+      files: scan.assets.length, dirs: dirs.length,
+    }),
     ...scan.assets.map((a) => JSON.stringify({
       path: a.path, size: a.size, mtimeMs: a.mtimeMs, sha256: a.sha256,
     })),
+    ...dirs.map((d) => JSON.stringify({ path: d, dir: true })),
   ];
   if (!dryRun) await writeFile(manifestPath, lines.join('\n') + '\n', 'utf8');
 

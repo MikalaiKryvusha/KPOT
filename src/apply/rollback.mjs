@@ -80,6 +80,22 @@ export async function rollbackRun(runDir, { dryRun = false } = {}) {
   const errors = [];
   let restored = 0, alreadyInPlace = 0, failed = 0;
 
+  // Folders the run deleted come back FIRST, shallowest-first — a file cannot be restored into a
+  // directory that no longer exists. This is the other half of the owner's condition for allowing
+  // KPOT to delete emptied folders at all (2026-07-26): the backup records them, rollback rebuilds
+  // them, and the tree comes back with its original shape and not merely its original files.
+  const dirsRestored = [];
+  const removedDirs = records.filter((r) => r.kind === 'rmdir').map((r) => r.dir);
+  for (const d of [...new Set(removedDirs)].sort((a, b) => a.split('/').length - b.split('/').length || (a < b ? -1 : 1))) {
+    try {
+      if (!dryRun) await mkdir(abs(root, d), { recursive: true });
+      dirsRestored.push(d);
+    } catch (e) {
+      errors.push({ path: d, error: `could not recreate the directory: ${e.message ?? String(e)}` });
+      failed += 1;
+    }
+  }
+
   // Reverse order: the last move is undone first. With collision-suffixed targets this matters —
   // undoing forwards could free a name that a later operation had already claimed.
   const toUndo = [...moved].reverse();
@@ -130,7 +146,7 @@ export async function rollbackRun(runDir, { dryRun = false } = {}) {
     } catch { /* already gone, or not empty — both are fine and not worth an error */ }
   }
 
-  return { runId: header.runId, root, restored, alreadyInPlace, failed, dirsRemoved, errors, truncated };
+  return { runId: header.runId, root, restored, alreadyInPlace, failed, dirsRemoved, dirsRestored, errors, truncated };
 }
 
 /**
@@ -153,15 +169,21 @@ async function findJournal(runDir) {
 }
 
 /**
- * Read a run's backup manifest back (the record of what the tree looked like before the run).
- * Used by reports and by anyone who wants to verify a restoration by hash after the fact.
+ * Read a run's backup manifest back (the record of what the tree looked like before the run) —
+ * both the files and the DIRECTORIES that existed. Used by reports, by rollback's folder
+ * restoration, and by anyone who wants to verify a restoration by hash after the fact.
  * @param {string} runDir
- * @returns {Promise<{header: object, files: Array<{path, size, mtimeMs, sha256}>}>}
+ * @returns {Promise<{header: object, files: Array<{path, size, mtimeMs, sha256}>, dirs: string[]}>}
  */
 export async function readManifest(runDir) {
   const raw = await readFile(join(runDir, MANIFEST_NAME), 'utf8');
   const lines = raw.split('\n').filter((l) => l !== '');
-  return { header: JSON.parse(lines[0]), files: lines.slice(1).map((l) => JSON.parse(l)) };
+  const entries = lines.slice(1).map((l) => JSON.parse(l));
+  return {
+    header: JSON.parse(lines[0]),
+    files: entries.filter((e) => !e.dir),
+    dirs: entries.filter((e) => e.dir).map((e) => e.path),
+  };
 }
 
 /**
@@ -176,6 +198,7 @@ export function renderRollbackReport(result) {
   L.push(`Прогон:            ${result.runId}`);
   L.push(`Возвращено:        ${result.restored}`);
   if (result.alreadyInPlace > 0) L.push(`Уже были на месте: ${result.alreadyInPlace}`);
+  if (result.dirsRestored?.length > 0) L.push(`Воссоздано папок:  ${result.dirsRestored.length}`);
   if (result.dirsRemoved.length > 0) L.push(`Убрано пустых папок: ${result.dirsRemoved.length}`);
   if (result.failed > 0) L.push(`Не удалось:        ${result.failed}`);
   if (result.truncated) {
