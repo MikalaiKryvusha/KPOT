@@ -15,7 +15,15 @@
 // in the table fall to 'other' — safe by design: KPOT leaves what it does not recognize.
 
 /** How many leading bytes identification needs (longest offset used: ISO-BMFF brand at 8–12). */
-export const SNIFF_LENGTH = 16;
+/**
+ * How many bytes of a file are read to identify it.
+ *
+ * 16 was enough while every format announced itself with a magic string in the first bytes. MPEG
+ * transport streams do not (see `isTransportStream`): they can only be recognised by a sync byte
+ * repeating at a 188- or 192-byte stride, so the sniff must reach the SECOND one — offset 4 + 192.
+ * Raised to 208 with bug 04; it is one read per file either way, so the cost is nil.
+ */
+export const SNIFF_LENGTH = 208;
 
 /** System litter identified by exact basename (case-insensitive). */
 const JUNK_BASENAMES = new Set(['thumbs.db', '.nomedia', 'desktop.ini', '.ds_store']);
@@ -28,6 +36,26 @@ const BMFF_PHOTO_BRANDS = new Set(['heic', 'heix', 'heif', 'hevc', 'mif1', 'msf1
 const ascii = (buf, from, to) => buf.toString('latin1', from, to);
 const startsWith = (buf, bytes, at = 0) =>
   buf.length >= at + bytes.length && bytes.every((b, i) => buf[at + i] === b);
+
+/** MPEG-TS sync byte, and the two packet strides that carry it. */
+const TS_SYNC = 0x47;
+const TS_PACKET = 188;        // plain .ts — sync at offset 0
+const M2TS_PACKET = 192;      // camcorder .mts/.m2ts — 4-byte timecode first, so sync at offset 4
+
+/**
+ * Is this an MPEG transport stream (AVCHD `.MTS`/`.M2TS`, or plain `.TS`)?
+ *
+ * These containers have no magic string at all — only the sync byte repeating on a fixed grid. A
+ * single 0x47 would match any file that happens to start with the letter "G", so we require a
+ * SECOND sync at exactly one packet's distance. Two hits on the grid is the actual signature.
+ */
+function isTransportStream(head) {
+  for (const [offset, stride] of [[0, TS_PACKET], [4, M2TS_PACKET]]) {
+    const next = offset + stride;
+    if (head.length > next && head[offset] === TS_SYNC && head[next] === TS_SYNC) return true;
+  }
+  return false;
+}
 
 /** Is this basename system junk (per the quarantine policy)? Exported for the plan phase. */
 export function isJunkName(basename) {
@@ -56,6 +84,12 @@ export function identify(basename, head) {
     return { kind: 'photo', format: 'tiff' }; // covers CR2/DNG RAW (TIFF-based)
   }
   if (startsWith(head, [0x42, 0x4D])) return { kind: 'photo', format: 'bmp' };
+  // JPEG 2000 — the JP2 signature box, and the bare codestream. 18 real files in the archive; they
+  // were classified as "other" and therefore never sorted at all (bug 04).
+  if (startsWith(head, [0x00, 0x00, 0x00, 0x0C, 0x6A, 0x50, 0x20, 0x20])) {
+    return { kind: 'photo', format: 'jp2' };
+  }
+  if (startsWith(head, [0xFF, 0x4F, 0xFF, 0x51])) return { kind: 'photo', format: 'jp2' };
 
   // — ISO-BMFF family: MP4/MOV/3GP/HEIC share the `ftyp` box; the brand splits photo from video —
   if (ascii(head, 4, 8) === 'ftyp') {
@@ -76,6 +110,13 @@ export function identify(basename, head) {
   if (startsWith(head, [0x1A, 0x45, 0xDF, 0xA3])) return { kind: 'video', format: 'matroska' }; // mkv/webm
   if (startsWith(head, [0x30, 0x26, 0xB2, 0x75])) return { kind: 'video', format: 'asf' };      // wmv
   if (startsWith(head, [0x00, 0x00, 0x01, 0xBA])) return { kind: 'video', format: 'mpeg-ps' };  // vob
+  // MPEG transport stream — camcorder AVCHD (`.MTS`/`.M2TS`) and plain `.TS`. There is no magic
+  // string, only the 0x47 sync byte repeating on a fixed grid: every 188 bytes for TS, and every
+  // 192 for M2TS, whose packets carry a 4-byte timecode first (which is why the byte sits at
+  // offset 4, not 0). One sync byte alone would match any file beginning with "G", so a SECOND
+  // sync at the expected distance is required — that pair is the signature (bug 04, found on a
+  // 2.1 GB `.MTS` the tool had been leaving behind as "not media").
+  if (isTransportStream(head)) return { kind: 'video', format: 'mpeg-ts' };
 
   // — audio —
   if (ascii(head, 0, 4) === 'OggS') return { kind: 'audio', format: 'ogg' };
@@ -83,6 +124,13 @@ export function identify(basename, head) {
     return { kind: 'audio', format: 'mp3' };
   }
   if (ascii(head, 0, 5) === '#!AMR') return { kind: 'audio', format: 'amr' };
+  // Raw ADTS AAC — what WhatsApp voice notes are (19 real files, all left unsorted before bug 04).
+  // Frame sync is 12 set bits, then a version bit and a 2-bit layer field that AAC keeps at 00:
+  // so byte0 == 0xFF and (byte1 & 0xF6) == 0xF0. The MP3 checks above run FIRST and claim 0xFB/0xF3
+  // (layer III), which is exactly what the layer bits distinguish — the two cannot collide.
+  if (head.length >= 2 && head[0] === 0xFF && (head[1] & 0xF6) === 0xF0) {
+    return { kind: 'audio', format: 'aac' };
+  }
 
   return { kind: 'other', format: null };
 }

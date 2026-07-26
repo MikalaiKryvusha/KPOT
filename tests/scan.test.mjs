@@ -93,6 +93,33 @@ test('identify: survey format classes — HEIC vs MP4 brands, RIFF family, RAW, 
   assert.equal(identify('голос.amr', Buffer.from('#!AMR\n', 'latin1')).kind, 'audio');
 });
 
+// Bug 04 — three whole formats the owner found sitting unsorted in his real archive, because
+// `identify` did not know them and "not media" means "leave it alone": 18 JPEG-2000 scans, 19
+// WhatsApp voice notes, and a 2.1 GB camcorder video.
+test('identify: the formats bug 04 added — JPEG 2000, MPEG-TS camcorder video, raw ADTS AAC', () => {
+  // JPEG 2000: the JP2 signature box, and the bare codestream.
+  const jp2 = Buffer.concat([Buffer.from([0, 0, 0, 0x0C, 0x6A, 0x50, 0x20, 0x20, 0x0D, 0x0A, 0x87, 0x0A]), Buffer.alloc(4)]);
+  assert.deepEqual(identify('скан.jp2', jp2), { kind: 'photo', format: 'jp2' });
+  assert.deepEqual(identify('скан.j2k', Buffer.from([0xFF, 0x4F, 0xFF, 0x51, 0, 0, 0, 0])), { kind: 'photo', format: 'jp2' });
+
+  // MPEG-TS has NO magic string — only the 0x47 sync byte on a fixed grid. Both layouts must work:
+  // plain .ts (sync at 0, stride 188) and camcorder .mts (4-byte timecode first, stride 192).
+  const ts = Buffer.alloc(400); ts[0] = 0x47; ts[188] = 0x47;
+  assert.deepEqual(identify('x.ts', ts), { kind: 'video', format: 'mpeg-ts' });
+  const mts = Buffer.alloc(400); mts[4] = 0x47; mts[4 + 192] = 0x47;
+  assert.deepEqual(identify('00035.MTS', mts), { kind: 'video', format: 'mpeg-ts' });
+
+  // …and ONE stray 0x47 must not be enough, or every file starting with "G" becomes a video.
+  const notTs = Buffer.alloc(400); notTs[0] = 0x47;              // "G" and nothing else
+  assert.equal(identify('GONE.txt', notTs).kind, 'other', 'a single sync byte is not a signature');
+
+  // Raw ADTS AAC (WhatsApp voice notes) — and it must not steal MP3, whose layer bits differ.
+  assert.deepEqual(identify('AUD-WA0003.aac', Buffer.from([0xFF, 0xF1, 0x4C, 0x80, 0x20, 0xFF, 0xFC, 0x21])),
+    { kind: 'audio', format: 'aac' });
+  assert.equal(identify('x.mp3', Buffer.from([0xFF, 0xFB, 0x90, 0x00, 0, 0, 0, 0])).format, 'mp3',
+    'MP3 layer III must still be MP3, not AAC');
+});
+
 test('junk is junk BY NAME, whatever the content claims to be', () => {
   assert.equal(isJunkName('Thumbs.db'), true);
   assert.equal(isJunkName('THUMBS.DB'), true); // Windows case-insensitivity
