@@ -1,5 +1,8 @@
 // src/core/progress.mjs — telling the owner the tool is alive during a long run.
-// [NOT-TESTED]
+// [TESTED: 2026-07-26 · tests/progress.test.mjs — 9 specs. The three that matter were each verified
+// by breaking the code: painting when stderr is not a TTY, removing the throttle, and pointing the
+// reporter at stdout all turn their spec red. Rendered frames inspected by eye on a simulated
+// 71 606-file run; measured 17 904 repaints per hour of work (one per 0.20 s, as designed)]
 //
 // WHY: `researches/02` §4 counts the real archive at 71 606 files / 551 GB, and hashing that is
 // hours. Today every phase prints nothing until it finishes. For a non-technical owner watching a
