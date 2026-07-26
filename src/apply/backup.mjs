@@ -90,23 +90,29 @@ export async function probeHardlinkSupport(dir) {
  *
  * @param {string} root   absolute path of the scanned tree
  * @param {object} scan   the scan result (assets carry path/size/mtimeMs/sha256)
- * @param {{runId: string, dryRun?: boolean, allowNoSnapshot?: boolean}} opts
+ * @param {{runId: string, dryRun?: boolean, allowNoSnapshot?: boolean, probeSupport?: Function}} opts
  *        `dryRun` — build and verify NOTHING on disk except the run directory itself; the returned
  *        shape is identical so the caller's code path does not fork (GOAL.md §в equivalence).
  *        `allowNoSnapshot` — the owner's explicit override when the filesystem cannot hardlink.
+ *        `probeSupport` — the hardlink capability probe. Injectable for ONE reason: the refusal path
+ *        exists for exFAT/FAT32, and a development machine with an NTFS disk cannot otherwise reach
+ *        it. A guard that can never be exercised is a guard nobody has verified
+ *        (TESTING_FRAMEWORK §"a check that has never failed proves nothing").
  * @returns {Promise<{runId, dir, manifestPath, snapshotDir, files, linked, snapshot, reason, errors}>}
  * @throws {Error} if the snapshot is impossible and the override was not given — refusing loudly is
  *         the whole point: a backup that silently degrades is worse than no backup, because the
  *         owner would trust it.
  */
-export async function createBackup(root, scan, { runId, dryRun = false, allowNoSnapshot = false } = {}) {
+export async function createBackup(root, scan, {
+  runId, dryRun = false, allowNoSnapshot = false, probeSupport = probeHardlinkSupport,
+} = {}) {
   const dir = runDirFor(root, runId);
   const manifestPath = join(dir, MANIFEST_NAME);
   const snapshotDir = join(dir, SNAPSHOT_NAME);
   await mkdir(dir, { recursive: true });
 
   // --- layer 0: can we snapshot at all? Observe before promising anything.
-  const probe = await probeHardlinkSupport(dir);
+  const probe = await probeSupport(dir);
   if (!probe.supported && !allowNoSnapshot) {
     throw new Error(
       `cannot create a hardlink snapshot here (${probe.reason}). `

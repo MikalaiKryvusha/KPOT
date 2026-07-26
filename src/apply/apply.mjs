@@ -96,20 +96,27 @@ const abs = (root, rel) => join(root, ...rel.split('/'));
  * @param {string} root  absolute path of the tree the plan was built for
  * @param {object} plan  the SortPlan artifact from src/plan/plan.mjs
  * @param {object} scan  the scan result the plan was built from (the backup manifest needs hashes)
- * @param {{dryRun?: boolean, runId?: string, allowNoSnapshot?: boolean, now?: Date}} [opts]
+ * @param {{dryRun?: boolean, runId?: string, allowNoSnapshot?: boolean, probeSupport?: Function}} [opts]
+ *        `probeSupport` is forwarded to the backup — see its docstring for why it is injectable.
  * @returns {Promise<{runId, dryRun, journalPath, backup, moved, failed, dirsCreated, errors}>}
  * @throws {Error} if the plan does not match the tree, or a backup could not be created — refusing
  *         is the correct behaviour; a write without a backup is the one thing this tool may not do.
  */
-export async function applyPlan(root, plan, scan, { dryRun = false, runId = newRunId(), allowNoSnapshot = false } = {}) {
+export async function applyPlan(root, plan, scan, {
+  dryRun = false, runId = newRunId(), allowNoSnapshot = false, probeSupport,
+} = {}) {
   if (plan.meta?.root && plan.meta.root !== root) {
     throw new Error(`plan was built for a different root (${plan.meta.root}), refusing to apply it to ${root}`);
   }
 
   // --- GUARANTEE б: a backup first, always. A dry run creates the manifest-less shell too, so that
   // the refusal path itself is exercised by the dry run rather than discovered on the real one.
-  const backup = await createBackup(root, scan, { runId, dryRun, allowNoSnapshot });
+  const backup = await createBackup(root, scan, { runId, dryRun, allowNoSnapshot, probeSupport });
   if (!dryRun) {
+    // Defence in depth: `createBackup` already throws on failure, so this re-check is not
+    // independently reachable in a test — it exists because "the backup call returned" and "a
+    // usable backup is on disk" are different claims, and only the second one may be trusted.
+    // The check's own logic is covered directly by the verifyBackup specs.
     const check = await verifyBackup(root, runId);
     if (!check.ok) throw new Error(`refusing to move anything: ${check.reason}`);
     if (!check.hasSnapshot && !allowNoSnapshot) {

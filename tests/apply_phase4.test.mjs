@@ -17,7 +17,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { mkdtemp, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { promisify } from 'node:util';
@@ -194,23 +194,85 @@ test('rollback is idempotent — running it twice changes nothing and reports no
 // ─── ACCEPTANCE 3 ────────────────────────────────────────────────────────────────────────────────
 // Internal map, invariant 1: "No write without a Backup." The refusal must happen BEFORE the first
 // rename, so a failed backup can never leave a half-sorted tree.
+/** A probe that reports what exFAT/FAT32 would: this volume cannot hold hardlinks. */
+const cannotHardlink = async () => ({ supported: false, reason: 'EPERM: simulated exFAT volume' });
+
 test('apply refuses to write when a hardlink snapshot is impossible, and touches nothing', async () => {
   const root = await fixture();
   try {
     const before = await census(root);
     const { scan, plan } = await planFor(root);
 
-    // Simulate a filesystem that cannot hardlink (exFAT/FAT32) by making the probe fail: the run
-    // directory is occupied by a FILE, so nothing can be created inside it.
-    await writeFile(join(root, RUNS_DIR_NAME), 'not a directory', 'utf8');
-
+    // The refusal must be caused by the GUARD, not by some incidental filesystem failure — so the
+    // volume is simulated rather than sabotaged, and the assertion pins the guard's own wording.
+    // (An earlier version of this spec planted a file at `.kpot-runs` instead; it passed even with
+    // the guard deleted, because journal creation then failed with ENOTDIR. A spec that cannot tell
+    // the guard from an accident proves nothing.)
     await assert.rejects(
-      () => applyPlan(root, plan, scan, { runId: 'run-nobackup' }),
-      (e) => /hardlink|ENOTDIR|EEXIST/i.test(e.message),
-      'apply must refuse when it cannot create the backup',
+      () => applyPlan(root, plan, scan, { runId: 'run-nobackup', probeSupport: cannotHardlink }),
+      (e) => /does not support hardlinks/i.test(e.message) && /--allow-no-snapshot/.test(e.message),
+      'apply must refuse, naming the cause and the explicit override',
     );
     assert.deepEqual([...(await census(root))].sort(), [...before].sort(),
       'a refused run must not have touched a single file');
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test('verifyBackup rejects a run whose manifest is missing or empty — a directory is not a backup', async () => {
+  const root = await fixture();
+  try {
+    // Nothing created at all.
+    const none = await verifyBackup(root, 'run-never-made');
+    assert.equal(none.ok, false);
+    assert.match(none.reason, /no backup manifest/i);
+
+    // An aborted backup leaves the run DIRECTORY behind. `apply` must not read that as a backup.
+    await mkdir(runDirFor(root, 'run-aborted'), { recursive: true });
+    const dirOnly = await verifyBackup(root, 'run-aborted');
+    assert.equal(dirOnly.ok, false, 'an empty run directory must not count as a backup');
+
+    // A manifest that exists but is empty is equally worthless.
+    await writeFile(join(runDirFor(root, 'run-aborted'), 'manifest.jsonl'), '', 'utf8');
+    const emptyManifest = await verifyBackup(root, 'run-aborted');
+    assert.equal(emptyManifest.ok, false);
+    assert.match(emptyManifest.reason, /empty/i);
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test('apply refuses when the backup cannot be written, and touches nothing', async () => {
+  const root = await fixture();
+  try {
+    const before = await census(root);
+    const { scan, plan } = await planFor(root);
+
+    // A realistic "the backup could not be written" failure (full disk, revoked permission),
+    // simulated by occupying the manifest's own path with a directory.
+    await mkdir(join(runDirFor(root, 'run-nomanifest'), 'manifest.jsonl'), { recursive: true });
+
+    await assert.rejects(
+      () => applyPlan(root, plan, scan, { runId: 'run-nomanifest' }),
+      'apply must refuse when the backup could not be written',
+    );
+    assert.deepEqual([...(await census(root))].sort(), [...before].sort(),
+      'a refused run must not have touched a single file');
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test('with the explicit override, a snapshotless backup still yields a usable manifest', async () => {
+  const root = await fixture();
+  try {
+    const scan = await scanTree(root);
+    const backup = await createBackup(root, scan, {
+      runId: 'run-override', allowNoSnapshot: true, probeSupport: cannotHardlink,
+    });
+    // Structure stays restorable (the manifest is there); content protection is honestly absent.
+    assert.equal(backup.snapshot, 'unsupported');
+    assert.equal(backup.linked, 0);
+    const check = await verifyBackup(root, 'run-override');
+    assert.equal(check.ok, true, 'the manifest alone is a valid — if weaker — backup');
+    assert.equal(check.hasSnapshot, false);
+    const manifest = await readManifest(runDirFor(root, 'run-override'));
+    assert.equal(manifest.files.length, scan.assets.length);
   } finally { await rm(root, { recursive: true, force: true }); }
 });
 
@@ -221,7 +283,6 @@ test('the no-snapshot override is explicit: refused by default, allowed only whe
     const dir = runDirFor(root, 'run-probe');
 
     // Default: a backup that cannot snapshot is an error, not a warning.
-    const { mkdir } = await import('node:fs/promises');
     await mkdir(dir, { recursive: true });
     const support = await probeHardlinkSupport(dir);
     assert.equal(support.supported, true, 'the test volume must support hardlinks for this suite to mean anything');
