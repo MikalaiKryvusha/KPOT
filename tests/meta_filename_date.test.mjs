@@ -82,6 +82,22 @@ test('garbage that LOOKS like a date is rejected: bad calendars, out-of-range ep
   assert.equal(bestNameEvidence('IMG_20141301_120000.jpg', opts), null); // month 13
   assert.equal(bestNameEvidence('IMG_20140132_120000.jpg', opts), null); // day 32
   assert.equal(bestNameEvidence('0123456789.jpg', opts), null);         // epoch → 1973, pre-digital
+
+  // Bug 02, found on the first real-archive run: a Samsung gallery SEQUENCE NUMBER has exactly the
+  // shape of an epoch and decodes convincingly to 2001-09-09, which dragged a photo the owner keeps
+  // in his 2024 folder into 2001. Nothing about the digits separates an ID from a timestamp — what
+  // rejects it is that the epoch-in-filename convention is an Android/messenger habit that did not
+  // exist in 2001, so the claim contradicts itself.
+  assert.equal(bestNameEvidence('1000018552.jpg', opts), null,
+    'a pre-2008 epoch decode is a sequential ID, not a photograph from before Android existed');
+  assert.equal(bestNameEvidence('1100000000.jpg', opts), null, '2004 — still before the convention');
+  // …while every genuine epoch name in the real sample still decodes.
+  for (const [name, year] of [['1312459867880.jpg', 2011], ['1418185774550.jpg', 2014],
+    ['1512892755.jpg', 2017], ['photo1711295489.jpeg', 2024]]) {
+    const ev = bestNameEvidence(name, opts);
+    assert.ok(ev, `${name} is a real epoch name and must still be read`);
+    assert.equal(ev.instant.getUTCFullYear(), year, name);
+  }
   assert.equal(bestNameEvidence('9999999999.jpg', opts), null);         // epoch → 2286
   assert.equal(bestNameEvidence('1979-01-01 photo.jpg', opts)?.kind, 'filename-timestamp',
     'structural validity is separate from plausibility — the resolver judges 1979, not the detector');

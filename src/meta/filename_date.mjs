@@ -20,7 +20,22 @@ import {
 } from './evidence.mjs';
 
 /** Epoch-named files only exist in the smartphone/JS era — decoded years below this are noise. */
-export const EPOCH_MIN_YEAR = 2000;
+/**
+ * Earliest year a filename-epoch claim may decode to — **2008, the year the convention itself
+ * began** (Android 1.0 shipped September 2008; the messengers that use it came later).
+ *
+ * This is not a guess about how old the owner's photos are; it is a statement about the naming
+ * convention. Epoch-in-filename is produced by Android and by messaging apps, so a decode landing
+ * before they existed contradicts itself, and is evidence of a **sequential identifier** rather
+ * than of an old photograph. Samsung's gallery IDs are the real case that forced this (bug 02):
+ * `1000018552.jpg` is an ID, but read as epoch seconds it lands convincingly on 2001-09-09 and
+ * dragged a 2024 photo into a year the archive has nothing in. IDs and epochs are the same shape,
+ * so no regex separates them — the self-contradiction is the only local signal that does.
+ *
+ * Checked against the real archive sample: the earliest legitimate epoch decode there is 2011-08-04,
+ * so this bound rejects fabrications without touching a single correct reading.
+ */
+export const EPOCH_MIN_YEAR = 2008;
 
 /** Basename → stem (extension off). Keeps dot-files (`.nomedia`) and Cyrillic "extensions" whole. */
 function stemOf(basename) {
