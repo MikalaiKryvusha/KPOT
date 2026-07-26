@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="KPOT.jpg" alt="KPOT — Krinik Photo Organizer Tool" width="420">
+  <img src="assets/KPOT.jpg" alt="KPOT — Krinik Photo Organizer Tool" width="420">
 </p>
 
 # KPOT — Krinik Photo Organizer Tool
