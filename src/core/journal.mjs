@@ -70,6 +70,45 @@ export async function createRunJournal(runsDir, { runId = newRunId(), meta = {},
 }
 
 /**
+ * Re-open an EXISTING journal to append to it — the mechanism behind resuming an interrupted run.
+ *
+ * Why a run must continue its own journal rather than start a new one: the journal and the Backup
+ * are a pair. The backup describes the tree as it was BEFORE the first write, so a single journal
+ * spanning the whole run is what lets `rollback <run-id>` return the owner to the true original in
+ * one command. Starting a second run instead would snapshot the half-sorted tree as if it were the
+ * original, and undoing the whole thing would take two rollbacks in the right order.
+ *
+ * Sequence numbering continues from the highest `seq` already present, so records stay ordered and
+ * gaps remain detectable. A torn final line from the crash is left exactly as it is — rewriting
+ * history to tidy it up would destroy the evidence that the run was interrupted.
+ *
+ * @param {string} runsDir  directory holding `<runId>.jsonl`
+ * @param {string} runId
+ * @returns {Promise<{runId: string, path: string, header: object, resumedFrom: number,
+ *                    append: (kind: string, payload?: object) => Promise<object>}>}
+ * @throws if the journal does not exist or is not readable as one
+ */
+export async function openRunJournal(runsDir, runId) {
+  const path = join(runsDir, `${runId}.jsonl`);
+  const { header, records } = await readRunJournal(path);
+  let seq = records.reduce((max, r) => (typeof r.seq === 'number' && r.seq > max ? r.seq : max), 0);
+  return {
+    runId: header.runId,
+    path,
+    header,
+    resumedFrom: seq,
+    async append(kind, payload = {}) {
+      if (typeof kind !== 'string' || kind === '' || kind === 'header') {
+        throw new TypeError(`journal record kind must be a non-empty string (not 'header'), got: ${kind}`);
+      }
+      const record = { kind, seq: ++seq, ts: new Date().toISOString(), ...payload };
+      await appendFile(path, JSON.stringify(record) + '\n', 'utf8');
+      return record;
+    },
+  };
+}
+
+/**
  * Read a journal back. Tolerates a torn final line (crash mid-append): the damage is reported in
  * `truncated`, never thrown — rollback must work from a journal of a crashed run.
  *

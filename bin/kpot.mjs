@@ -24,6 +24,7 @@ import { annotateAssets } from '../src/meta/annotate.mjs';
 import { buildPlan, renderPlan } from '../src/plan/plan.mjs';
 import { applyPlan, renderApplyReport } from '../src/apply/apply.mjs';
 import { rollbackRun, renderRollbackReport } from '../src/apply/rollback.mjs';
+import { findUnfinishedRuns, renderUnfinishedWarning } from '../src/apply/resume.mjs';
 import { RUNS_DIR_NAME } from '../src/core/paths.mjs';
 import { loadScanCache, saveScanCache, rekeyScanCache } from '../src/core/scan_cache.mjs';
 import { loadDecisions, saveDecisions } from '../src/core/decisions.mjs';
@@ -52,6 +53,8 @@ Options:
   --allow-no-snapshot           apply: proceed where the filesystem cannot make hardlinks
                                 (exFAT/FAT32). Structure stays restorable, CONTENT is unprotected.
   --no-cache                    ignore and do not refresh the scan cache — re-hash everything
+  --resume                      apply: continue an interrupted run instead of starting a new one
+                                (same backup, same journal — one rollback still undoes everything)
   -h, --help                    show this help and exit
   -v, --version                 print the version and exit
 
@@ -92,6 +95,7 @@ export async function run(argv, { out = console.log, err = console.error } = {})
         'dry-run': { type: 'boolean' },
         'allow-no-snapshot': { type: 'boolean' },
         'no-cache': { type: 'boolean' },
+        resume: { type: 'boolean' },
         json: { type: 'boolean' },
       },
       allowPositionals: true,
@@ -142,6 +146,7 @@ export async function run(argv, { out = console.log, err = console.error } = {})
       out, err, cache, progress,
       dryRun: parsed.values['dry-run'] === true,
       allowNoSnapshot: parsed.values['allow-no-snapshot'] === true,
+      resume: parsed.values.resume === true,
       json: parsed.values.json === true,
     });
   }
@@ -164,12 +169,27 @@ export async function run(argv, { out = console.log, err = console.error } = {})
  * Re-plans the tree immediately before executing, on purpose: applying a plan built minutes or days
  * ago against a tree that has changed since is exactly how a sorter destroys data.
  */
-async function runApply(dir, { out, err, dryRun, allowNoSnapshot, json, cache, progress }) {
+async function runApply(dir, { out, err, dryRun, allowNoSnapshot, json, cache, progress, resume }) {
   const root = resolve(dir);
   let result;
   try {
+    // An interrupted run is a fork only the owner may take. Starting a fresh run over a half-sorted
+    // tree would take a NEW backup of that half-sorted state, and the way back to the original
+    // would be gone — so KPOT stops and offers exactly two ways out. A dry run is exempt: it
+    // rehearses without writing, so it cannot make the situation worse.
+    const unfinished = dryRun ? [] : await findUnfinishedRuns(root);
+    if (unfinished.length > 0 && !resume) {
+      err(renderUnfinishedWarning(root, unfinished));
+      return EXIT_ERROR;
+    }
+    if (resume && unfinished.length === 0) {
+      err('kpot apply --resume: незавершённых прогонов нет — продолжать нечего.');
+      return EXIT_ERROR;
+    }
+
     const { result: scan } = await scanAndAnnotate(root, { cache, progress });
     const { plan, decisionsPath } = await planWithDecisions(root, scan);
+    const resumeId = resume ? unfinished.at(-1).runId : null;
     // Folders awaiting a decision are announced BEFORE the run, not after: the owner asked to be
     // consulted, and a run that quietly leaves files behind is not a consultation.
     if (plan.counts.awaitingDecision > 0) {
@@ -180,7 +200,7 @@ async function runApply(dir, { out, err, dryRun, allowNoSnapshot, json, cache, p
       err('kpot apply: nothing to move — the tree already matches the plan.');
       return EXIT_OK;
     }
-    result = await applyPlan(root, plan, scan, { dryRun, allowNoSnapshot, progress });
+    result = await applyPlan(root, plan, scan, { dryRun, allowNoSnapshot, progress, resume: resumeId });
     // The run just renamed files the cache still indexes by their OLD paths. Carrying each entry
     // across is provably safe (a rename cannot change content) and is what stops the NEXT run from
     // re-hashing the whole archive for a tree whose bytes did not change.
@@ -193,7 +213,8 @@ async function runApply(dir, { out, err, dryRun, allowNoSnapshot, json, cache, p
     return EXIT_ERROR;
   }
   out(json ? JSON.stringify(result, null, 2) : renderApplyReport(result));
-  err(`kpot apply${dryRun ? ' --dry-run' : ''}: ${result.moved} moved · ${result.failed} failed`
+  const mode = (dryRun ? ' --dry-run' : '') + (result.resumed ? ' --resume' : '');
+  err(`kpot apply${mode}: ${result.moved} moved · ${result.failed} failed`
     + ` · backup ${result.backup.snapshot} (${result.backup.linked}/${result.backup.files} linked)`
     + (dryRun ? ' · NOTHING MOVED (dry run)' : ` · rollback: kpot rollback ${result.runId} ${root}`));
   return result.failed > 0 ? EXIT_ERROR : EXIT_OK;

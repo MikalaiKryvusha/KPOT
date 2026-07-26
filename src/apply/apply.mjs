@@ -24,7 +24,7 @@
 
 import { mkdir, readdir, rename, rmdir, stat } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
-import { createRunJournal, newRunId } from '../core/journal.mjs';
+import { createRunJournal, openRunJournal, newRunId } from '../core/journal.mjs';
 import { RUNS_DIR_NAME } from '../core/paths.mjs';
 import { createBackup, verifyBackup, runDirFor } from './backup.mjs';
 
@@ -107,36 +107,73 @@ const abs = (root, rel) => join(root, ...rel.split('/'));
  */
 export async function applyPlan(root, plan, scan, {
   dryRun = false, runId = newRunId(), allowNoSnapshot = false, probeSupport, progress = null,
+  resume = null,
 } = {}) {
   if (plan.meta?.root && plan.meta.root !== root) {
     throw new Error(`plan was built for a different root (${plan.meta.root}), refusing to apply it to ${root}`);
   }
 
-  // --- GUARANTEE б: a backup first, always. A dry run creates the manifest-less shell too, so that
-  // the refusal path itself is exercised by the dry run rather than discovered on the real one.
-  const backup = await createBackup(root, scan, { runId, dryRun, allowNoSnapshot, probeSupport, progress });
-  if (!dryRun) {
-    // Defence in depth: `createBackup` already throws on failure, so this re-check is not
-    // independently reachable in a test — it exists because "the backup call returned" and "a
-    // usable backup is on disk" are different claims, and only the second one may be trusted.
-    // The check's own logic is covered directly by the verifyBackup specs.
-    const check = await verifyBackup(root, runId);
-    if (!check.ok) throw new Error(`refusing to move anything: ${check.reason}`);
-    if (!check.hasSnapshot && !allowNoSnapshot) {
-      throw new Error('refusing to move anything: the backup snapshot is empty');
-    }
-  }
+  let backup, journal;
 
-  const journal = await createRunJournal(runDirFor(root, runId), {
-    runId,
-    meta: {
-      root,
-      dryRun,                                   // ← the ONLY intended difference between the two runs
-      planVersion: plan.planVersion,
-      operations: plan.operations.length,
-      backup: { snapshot: backup.snapshot, files: backup.files, linked: backup.linked },
-    },
-  });
+  if (resume) {
+    // RESUMING an interrupted run. The backup is NOT re-made — and that is the whole point rather
+    // than an optimisation. The existing backup describes the tree as it was before the first write;
+    // taking a new one now would snapshot the half-sorted tree as if it were the original, and the
+    // owner would lose the ability to get back to where they started. So the old backup is verified
+    // and reused, and the old journal is continued, which keeps ONE run id able to undo everything.
+    runId = resume;
+    const check = await verifyBackup(root, runId);
+    if (!check.ok) {
+      throw new Error(
+        `cannot resume run ${runId}: ${check.reason}. That run never got as far as writing a usable `
+        + 'backup, which also means it never moved a file — start a normal run instead.',
+      );
+    }
+    journal = await openRunJournal(runDirFor(root, runId), runId);
+    if (journal.header.meta?.dryRun) {
+      throw new Error(`run ${runId} was a dry run — it moved nothing, so there is nothing to resume`);
+    }
+    backup = {
+      snapshot: journal.header.meta?.backup?.snapshot ?? 'hardlink',
+      files: journal.header.meta?.backup?.files ?? 0,
+      linked: journal.header.meta?.backup?.linked ?? 0,
+      dir: runDirFor(root, runId),
+      manifestPath: check.manifestPath,
+      snapshotDir: check.snapshotDir,
+      runId,
+      errors: [],
+    };
+    // The remaining work needs no computing: the caller re-planned the CURRENT tree, and because
+    // sorting is idempotent (bug 01) the files already moved are already at their destinations and
+    // simply do not appear in the plan. What is left in `plan.operations` IS what is left to do.
+    await journal.append('resumed', { alreadyRecorded: journal.resumedFrom, remaining: plan.operations.length });
+  } else {
+    // --- GUARANTEE б: a backup first, always. A dry run creates the manifest-less shell too, so
+    // that the refusal path itself is exercised by the dry run rather than on the real one.
+    backup = await createBackup(root, scan, { runId, dryRun, allowNoSnapshot, probeSupport, progress });
+    if (!dryRun) {
+      // Defence in depth: `createBackup` already throws on failure, so this re-check is not
+      // independently reachable in a test — it exists because "the backup call returned" and "a
+      // usable backup is on disk" are different claims, and only the second one may be trusted.
+      // The check's own logic is covered directly by the verifyBackup specs.
+      const check = await verifyBackup(root, runId);
+      if (!check.ok) throw new Error(`refusing to move anything: ${check.reason}`);
+      if (!check.hasSnapshot && !allowNoSnapshot) {
+        throw new Error('refusing to move anything: the backup snapshot is empty');
+      }
+    }
+
+    journal = await createRunJournal(runDirFor(root, runId), {
+      runId,
+      meta: {
+        root,
+        dryRun,                                 // ← the ONLY intended difference between the two runs
+        planVersion: plan.planVersion,
+        operations: plan.operations.length,
+        backup: { snapshot: backup.snapshot, files: backup.files, linked: backup.linked },
+      },
+    });
+  }
 
   const fx = makeEffects(dryRun);
   const dirsCreated = [];        // recorded so rollback can prune exactly what this run added
@@ -216,7 +253,10 @@ export async function applyPlan(root, plan, scan, {
   // the acceptance spec asserts by comparing the journals record for record.
   await journal.append('done', { moved, failed });
 
-  return { runId, dryRun, journalPath: journal.path, backup, moved, failed, dirsCreated, dirsRemoved, errors };
+  return {
+    runId, dryRun, journalPath: journal.path, backup, moved, failed, dirsCreated, dirsRemoved, errors,
+    resumed: Boolean(resume),
+  };
 }
 
 /**
