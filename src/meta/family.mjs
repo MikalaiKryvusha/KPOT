@@ -1,5 +1,7 @@
 // src/meta/family.mjs — camera-family signs for a photo with no capture date (plans/02 §1.3).
-// [NOT-TESTED]
+// [TESTED: 2026-07-27 · tests/meta_plan02.test.mjs (7 specs: narrowing, fork, ceiling, ambiguous
+// geometry, weak neighbors) + fixture acceptance; guard verified by breaking it — familyEvidence
+// forced to null → 2 specs red]
 //
 // The owner's own case (plans/02): an editor export lost its EXIF, but its geometry gives it away —
 // 2280×2448 among 438 Samsung GT-I9100 shots of 3264×2448, and 2448 is the sensor's native side.

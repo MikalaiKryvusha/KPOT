@@ -39,15 +39,15 @@ KPOT/
 ├── bin/kpot.mjs    # ✅ CLI entry: parseArgs → phase dispatch; ALL FOUR phases are implemented
 │                   #    (scan · plan · apply [--dry-run] · rollback). Exit codes 0/1/2, 3 reserved
 ├── src/            # ✅ core/ (paths · journal · pool · progress · scan_cache · decisions) · meta/ (full date
-│                   #    pipeline: model + detectors + exif/mp4/dirname extractors + resolver) ·
+│                   #    pipeline: model + detectors + exif/mp4/dirname extractors + family signs + resolver) ·
 │                   #    scan/ (identify by magic bytes · walk · hash) · dedupe/ · plan/ (season ·
 │                   #    bucket · suspicious · SortPlan) · apply/ (backup · apply · rollback — the
 │                   #    only writer). report/ folded into the phase modules: each renders its own
 │                   #    owner-facing report from its own artifact (see the internal map)
-└── tests/          # ✅ fixtures/make.mjs (deterministic messy-tree generator, 25 cases v2,
+└── tests/          # ✅ fixtures/make.mjs (deterministic messy-tree generator, 32 cases v3,
                     #    expected.json ground truth) + the Phase-2/3/4 acceptance specs and the
-                    #    Phase-5 ones (cache · idempotence · empty dirs · quarantine) —
-                    #    npm test 143/143
+                    #    Phase-5 ones (cache · idempotence · empty dirs · quarantine · plans/02
+                    #    editor exports) — npm test 156/156
 ```
 
 ## What each part is
@@ -66,7 +66,7 @@ KPOT/
 | `interviews/` | Questions only the owner may answer (season boundaries, reuse-vs-write) | `STATUS.md` |
 | `bin/kpot.mjs` | ✅ CLI entry: `parseArgs`, phase dispatch (all four implemented), `--help`/`--version`, stable exit codes (0 ok · 1 error · 2 usage · 3 reserved) | `src/apply/`, `src/plan/`, `src/scan/`, `src/core/` |
 | ✅ `src/scan/` | `identify.mjs` (kind by magic bytes — extensions lie; junk-by-name policy) + `scan.mjs` (walk without following links, bounded-concurrency sniff + streamed SHA-256, per-file errors collected). Read-only over user data; wired to `kpot scan` | `src/core/` |
-| ✅ `src/meta/` | the full date pipeline: `evidence.mjs` (model: precedence, wall/instant claims, plausibility) · `filename_date.mjs` (survey-derived detectors) · `exif.mjs` (`exifreader`) · `mp4.mjs` (own mvhd walk) · `dirname_date.mjs` · `resolve.mjs` (DateVerdict: disputed kept, mtime never determines, spike discounting) · `annotate.mjs` (composition; feeds `kpot scan`). Deferred: sidecar evidence | `src/core/` |
+| ✅ `src/meta/` | the full date pipeline: `evidence.mjs` (model: precedence, wall/instant claims, plausibility) · `filename_date.mjs` (survey-derived detectors) · `exif.mjs` (`exifreader`: dates + FACTS — camera, geometry, XMP identity; editor saves demoted to upper bounds, plans/02 §1.1) · `mp4.mjs` (own mvhd walk) · `dirname_date.mjs` · `family.mjs` (camera-family signs: census + geometry + year fork + save ceiling, plans/02 §1.3) · `resolve.mjs` (DateVerdict: disputed kept, mtime/editor-save never determine, spike discounting) · `annotate.mjs` (composition + the derived-original XMP `DocumentID` pass, plans/02 §1.2; feeds `kpot scan`). Deferred: sidecar evidence | `src/core/` |
 | ✅ `src/dedupe/` | `dedupe.mjs` — groups identical files by sha256 and picks the keeper by an explainable total order | `src/scan/` output, `src/core/` |
 | ✅ `src/plan/` | `season.mjs` (owner-decided month→season buckets) · `bucket.mjs` (one file → its destination) · `suspicious.mjs` (folders with an unclear NAME are held for the owner's approval, not sorted) · `plan.mjs` (the SortPlan artifact + the Russian owner-facing master plan) | `src/meta/`, `src/dedupe/` |
 | ✅ `src/apply/` | The only writer. `backup.mjs` (manifest + hardlink snapshot, capability probed not assumed, refuses to degrade silently) · `apply.mjs` (journal-before-act, dry run = same loop with inert effects) · `rollback.mjs` (replays the journal backwards, idempotent, prunes only what the run created) · `resume.mjs` (finds an interrupted run; a new one is blocked until the owner continues or undoes it) | `src/plan/`, `src/core/` |

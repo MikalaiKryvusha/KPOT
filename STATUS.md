@@ -182,6 +182,26 @@ than every synthetic fixture had.
   `Summer_2024_Belarus_Part_1` are phrases, not identifiers. See the decision log.
 - **Live progress** and **resume of an interrupted run** landed earlier the same day.
 
+### Session of 2026-07-27 — plan 02 step 1: dating the photos that have no capture date
+The 113-file broken class (editor exports shelved by their SAVE date) is fixed at the root, the
+owner's value order followed exactly (metadata only — no pixels). Commit `e55ae91`.
+
+- **Three new evidence kinds** (`src/meta/`): `editor-save` — an editor's save date never
+  determines, it is a «снято не позже» ceiling always shown in disputed (§1.1); `derived-original`
+  — exact XMP `DocumentID` ↔ `DerivedFrom` match inherits the original's REAL capture date, report
+  names the original (§1.2); `family` (`src/meta/family.mjs`) — camera census + sensor-geometry
+  match + same-camera year fork + the ceiling; narrates always, dates only a one-year
+  uncontradicted fork, flagged assumed → `<год>/прочее` (§1.3). Decision-log row added.
+- **Suite 143 → 156**, fixture v3 (+7 planted cases via a new full-featured JPEG builder:
+  multi-tag IFD0, ExifIFD, XMP packet, SOF0 dims). All three guards verified by breaking the code
+  (5/2/2 specs go red). The plan report carries a Russian family line per broken-class file.
+- **Real-data proof, read-only within the grant:** `KPOT_SAMPLE` was deleted by the owner between
+  sessions (EXP-0011) — verification ran as a library composition over two real PC-dump dirs:
+  8331 JPEGs, 0 errors, **201 broken-class files → 199 lose their false year** (193 honest
+  `ПРОЧЕЕ` with ceilings, 5 family years, 1 cohort year, 2 had real dates anyway). Family models
+  found in the wild: HTC Touch2, Digimax S830, DSC-S780. XMP identity exists (35/19) but no
+  original matched in that slice — §1.2 waits for a full-tree run.
+
 ---
 
 ## Where we are now
@@ -196,9 +216,9 @@ being guessed at.
 **KPOT may now write — and every guarantee `GOAL.md` demands before it does exists and is proven.**
 
 Deliberate cut, small and recorded: THM/XMP sidecar evidence (needs a fixture case first).
-**What remains in Phase 5:** progress output for large trees, resumability of an interrupted
-`apply`, and a first supervised run on a *copy* of a real directory (owner's homework — the tool
-must never be pointed at the original), then README + a tagged release.
+**What remains in Phase 5:** a supervised run on a fresh *copy* of a real directory (the previous
+sample is gone — the owner deleted `KPOT_SAMPLE` between sessions; a new one is the owner's
+homework), then README + a tagged release via `/release`. Suite **156/156**.
 
 | Phase | Status | What's there |
 |-------|--------|--------------|
@@ -207,7 +227,7 @@ must never be pointed at the original), then README + a tagged release.
 | Phase 2 — scan & metadata | ✅ done | acceptance spec green; `kpot scan` = assets + evidence + verdicts; deferred: sidecar evidence (needs a fixture case first) |
 | Phase 3 — dedup & plan | ✅ done | `kpot plan` = SortPlan + owner-facing master plan; acceptance spec green (23 planted destinations + both ambiguities) |
 | Phase 4 — safety (backup / dry run / rollback) | ✅ done | interview #002 answered; `src/apply/` = backup + the single writer + rollback; all three acceptance criteria green; guards proven by breaking them |
-| Phase 5 — first real use & release | 🔶 in progress | ✅ scan cache · ✅ idempotent sorting (bug 01) · ✅ empty-folder cleanup · ✅ the `НА_РАЗБОР/` approval quarantine · ✅ progress output · ✅ resumability · 🔲 supervised run on a COPY of a real dir · 🔲 README + `/release` |
+| Phase 5 — first real use & release | 🔶 in progress | ✅ scan cache · ✅ idempotent sorting (bug 01) · ✅ empty-folder cleanup · ✅ the `НА_РАЗБОР/` approval quarantine · ✅ progress output · ✅ resumability · ✅ plans/02 step 1 (editor exports dated honestly) · 🔲 supervised run on a COPY of a real dir (the sample is gone — owner deleted it; needs a fresh one) · 🔲 README + `/release` |
 
 Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
 
@@ -282,6 +302,11 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
       9 specs; all three guards verified by breaking them.
 - [x] Season mapping — ✅ done 2026-07-24. `src/plan/season.mjs` (`seasonForMonth`, canonical Russian
       dir names per interview #001 Q2), specs in `tests/season.test.mjs`. Suite 15/15.
+- [x] plans/02 step 1 — ✅ done 2026-07-27 (commit `e55ae91`). Editor save dates demoted to ceilings
+      (`editor-save`), exact original lookup by XMP identity (`derived-original`), camera-family
+      signs (`src/meta/family.mjs`). Fixture v3 (+7 cases), suite 156/156, guards break-verified,
+      real-data measurement: 201 broken-class files → 199 lose their false year. Steps 2–3 of the
+      plan are NOT autonomous: step 2 (pixels) waits for the owner's word.
 
 ---
 
@@ -317,6 +342,11 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
   `2000/` on an EXIF `DateTimeOriginal` of `2000-01-01 00:25:13`. That is the classic reset-camera-
   clock default, and the archive otherwise starts in 2007. Distrusting it is a policy decision about
   the owner's photos, so it was surfaced rather than decided (`researches/03_first_real_run.md`).
+- ❓ **plans/02 step 1 results await the owner's glance** (2026-07-27): 199 of 201 real editor
+  exports lose their false years — most become honest `ПРОЧЕЕ` with a «снято не позже» ceiling.
+  If that ratio feels too blunt, step 2 (perceptual-hash search for the original — his «пиксели
+  не надо» stands until he says otherwise) is the designed next lever. Also: `KPOT_SAMPLE` was
+  deleted — a fresh sample copy is the owner's homework when he wants the supervised-run rehearsal.
 - ❓ **Idea 01 awaiting owner review** — `ideas/01_inbox_topup_flow.md`: inbox dir for raw dumps +
   a desktop shortcut running an incremental **top-up flow** into the structured library (owner's
   own request in chat 2026-07-24; forks to close: auto-apply vs stop-at-plan, inbox location,
@@ -333,8 +363,9 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
 > A concrete checklist so the next session (empty context) can start immediately: which files, which
 > commands, what to verify first.
 
-1. Verify the environment: `node -v` (≥20), `npm test` (**must be 143/143**), `git status` (clean),
-   `gh auth status` (MikalaiKryvusha).
+1. Verify the environment: `node -v` (≥20), `npm test` (**must be 156/156**), `git status` (clean),
+   `gh auth status` (MikalaiKryvusha). Owner-provided paths from this file are PAST observations —
+   re-check they still exist before planning around them (EXP-0011: `KPOT_SAMPLE` vanished).
 2. **Run the whole product once, end to end, before designing on top of it.** It all works now:
    ```
    node tests/fixtures/make.mjs <tmp>          # 25 planted cases + expected.json ground truth
@@ -345,33 +376,19 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
    ```
    (Fresh temp dir each time — `%TEMP%` is cleaned between sessions. The run id is printed by
    `apply`; run data lives in `<tmp>/.kpot-runs/`, which scans deliberately skip.)
-3. **THE NEXT PIECE OF WORK IS PLANNED IN FULL: `plans/02_lost_photo_family.md`** — dating a photo
-   that has no capture date. The owner set the value order himself; follow it, do not reorder.
-   - **Step 1 — metadata only, free, fixes the root.** An editor export (`Software` = Photoshop /
-     Picasa / Snapseed / Paint.NET) with NO `DateTimeOriginal` must stop having its SAVE date treated
-     as a capture date; it becomes an upper bound instead. Plus exact original lookup by XMP
-     `DerivedFrom` ↔ `DocumentID`, plus a new `family` evidence kind (sensor geometry, the folder's
-     camera population, the edit date as "taken no later than"). **113 files of the sample are in
-     this broken class.** Accept knowingly: they move from false years into `ПРОЧЕЕ` unless family
-     evidence yields a year — honest ignorance beats a fabricated date (invariant 3).
-   - **Step 2 — cheap pixels**, one pure-JS JPEG decoder: perceptual hash finds the actual original
-     and inherits its REAL date. Only after step 1 shows how many files family evidence could not
-     place. The owner said "пиксели не надо" for now.
-   - **Step 3 — PRNU sensor fingerprinting.** Heavy, and only wins when the original is gone. PRNU
-     answers "which camera"; the original answers "which photo" — and only the second gives a date.
+3. **`plans/02` — step 1 is ✅ DONE (2026-07-27, commit `e55ae91`; measurement in the plan's status
+   section).** Steps 2–3 are deliberately NOT started: the owner said «пиксели не надо» — step 2
+   (perceptual hash finds the actual original) needs his word after he reviews step-1 results,
+   step 3 (PRNU) only wins when the original is gone. Do not start either autonomously.
 4. **Phase 5, what is left.**
-   - ✅ The real-data sample EXISTS and `kpot plan` has run against it — see
-     `researches/03_first_real_run.md`. **`D:\work\ai_sandbox\KPOT_SAMPLE`** (3397 files / 13 GB,
-     stratified over every class in `researches/02`; a sibling of the repo, never committable).
-     Rebuild scripts live in the session scratchpad, not the repo.
-   - ✅ **The supervised `apply` HAS RUN** (owner authorised it: «это тестовый полигон»). 7 s, 3154
-     moves, 0 failures, content hashes identical before/after. **The sample is left SORTED** for the
-     owner to inspect; the rollback rehearsal passes and the undo command is in `researches/03`.
-   - 🔲 **README refresh + a tagged release** via `/release` — after `plans/02` step 1, since that
-     changes how a whole class of files is dated and the README should not describe the old behaviour.
-   - Optional filler, self-contained: THM/XMP sidecar evidence — the sample now contains **34 real
-     `.thm` files together with their video twins**, so the fixture case can be modelled on a real
-     one instead of imagined.
+   - 🔲 **README refresh + a tagged release** via `/release` — now UNBLOCKED: plans/02 step 1 landed,
+     so the README can describe the honest dating of editor exports (156/156, new evidence kinds).
+     This is the next autonomous piece of work.
+   - 🔲 **A fresh supervised run needs a fresh sample:** `KPOT_SAMPLE` no longer exists — the owner
+     deleted it between sessions (his data, his call; do NOT recreate 13 GB of his photos without a
+     fresh word). Phase 5's acceptance still wants a supervised run on a *copy* of a real dir.
+   - Optional filler, self-contained: THM/XMP sidecar evidence — model the fixture case on the
+     34 real `.thm`+twin pairs catalogued in `researches/03` (the observation survives the sample).
 5. **The first run on real data is the owner's call and needs a fresh `AUTH:`** — the archive grant
    in agent memory is READ-ONLY. Phase 5's acceptance says a *copy* of a real messy directory
    (owner's homework), never the original.

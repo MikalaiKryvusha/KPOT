@@ -14,6 +14,8 @@
 //      (internal map, "Unknown is a real answer").
 //   3. Year-only sources (dirname, bare filename year) produce a PARTIAL verdict — year (and the
 //      owner's own season word, when the dir carries one), date honestly null.
+//   4. An editor's save date (editor-save, plans/02 §1.1) NEVER determines — it is pushed to
+//      disputed as the upper bound it is, so the owner sees why the file lost its false year.
 
 import { EVIDENCE_RANK, formatWall, isPlausibleYear, makeEvidence } from './evidence.mjs';
 
