@@ -62,7 +62,7 @@ sorting half a terabyte takes minutes, not hours.
 ### Status
 
 🚧 **All four phases work end to end, and the tool has now sorted a real archive.** Verified by
-143 green tests *and* by a supervised run on a 3 397-file / 13 GB sample of a genuinely messy
+156 green tests *and* by a supervised run on a 3 397-file / 13 GB sample of a genuinely messy
 551 GB collection.
 
 ```
@@ -83,6 +83,12 @@ What is behind that:
   MP4/MOV `mvhd` (our own parser), filename conventions, epoch names, folder names, neighbour-cohort
   inference. Losing evidence stays visible, broken camera clocks are rejected, and *unknown* is a
   real answer instead of a plausible lie.
+- **A photo editor cannot fake a capture date** — an export with no `DateTimeOriginal` is never
+  shelved by its save date: that date becomes a "taken no later than" ceiling, the XMP identity
+  chain (`DerivedFrom` → `DocumentID`) recovers the original's *real* date when the original is in
+  the tree, and [camera-family signs](src/meta/family.mjs) (folder camera census, sensor geometry,
+  neighbours' year fork) narrow the rest honestly. Measured on the real archive: 199 of 201 such
+  files stop living in a false year.
 - **Safety that is proven, not promised** — backup (manifest + hardlink snapshot, ~0 bytes on disk)
   before the first write; the dry run executes the *same* code path with inert effects; every intent
   is journalled before it happens; an interrupted run is resumable and one rollback still restores
@@ -95,8 +101,8 @@ What is behind that:
   [real-archive survey](researches/02_real_archive_survey.md) ·
   [the first real run](researches/03_first_real_run.md), which found four bugs no synthetic fixture had.
 
-Still ahead: photos whose capture date was destroyed by a photo editor
-([plan 02](plans/02_lost_photo_family.md)), then a tagged release.
+Still ahead: a tagged release; then, at the owner's word, pixel-level search for a lost photo's
+original ([plan 02](plans/02_lost_photo_family.md), steps 2–3).
 
 Roadmap: `MASTER_PLAN.md` · current state: `STATUS.md`.
 
@@ -163,7 +169,7 @@ KPOT **не переместит ни одного файла**, пока не �
 ### Статус
 
 🚧 **Все четыре фазы работают от начала до конца, и инструмент уже разобрал настоящий архив.**
-Проверено 143 зелёными тестами *и* контролируемым прогоном на выборке из 3 397 файлов / 13 ГБ,
+Проверено 156 зелёными тестами *и* контролируемым прогоном на выборке из 3 397 файлов / 13 ГБ,
 взятой из по-настоящему захламлённой коллекции на 551 ГБ.
 
 ```
@@ -184,6 +190,12 @@ kpot rollback <run-id> <dir>  всё возвращается как было
   из MP4/MOV (собственный парсер), конвенции имён, epoch-имена, названия папок, вывод по соседям.
   Проигравшие улики остаются на виду, сломанные часы камер отвергаются, а «неизвестно» — это
   честный ответ, а не правдоподобная ложь.
+- **Фоторедактор не подделает дату съёмки** — экспорт без `DateTimeOriginal` никогда не ложится на
+  полку по дате сохранения: она становится потолком «снято не позже», цепочка XMP-идентичности
+  (`DerivedFrom` → `DocumentID`) возвращает *настоящую* дату оригинала, если он есть в дереве, а
+  [признаки семейства камеры](src/meta/family.mjs) (перепись камер папки, геометрия матрицы, вилка
+  лет соседей) честно сужают остальное. Замер на реальном архиве: 199 из 201 такого файла перестают
+  жить в ложном году.
 - **Безопасность доказанная, а не обещанная** — бэкап (манифест + снимок жёсткими ссылками, ~0 байт
   на диске) до первой записи; сухой прогон идёт *тем же* кодом с отключёнными эффектами; намерение
   пишется в журнал до действия; прерванный прогон продолжается, и один откат всё равно возвращает
@@ -197,8 +209,8 @@ kpot rollback <run-id> <dir>  всё возвращается как было
   [первый настоящий прогон](researches/03_first_real_run.md), который нашёл четыре бага, невидимых
   ни одной синтетической фикстуре.
 
-Впереди: фотографии, у которых дату съёмки уничтожил фоторедактор
-([план 02](plans/02_lost_photo_family.md)), затем релиз с тегом.
+Впереди: релиз с тегом; затем, по слову владельца, — поиск оригинала потерявшегося фото по
+пикселям ([план 02](plans/02_lost_photo_family.md), шаги 2–3).
 
 
 Дорожная карта: `MASTER_PLAN.md` · текущее состояние: `STATUS.md`.
