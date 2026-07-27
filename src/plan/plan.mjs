@@ -36,6 +36,27 @@ function suffixed(name, n) {
 }
 
 /**
+ * The owner-facing family line for an editor export with no capture date (plans/02 §1.3), built
+ * from whatever signs exist: «семейство GT-I9100 (по геометрии кадра), соседи той же камеры:
+ * 2011–2013, снято не позже 2014-02». Deterministic — pure string assembly.
+ */
+function familyPhrase(family) {
+  const parts = [];
+  if (family.model) {
+    const how = family.matchedBy === 'geometry' ? ' (по геометрии кадра)' : '';
+    parts.push(`семейство ${family.model}${how}`);
+    if (family.years) {
+      const [min, max] = family.years;
+      parts.push(`соседи той же камеры: ${min === max ? min : `${min}–${max}`}`);
+    }
+  } else {
+    parts.push('камера-источник не определена');
+  }
+  if (family.noLaterThan) parts.push(`снято не позже ${family.noLaterThan}`);
+  return parts.join(', ');
+}
+
+/**
  * Build the SortPlan for an annotated scan result.
  *
  * @param {{root: string, assets: object[], errors?: object[]}} scan  scan + annotate output
@@ -119,6 +140,17 @@ export function buildPlan(scan, { now = new Date(), decisions = new Map() } = {}
         path: asset.path,
         issue: d.reason,
         detail: `evidence «${d.kind}»${d.detail ? ` (${d.detail})` : ''} was rejected`,
+      });
+    }
+    // plans/02 §1.3 — an editor export left without a capture date carries its FAMILY SIGNS into
+    // the owner's report: which camera family, what year fork the neighbours give, and the save
+    // date as a ceiling. The acceptance criterion demands a line per such file, in the owner's
+    // language — this is that line.
+    if (asset.verdict?.family) {
+      disputed.push({
+        path: asset.path,
+        issue: 'editor-export-no-capture-date',
+        detail: familyPhrase(asset.verdict.family),
       });
     }
 

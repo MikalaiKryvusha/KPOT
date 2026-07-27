@@ -24,6 +24,9 @@
  * Instants still win when no wall source exists, and corroborate when both agree. */
 export const EVIDENCE_PRECEDENCE = Object.freeze([
   'exif-original',       // EXIF DateTimeOriginal — the shutter moment (wall)
+  'derived-original',    // the ORIGINAL file's DateTimeOriginal, inherited via an exact XMP
+                         // DocumentID ↔ DerivedFrom match (plans/02 §1.2) — a real shutter moment,
+                         // just read from the file this one was exported from
   'filename-timestamp',  // full date(+time) written into the name by the device (wall)
   'container-created',   // MP4/MOV mvhd or QuickTime creation date (instant, UTC)
   'filename-epoch',      // unix epoch in the name, seconds or ms (instant)
@@ -31,8 +34,13 @@ export const EVIDENCE_PRECEDENCE = Object.freeze([
   'sidecar',             // THM/XMP twin file's metadata, inherited by the media file
   'dirname',             // year and/or season in an ancestor directory name (owner's hand-sorting)
   'filename-year',       // a bare year somewhere in the name — weak
+  'family',              // camera-family inference: same-camera neighbors' year range narrowed to
+                         // one year (plans/02 §1.3) — always an assumption, like dir-cohort but
+                         // camera-filtered, hence one notch stronger
   'dir-cohort',          // INFERRED from confidently-dated neighbors in the same dir (owner-approved
                          // 2026-07-24); always an assumption — verdicts flag it and plans surface it
+  'editor-save',         // a photo EDITOR's save date on a file with no capture date (plans/02
+                         // §1.1) — an upper bound («снято не позже»), NEVER determines a verdict
   'fs-mtime',            // filesystem mtime — weakest; bulk-copy spikes make it lie (researches/02)
 ]);
 
@@ -44,6 +52,7 @@ export const EVIDENCE_RANK = Object.freeze(
 /** Default confidence class per kind — the resolver's starting point, not its verdict. */
 export const DEFAULT_CONFIDENCE = Object.freeze({
   'exif-original': 'high',
+  'derived-original': 'high',
   'filename-timestamp': 'high',
   'container-created': 'high',
   'filename-epoch': 'high',
@@ -51,7 +60,9 @@ export const DEFAULT_CONFIDENCE = Object.freeze({
   'sidecar': 'medium',
   'dirname': 'medium',
   'filename-year': 'low',
+  'family': 'low',
   'dir-cohort': 'low',
+  'editor-save': 'low',
   'fs-mtime': 'low',
 });
 

@@ -156,6 +156,17 @@ test('Phase 3 acceptance: every planted case lands where the owner decided', asy
       'видео/VID_20161210_100950.mp4': '2016/Зима конец года/видео/VID_20161210_100950.mp4',
       'видео/MOV0001.mp4': '2018/Лето/видео/MOV0001.mp4',
       'голосовые/AUD-20150910-WA0003.ogg': '2015/Осень/аудио/голосовые/AUD-20150910-WA0003.ogg',
+      // plans/02: editor exports — never shelved by the editor's save date
+      'фотки с телефона/SAM_1001.jpg': '2013/Лето/фотки с телефона/SAM_1001.jpg',
+      'фотки с телефона/SAM_1002.jpg': '2013/Лето/фотки с телефона/SAM_1002.jpg',
+      'фотки с телефона/SAM_1003.jpg': '2013/Лето/фотки с телефона/SAM_1003.jpg',
+      // the Photoshop crop: NOT 2014 (its save year) — the camera family's assumed 2013, unseasoned
+      'фотки с телефона/правка.jpg': '2013/прочее/фотки с телефона/правка.jpg',
+      'обработанное/оригинал.jpg': '2012/Весна/обработанное/оригинал.jpg',
+      // the export inherits its original's real 2012 date via the XMP identity chain — NOT 2015
+      'обработанное/экспорт.jpg': '2012/Весна/обработанное/экспорт.jpg',
+      // no family, no original → honest global «прочее», NOT the save year 2014
+      'обработанное/безымянный.jpg': 'ПРОЧЕЕ/обработанное/безымянный.jpg',
       // junk is quarantined with its provenance in the name — never deleted (interview #001 Q4)
       '100MEDIA/Thumbs.db': 'ПРОЧЕЕ/_мусор/100MEDIA__Thumbs.db',
       'Мобилка/.nomedia': 'ПРОЧЕЕ/_мусор/Мобилка__.nomedia',
@@ -196,6 +207,29 @@ test('Phase 3 acceptance: every planted ambiguity appears in the disputed sectio
     // the assumed year must be visibly an assumption
     const assumed = plan.disputed.find((d) => d.path === '100MEDIA/IMAG0181.jpg');
     assert.equal(assumed.issue, 'assumed-year');
+  });
+});
+
+test('plans/02 acceptance: every editor export without a capture date carries its family signs', async () => {
+  await withPlan(({ plan }) => {
+    // the file the whole plan 02 exists for: family signs name the camera, the fork and the ceiling
+    const cropped = plan.disputed.find((d) =>
+      d.path === 'фотки с телефона/правка.jpg' && d.issue === 'editor-export-no-capture-date');
+    assert.ok(cropped, 'the Photoshop crop must carry a family line in the owner\'s report');
+    assert.match(cropped.detail, /семейство GT-I9100/);
+    assert.match(cropped.detail, /по геометрии кадра/);
+    assert.match(cropped.detail, /снято не позже 2014-02/);
+    // …and the file where honesty is the whole answer: no family, but the ceiling still shows
+    const unknown = plan.disputed.find((d) =>
+      d.path === 'обработанное/безымянный.jpg' && d.issue === 'editor-export-no-capture-date');
+    assert.ok(unknown, 'the undatable export must carry its line too');
+    assert.match(unknown.detail, /камера-источник не определена/);
+    assert.match(unknown.detail, /снято не позже 2014-11/);
+    // the save date itself must be visibly rejected for BOTH (§1.1: it is a ceiling, not a date)
+    for (const p of ['фотки с телефона/правка.jpg', 'обработанное/безымянный.jpg']) {
+      assert.ok(plan.disputed.some((d) => d.path === p && d.issue === 'editor-save-date'),
+        `${p}: the rejected save date must appear in disputed`);
+    }
   });
 });
 

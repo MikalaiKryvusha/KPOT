@@ -18,7 +18,10 @@
 import { EVIDENCE_RANK, formatWall, isPlausibleYear, makeEvidence } from './evidence.mjs';
 
 /** Kinds that can only ever narrow the date to a year(+season) — they yield 'partial' verdicts. */
-const PARTIAL_KINDS = new Set(['dirname', 'filename-year', 'dir-cohort']);
+const PARTIAL_KINDS = new Set(['dirname', 'filename-year', 'family', 'dir-cohort']);
+
+/** Kinds whose verdict is a flagged ASSUMPTION the plan must surface to the owner. */
+const ASSUMED_KINDS = new Set(['family', 'dir-cohort']);
 
 /** Spike detection defaults: a UTC day owning ≥ MIN_COUNT files AND ≥ MIN_SHARE of them is a bulk-copy artifact. */
 export const SPIKE_MIN_COUNT = 3;
@@ -85,6 +88,13 @@ export function resolveDate(evidence, { now = new Date() } = {}) {
       continue;
     }
     if (ev.kind === 'fs-mtime') continue; // informational only — never a candidate (rule 2 above)
+    if (ev.kind === 'editor-save') {
+      // plans/02 §1.1 — an editor's save date is an upper bound, never a capture claim. Unlike
+      // mtime it is pushed to disputed EXPLICITLY: the owner must see why this file lost the date
+      // it used to be (wrongly) shelved by.
+      disputed.push({ kind: ev.kind, detail: ev.detail, reason: 'editor-save-date' });
+      continue;
+    }
     candidates.push(ev);
   }
 
@@ -99,8 +109,9 @@ export function resolveDate(evidence, { now = new Date() } = {}) {
   verdict.winner = winner.kind;
   verdict.confidence = winner.confidence;
   verdict.year = claimYear(winner);
-  // an inferred cohort year is a flagged GUESS — the plan phase must surface it to the owner
-  verdict.assumed = winner.kind === 'dir-cohort';
+  // an inferred year (camera family or dir cohort) is a flagged GUESS — the plan phase must
+  // surface it to the owner
+  verdict.assumed = ASSUMED_KINDS.has(winner.kind);
 
   if (PARTIAL_KINDS.has(winner.kind)) {
     verdict.status = 'partial';

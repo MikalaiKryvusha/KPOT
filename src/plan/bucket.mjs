@@ -229,13 +229,16 @@ export function planBucket(asset, { isDuplicateCopy = false } = {}) {
       reason: 'no usable date evidence — the global «прочее» bucket', disputed };
   }
 
-  // An assumed (dir-cohort) year is a flagged GUESS: the year bucket is right enough to be useful,
-  // the season is not claimed at all, and the owner always sees it (decision log 2026-07-24).
+  // An assumed year (dir-cohort, or the camera-family inference of plans/02) is a flagged GUESS:
+  // the year bucket is right enough to be useful, the season is not claimed at all, and the owner
+  // always sees it (decision log 2026-07-24; plans/02 §1.3).
   if (verdict.assumed) {
-    disputed.push({ issue: 'assumed-year',
-      detail: `year ${verdict.year} inferred from confidently-dated neighbours in the same directory` });
+    const via = verdict.winner === 'family'
+      ? `same-camera neighbours in its directory`
+      : `confidently-dated neighbours in the same directory`;
+    disputed.push({ issue: 'assumed-year', detail: `year ${verdict.year} inferred from ${via}` });
     return { action: 'move', segments: [String(verdict.year), YEAR_OTHER, ...tail], name,
-      reason: `assumed year ${verdict.year} (from its directory's dated neighbours) — season not claimed`, disputed };
+      reason: `assumed year ${verdict.year} (from ${via}) — season not claimed`, disputed };
   }
 
   if (verdict.status === 'partial') {

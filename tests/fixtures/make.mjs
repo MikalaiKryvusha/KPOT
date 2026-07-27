@@ -21,7 +21,8 @@ import { pathToFileURL } from 'node:url';
 import process from 'node:process';
 
 /** Version stamp of the fixture catalog — bump when cases change so stale trees are detectable. */
-export const FIXTURE_VERSION = 2; // v2 (2026-07-24): +3 cases in 100MEDIA — the dir-cohort scenario
+export const FIXTURE_VERSION = 3; // v3 (2026-07-27): +7 cases — the plans/02 editor-export classes
+                                  // (family geometry, XMP DerivedFrom original, honest ПРОЧЕЕ)
 
 /** Seconds between the QuickTime epoch (1904-01-01) and the Unix epoch (1970-01-01). */
 const QT_EPOCH_OFFSET = 2082844800;
@@ -92,6 +93,101 @@ export function makeMp4(isoUtc, uniq) {
   const free = Buffer.alloc(8);
   free.writeUInt32BE(8 + uniqBytes.length, 0); free.write('free', 4, 'ascii');
   return Buffer.concat([ftyp, moov, mvhd, free, uniqBytes]);
+}
+
+/**
+ * Full-featured JPEG for the plans/02 editor-export cases: a real little-endian TIFF with a
+ * multi-entry IFD0 (Make/Model/Software/DateTime) and an optional ExifIFD (DateTimeOriginal),
+ * an optional XMP APP1 packet (DocumentID / DerivedFrom — the Photoshop identity chain), and an
+ * optional SOF0 carrying real pixel dimensions (what family geometry reads). Every offset is
+ * computed, every segment parseable — "the date is really in the file" stays assertable.
+ *
+ * @param {{dateTimeOriginal?: string|null, dateTime?: string|null, software?: string|null,
+ *          make?: string|null, model?: string|null, width?: number|null, height?: number|null,
+ *          documentId?: string|null, derivedFromDocumentId?: string|null, uniq: string}} opts
+ */
+export function makeJpegEx({ dateTimeOriginal = null, dateTime = null, software = null,
+                             make = null, model = null, width = null, height = null,
+                             documentId = null, derivedFromDocumentId = null, uniq }) {
+  const parts = [Buffer.from([0xFF, 0xD8])]; // SOI
+
+  // --- APP1/Exif: IFD0 entries in ascending tag order (TIFF requirement) ---
+  const ifd0 = [];
+  if (make) ifd0.push({ tag: 0x010F, value: make });
+  if (model) ifd0.push({ tag: 0x0110, value: model });
+  if (software) ifd0.push({ tag: 0x0131, value: software });
+  if (dateTime) ifd0.push({ tag: 0x0132, value: dateTime });
+  const hasExifIfd = Boolean(dateTimeOriginal);
+  if (ifd0.length > 0 || hasExifIfd) {
+    const n0 = ifd0.length + (hasExifIfd ? 1 : 0);       // +1 for the ExifIFD pointer entry
+    const ifd0Start = 8;
+    const exifIfdStart = ifd0Start + 2 + n0 * 12 + 4;
+    const exifIfdSize = hasExifIfd ? 2 + 1 * 12 + 4 : 0;
+    const dataStart = exifIfdStart + exifIfdSize;
+    const asciiBytes = (v) => v.length + 1; // incl. NUL
+    const dataTotal = ifd0.reduce((s, e) => s + (asciiBytes(e.value) > 4 ? asciiBytes(e.value) : 0), 0)
+      + (hasExifIfd ? asciiBytes(dateTimeOriginal) : 0);
+    const tiff = Buffer.alloc(dataStart + dataTotal);
+    tiff.write('II', 0, 'ascii'); tiff.writeUInt16LE(42, 2); tiff.writeUInt32LE(ifd0Start, 4);
+    let dataOff = dataStart;
+    const writeAscii = (at, tag, value) => {
+      const bytes = asciiBytes(value);
+      tiff.writeUInt16LE(tag, at); tiff.writeUInt16LE(2, at + 2); // type ASCII
+      tiff.writeUInt32LE(bytes, at + 4);
+      if (bytes <= 4) { tiff.write(value + '\0', at + 8, 'ascii'); }
+      else { tiff.writeUInt32LE(dataOff, at + 8); tiff.write(value + '\0', dataOff, 'ascii'); dataOff += bytes; }
+    };
+    tiff.writeUInt16LE(n0, ifd0Start);
+    ifd0.forEach((e, i) => writeAscii(ifd0Start + 2 + i * 12, e.tag, e.value));
+    if (hasExifIfd) {
+      const at = ifd0Start + 2 + ifd0.length * 12;       // the last IFD0 entry: the ExifIFD pointer
+      tiff.writeUInt16LE(0x8769, at); tiff.writeUInt16LE(4, at + 2); // type LONG
+      tiff.writeUInt32LE(1, at + 4); tiff.writeUInt32LE(exifIfdStart, at + 8);
+    }
+    tiff.writeUInt32LE(0, ifd0Start + 2 + n0 * 12);      // IFD0: next IFD = none
+    if (hasExifIfd) {
+      tiff.writeUInt16LE(1, exifIfdStart);               // ExifIFD: 1 entry
+      writeAscii(exifIfdStart + 2, 0x9003, dateTimeOriginal); // DateTimeOriginal
+      tiff.writeUInt32LE(0, exifIfdStart + 2 + 12);      // next IFD: none
+    }
+    const payload = Buffer.concat([Buffer.from('Exif\0\0', 'ascii'), tiff]);
+    const app1 = Buffer.alloc(4);
+    app1.writeUInt16BE(0xFFE1, 0); app1.writeUInt16BE(payload.length + 2, 2);
+    parts.push(app1, payload);
+  }
+
+  // --- APP1/XMP: the identity chain Photoshop-class editors write ---
+  if (documentId || derivedFromDocumentId) {
+    const xml = '<x:xmpmeta xmlns:x="adobe:ns:meta/">'
+      + '<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">'
+      + '<rdf:Description rdf:about="" xmlns:xmpMM="http://ns.adobe.com/xap/1.0/mm/"'
+      + ' xmlns:stRef="http://ns.adobe.com/xap/1.0/sType/ResourceRef#"'
+      + (documentId ? ` xmpMM:DocumentID="${documentId}"` : '')
+      + '>'
+      + (derivedFromDocumentId
+        ? `<xmpMM:DerivedFrom stRef:documentID="${derivedFromDocumentId}"/>` : '')
+      + '</rdf:Description></rdf:RDF></x:xmpmeta>';
+    const payload = Buffer.concat([
+      Buffer.from('http://ns.adobe.com/xap/1.0/\0', 'ascii'), Buffer.from(xml, 'utf8')]);
+    const app1 = Buffer.alloc(4);
+    app1.writeUInt16BE(0xFFE1, 0); app1.writeUInt16BE(payload.length + 2, 2);
+    parts.push(app1, payload);
+  }
+
+  // --- SOF0: real pixel dimensions (family geometry evidence reads these) ---
+  if (width && height) {
+    const sof = Buffer.alloc(19);
+    sof.writeUInt16BE(0xFFC0, 0); sof.writeUInt16BE(17, 2);
+    sof[4] = 8; sof.writeUInt16BE(height, 5); sof.writeUInt16BE(width, 7); sof[9] = 3;
+    sof.set([1, 0x22, 0, 2, 0x11, 1, 3, 0x11, 1], 10);
+    parts.push(sof);
+  }
+
+  const comText = Buffer.from('kpot-fixture:' + uniq, 'ascii'); // COM segment = per-file uniqueness
+  const com = Buffer.alloc(4);
+  com.writeUInt16BE(0xFFFE, 0); com.writeUInt16BE(comText.length + 2, 2);
+  parts.push(com, comText, Buffer.from([0xFF, 0xD9])); // EOI
+  return Buffer.concat(parts);
 }
 
 /** Minimal PNG: real signature + IHDR/IEND shells (CRCs zeroed — magic-detection fixtures only). */
@@ -181,6 +277,38 @@ export function catalog() {
     // — audio (voice note, WhatsApp-style dated name) → <year>/<season>/аудио/ per interview #001 —
     { path: 'голосовые/AUD-20150910-WA0003.ogg', body: makeOgg('aud1'),
       expected: { kind: 'audio', date: '2015-09-10 00:00:00', dateOnly: true, evidence: 'filename' } },
+    // — plans/02 step 1: editor exports whose only date is the editor's SAVE date —
+    // (a) the family case, modelled on the owner's real `Безимени-1.jpg`: three GT-I9100 shots,
+    //     all 2013, native 3264×2448 — and a Photoshop crop (2280×2448, one native side kept)
+    //     saved in Feb 2014 with NO capture date. The save date must NOT shelve it into 2014;
+    //     the camera family narrows it to 2013 as a flagged assumption.
+    { path: 'фотки с телефона/SAM_1001.jpg', body: makeJpegEx({ dateTimeOriginal: '2013:06:15 10:00:00',
+        make: 'SAMSUNG', model: 'GT-I9100', width: 3264, height: 2448, uniq: 'fam1' }),
+      expected: { kind: 'photo', date: '2013-06-15 10:00:00', evidence: 'exif' } },
+    { path: 'фотки с телефона/SAM_1002.jpg', body: makeJpegEx({ dateTimeOriginal: '2013:07:20 12:30:00',
+        make: 'SAMSUNG', model: 'GT-I9100', width: 3264, height: 2448, uniq: 'fam2' }),
+      expected: { kind: 'photo', date: '2013-07-20 12:30:00', evidence: 'exif' } },
+    { path: 'фотки с телефона/SAM_1003.jpg', body: makeJpegEx({ dateTimeOriginal: '2013:08:05 18:45:00',
+        make: 'SAMSUNG', model: 'GT-I9100', width: 3264, height: 2448, uniq: 'fam3' }),
+      expected: { kind: 'photo', date: '2013-08-05 18:45:00', evidence: 'exif' } },
+    { path: 'фотки с телефона/правка.jpg', body: makeJpegEx({ software: 'Adobe Photoshop CS3 Windows',
+        dateTime: '2014:02:09 11:09:09', width: 2280, height: 2448, uniq: 'fam4' }),
+      expected: { kind: 'photo', date: null, year: 2013, evidence: 'family', assumed: true } },
+    // (b) the exact-original case: the editor wrote XMP DerivedFrom → the original's DocumentID,
+    //     so the export inherits the original's REAL capture date, never its own save date.
+    { path: 'обработанное/оригинал.jpg', body: makeJpegEx({ dateTimeOriginal: '2012:05:01 10:00:00',
+        make: 'SONY', model: 'DSC-W55', width: 3072, height: 2304,
+        documentId: 'uuid:KPOT-ORIG-0001', uniq: 'der1' }),
+      expected: { kind: 'photo', date: '2012-05-01 10:00:00', evidence: 'exif' } },
+    { path: 'обработанное/экспорт.jpg', body: makeJpegEx({ software: 'Adobe Photoshop CS2 Windows',
+        dateTime: '2015:03:03 09:00:00', width: 1200, height: 900,
+        derivedFromDocumentId: 'uuid:KPOT-ORIG-0001', uniq: 'der2' }),
+      expected: { kind: 'photo', date: '2012-05-01 10:00:00', evidence: 'derived-original' } },
+    // (c) the honest-ignorance case: a Picasa save with no capture date, no matching family,
+    //     no original — the save date is only a ceiling; the file goes to ПРОЧЕЕ, never to 2014.
+    { path: 'обработанное/безымянный.jpg', body: makeJpegEx({ software: 'Picasa',
+        dateTime: '2014:11:20 20:15:00', width: 1000, height: 750, uniq: 'edt1' }),
+      expected: { kind: 'photo', date: null, evidence: 'editor-upper-bound', disputed: true } },
     // — junk → quarantine with provenance (interview #001 Q4 = C) —
     { path: '100MEDIA/Thumbs.db', body: text('fake thumbs db'),
       expected: { kind: 'junk', date: null, evidence: 'none' } },

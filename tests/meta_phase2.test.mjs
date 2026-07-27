@@ -197,6 +197,31 @@ test('ACCEPTANCE: every planted date recovered, every undatable honestly unknown
           assert.equal(v.date, null, f.path);
           assert.equal(v.year, exp.year, f.path);
           break;
+        case 'derived-original': // plans/02 §1.2 — the original's REAL capture date, inherited exactly
+          assert.equal(v.status, 'dated', f.path);
+          assert.equal(v.winner, 'derived-original', f.path);
+          assert.equal(v.date, exp.date, f.path);
+          assert.ok(a.evidence.find(e => e.kind === 'derived-original')?.detail.includes('оригинал.jpg'),
+            `the report must name the original it took the date from: ${f.path}`);
+          break;
+        case 'family': // plans/02 §1.3 — camera family narrowed to one year: flagged ASSUMPTION
+          assert.equal(v.status, 'partial', f.path);
+          assert.equal(v.winner, 'family', f.path);
+          assert.equal(v.assumed, true, f.path);
+          assert.equal(v.confidence, 'low', f.path);
+          assert.equal(v.date, null, `family narrows to a year, it must never invent a date: ${f.path}`);
+          assert.equal(v.year, exp.year, f.path);
+          assert.ok(v.disputed.some(d => d.reason === 'editor-save-date'),
+            `the rejected save date must stay visible: ${f.path}`);
+          assert.ok(v.family && v.family.model === 'GT-I9100' && v.family.matchedBy === 'geometry',
+            `family signs must name the camera and how it was matched: ${f.path}`);
+          break;
+        case 'editor-upper-bound': // plans/02 §1.1 — save date is a ceiling, the file stays unknown
+          assert.equal(v.status, 'unknown', `an editor save date must never date a file: ${f.path}`);
+          assert.equal(v.date, null, f.path);
+          assert.ok(v.disputed.some(d => d.reason === 'editor-save-date'), f.path);
+          assert.ok(v.family?.noLaterThan, `the ceiling must reach the owner as a family sign: ${f.path}`);
+          break;
         case 'exif-implausible':
           assert.equal(v.status, 'unknown', `broken clock must not be trusted: ${f.path}`);
           assert.ok(v.disputed.some(d => d.reason === 'implausible-year'), f.path);

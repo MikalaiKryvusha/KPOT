@@ -22,10 +22,12 @@ export const COHORT_MIN_SHARE = 0.8;
 
 const dirOf = (relPath) => relPath.split('/').slice(0, -1).join('/');
 
-/** A neighbor counts toward a cohort only when its own year is NOT itself a weak guess. */
-function isConfident(verdict) {
+/** A neighbor counts toward a cohort only when its own year is NOT itself a weak guess.
+ * Exported for `family.mjs`, which applies the same bar to same-camera neighbors (plans/02 §1.3). */
+export function isConfidentVerdict(verdict) {
   return verdict != null && verdict.year != null
-    && verdict.winner !== 'dir-cohort' && verdict.confidence !== 'low';
+    && verdict.winner !== 'dir-cohort' && verdict.winner !== 'family'
+    && verdict.confidence !== 'low';
 }
 
 /**
@@ -37,7 +39,7 @@ function isConfident(verdict) {
 export function cohortYearByDir(mediaAssets, { minNeighbors = COHORT_MIN_NEIGHBORS, minShare = COHORT_MIN_SHARE } = {}) {
   const perDir = new Map(); // dir → Map<year, count>
   for (const a of mediaAssets) {
-    if (!isConfident(a.verdict)) continue;
+    if (!isConfidentVerdict(a.verdict)) continue;
     const dir = dirOf(a.path);
     if (!perDir.has(dir)) perDir.set(dir, new Map());
     const years = perDir.get(dir);
