@@ -1,0 +1,917 @@
+<title>KPOT — пять вариантов интерфейса</title>
+
+<style>
+  /* ─────────────────────────────────────────────────────────────────────────
+     Токены. Палитра взята из предмета: сезоны, по которым KPOT раскладывает
+     архив, дают естественный цветовой код. Нейтральные — холодные, с уклоном
+     в синеву акцента; акцент — глубокий «вечерний» индиго; зелёный и красный
+     заняты смыслом (безопасно / опасно) и акцентом не считаются.
+     ───────────────────────────────────────────────────────────────────────── */
+  :root {
+    color-scheme: light dark;
+
+    --bg:        #EEF0F4;
+    --surface:   #FFFFFF;
+    --surface-2: #F5F6F9;
+    --ink:       #171A21;
+    --ink-2:     #5A6272;
+    --ink-3:     #8891A1;
+    --line:      #DFE3EA;
+    --line-2:    #C8CEDA;
+
+    --accent:      #2F3E82;
+    --accent-soft: #E7EAF7;
+    --accent-ink:  #FFFFFF;
+
+    --safe:      #1E6E4E;
+    --safe-soft: #E2F1EA;
+    --warn:      #8A6100;
+    --warn-soft: #FBF0D8;
+    --danger:      #A32117;
+    --danger-soft: #FBE7E4;
+
+    --s-winter1: #6E93C8;
+    --s-spring:  #5C9A63;
+    --s-summer:  #D0982F;
+    --s-autumn:  #B0653A;
+    --s-winter2: #7A85B8;
+
+    --radius: 10px;
+    --radius-s: 6px;
+    --shadow: 0 1px 2px rgba(20, 26, 40, .06), 0 8px 24px -12px rgba(20, 26, 40, .18);
+    --shadow-lg: 0 2px 4px rgba(20, 26, 40, .08), 0 24px 48px -20px rgba(20, 26, 40, .30);
+
+    /* Windows-родной стек: макет должен выглядеть как программа для Windows,
+       а не как веб-страница. Это выбор по предмету, а не «шрифт по умолчанию». */
+    --ui: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, "Noto Sans", Arial, sans-serif;
+    --doc: Georgia, "Times New Roman", "Noto Serif", serif;
+    --mono: "Cascadia Mono", "Consolas", ui-monospace, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg:        #10131A;
+      --surface:   #191D26;
+      --surface-2: #212632;
+      --ink:       #E8EBF2;
+      --ink-2:     #A2ABBC;
+      --ink-3:     #78829440;
+      --ink-3:     #7A8394;
+      --line:      #2A303C;
+      --line-2:    #3A4252;
+
+      --accent:      #8B9BE8;
+      --accent-soft: #232A48;
+      --accent-ink:  #10131A;
+
+      --safe:      #58C295;
+      --safe-soft: #16302A;
+      --warn:      #D9AC4E;
+      --warn-soft: #2E2718;
+      --danger:      #F08A7E;
+      --danger-soft: #35201E;
+
+      --s-winter1: #85A8DA;
+      --s-spring:  #77B47D;
+      --s-summer:  #DCAD52;
+      --s-autumn:  #C68158;
+      --s-winter2: #949FD0;
+
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+      --shadow-lg: 0 2px 4px rgba(0,0,0,.5), 0 24px 48px -20px rgba(0,0,0,.7);
+    }
+  }
+  :root[data-theme="light"] {
+    --bg: #EEF0F4; --surface: #FFFFFF; --surface-2: #F5F6F9;
+    --ink: #171A21; --ink-2: #5A6272; --ink-3: #8891A1;
+    --line: #DFE3EA; --line-2: #C8CEDA;
+    --accent: #2F3E82; --accent-soft: #E7EAF7; --accent-ink: #FFFFFF;
+    --safe: #1E6E4E; --safe-soft: #E2F1EA; --warn: #8A6100; --warn-soft: #FBF0D8;
+    --danger: #A32117; --danger-soft: #FBE7E4;
+    --s-winter1: #6E93C8; --s-spring: #5C9A63; --s-summer: #D0982F;
+    --s-autumn: #B0653A; --s-winter2: #7A85B8;
+  }
+  :root[data-theme="dark"] {
+    --bg: #10131A; --surface: #191D26; --surface-2: #212632;
+    --ink: #E8EBF2; --ink-2: #A2ABBC; --ink-3: #7A8394;
+    --line: #2A303C; --line-2: #3A4252;
+    --accent: #8B9BE8; --accent-soft: #232A48; --accent-ink: #10131A;
+    --safe: #58C295; --safe-soft: #16302A; --warn: #D9AC4E; --warn-soft: #2E2718;
+    --danger: #F08A7E; --danger-soft: #35201E;
+    --s-winter1: #85A8DA; --s-spring: #77B47D; --s-summer: #DCAD52;
+    --s-autumn: #C68158; --s-winter2: #949FD0;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--ui);
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3, h4 { text-wrap: balance; margin: 0; font-weight: 650; letter-spacing: -.01em; }
+  p { margin: 0; }
+  button { font: inherit; color: inherit; cursor: pointer; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+
+  /* ── страница-обёртка ─────────────────────────────────────────────── */
+  .page { max-width: 1180px; margin: 0 auto; padding: 32px 20px 72px; }
+
+  .lede { display: grid; gap: 10px; margin-bottom: 28px; }
+  .lede .eyebrow {
+    font-size: 12px; letter-spacing: .10em; text-transform: uppercase;
+    color: var(--ink-3); font-weight: 600;
+  }
+  .lede h1 { font-size: clamp(26px, 3.4vw, 38px); line-height: 1.15; }
+  .lede p { color: var(--ink-2); max-width: 68ch; }
+
+  .warnbar {
+    display: flex; gap: 10px; align-items: flex-start;
+    background: var(--warn-soft); border: 1px solid color-mix(in oklab, var(--warn) 30%, transparent);
+    color: var(--ink); padding: 10px 14px; border-radius: var(--radius-s);
+    font-size: 13.5px; margin-top: 6px;
+  }
+  .warnbar b { color: var(--warn); }
+
+  /* ── переключатель вариантов ──────────────────────────────────────── */
+  .chooser {
+    position: sticky; top: 0; z-index: 40;
+    background: color-mix(in oklab, var(--bg) 86%, transparent);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+    margin: 0 -20px 24px; padding: 10px 20px;
+  }
+  .chooser-inner { max-width: 1180px; margin: 0 auto; display: flex; gap: 8px; overflow-x: auto; }
+  .tab {
+    flex: 0 0 auto; display: grid; gap: 1px; text-align: left;
+    padding: 8px 14px; border-radius: var(--radius-s);
+    background: transparent; border: 1px solid transparent; color: var(--ink-2);
+    transition: background .12s ease, color .12s ease, border-color .12s ease;
+  }
+  .tab:hover { background: var(--surface-2); color: var(--ink); }
+  .tab .n { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+  .tab .t { font-size: 14px; font-weight: 600; }
+  .tab[aria-selected="true"] {
+    background: var(--surface); border-color: var(--line-2); color: var(--ink); box-shadow: var(--shadow);
+  }
+  .tab[aria-selected="true"] .n { color: var(--accent); }
+
+  /* ── рамка «окно приложения» ──────────────────────────────────────── */
+  .window {
+    background: var(--surface); border: 1px solid var(--line-2);
+    border-radius: 12px; box-shadow: var(--shadow-lg); overflow: hidden;
+  }
+  .titlebar {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 12px; background: var(--surface-2); border-bottom: 1px solid var(--line);
+  }
+  .dots { display: flex; gap: 6px; }
+  .dots i { width: 11px; height: 11px; border-radius: 50%; background: var(--line-2); display: block; }
+  .titlebar .name { font-size: 13px; color: var(--ink-2); font-weight: 600; }
+  .titlebar .url {
+    margin-left: auto; font-family: var(--mono); font-size: 11.5px; color: var(--ink-3);
+    background: var(--surface); border: 1px solid var(--line); padding: 2px 8px; border-radius: 20px;
+  }
+  .screen { min-height: 520px; display: grid; }
+
+  /* ── общие элементы «приложения» ──────────────────────────────────── */
+  .btn {
+    border: 1px solid var(--line-2); background: var(--surface); color: var(--ink);
+    padding: 9px 16px; border-radius: var(--radius-s); font-weight: 600; font-size: 14px;
+    transition: background .12s ease, border-color .12s ease, transform .06s ease;
+  }
+  .btn:hover { background: var(--surface-2); border-color: var(--ink-3); }
+  .btn:active { transform: translateY(1px); }
+  .btn-primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  .btn-primary:hover { background: color-mix(in oklab, var(--accent) 88%, black); border-color: transparent; }
+  .btn-danger { background: var(--danger); border-color: var(--danger); color: #fff; }
+  .btn-danger:hover { background: color-mix(in oklab, var(--danger) 88%, black); }
+  .btn-ghost { background: transparent; border-color: transparent; color: var(--ink-2); }
+  .btn-ghost:hover { background: var(--surface-2); color: var(--ink); }
+  .btn-lg { padding: 12px 24px; font-size: 15.5px; }
+
+  .num { font-variant-numeric: tabular-nums; }
+
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12px; font-weight: 600; padding: 2px 9px; border-radius: 20px;
+    background: var(--surface-2); color: var(--ink-2); border: 1px solid var(--line);
+  }
+  .chip.season::before { content: ""; width: 8px; height: 8px; border-radius: 2px; background: currentColor; }
+  .chip.winter1 { color: var(--s-winter1); }
+  .chip.spring  { color: var(--s-spring); }
+  .chip.summer  { color: var(--s-summer); }
+  .chip.autumn  { color: var(--s-autumn); }
+  .chip.warn { background: var(--warn-soft); color: var(--warn); border-color: transparent; }
+
+  .guarantees {
+    display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center;
+    padding: 10px 18px; border-top: 1px solid var(--line); background: var(--surface-2);
+    font-size: 13px; color: var(--ink-2);
+  }
+  .g { display: inline-flex; align-items: center; gap: 7px; }
+  .g .mark {
+    width: 17px; height: 17px; border-radius: 50%; display: grid; place-items: center;
+    background: var(--safe-soft); color: var(--safe); font-size: 11px; font-weight: 800;
+  }
+  .g.pending .mark { background: var(--surface); color: var(--ink-3); border: 1px dashed var(--line-2); }
+
+  /* ── вариант 1: мастер ────────────────────────────────────────────── */
+  .wiz { display: grid; grid-template-rows: auto 1fr auto; }
+  .stepper { display: flex; gap: 0; padding: 18px 22px 6px; }
+  .step { display: grid; gap: 4px; flex: 1; text-align: center; background: none; border: 0; padding: 0; }
+  .step .bead {
+    height: 26px; display: grid; place-items: center; position: relative;
+  }
+  .step .bead b {
+    width: 13px; height: 13px; border-radius: 50%; background: var(--line-2); display: block; z-index: 2;
+    transition: background .15s ease, box-shadow .15s ease;
+  }
+  .step .bead::before, .step .bead::after {
+    content: ""; position: absolute; top: 50%; height: 2px; background: var(--line); width: 50%;
+  }
+  .step .bead::before { left: 0; }
+  .step .bead::after { right: 0; }
+  .step:first-child .bead::before, .step:last-child .bead::after { display: none; }
+  .step .lbl { font-size: 13px; color: var(--ink-3); font-weight: 600; }
+  .step.done .bead b { background: var(--safe); }
+  .step.done .bead::before, .step.done .bead::after { background: color-mix(in oklab, var(--safe) 45%, var(--line)); }
+  .step.now .bead b { background: var(--accent); box-shadow: 0 0 0 5px var(--accent-soft); }
+  .step.now .lbl, .step.done .lbl { color: var(--ink); }
+
+  .wiz-body { padding: 26px 40px 30px; display: grid; align-content: start; gap: 18px; justify-items: center; text-align: center; }
+  .wiz-body h2 { font-size: 22px; }
+  .wiz-body .sub { color: var(--ink-2); max-width: 56ch; }
+  .wiz-actions { display: flex; gap: 10px; justify-content: center; padding: 0 24px 22px; }
+
+  .dropzone {
+    width: min(560px, 100%); border: 2px dashed var(--line-2); border-radius: var(--radius);
+    padding: 30px; display: grid; gap: 10px; justify-items: center; background: var(--surface-2);
+  }
+  .dropzone .folder { font-family: var(--mono); font-size: 15px; color: var(--ink); }
+
+  .progress { width: min(560px, 100%); display: grid; gap: 8px; }
+  .bar { height: 10px; border-radius: 20px; background: var(--surface-2); overflow: hidden; border: 1px solid var(--line); }
+  .bar > i { display: block; height: 100%; width: 62%; background: var(--accent); border-radius: 20px; animation: crawl 6s ease-in-out infinite alternate; }
+  @keyframes crawl { from { width: 58%; } to { width: 74%; } }
+  .progress .row { display: flex; justify-content: space-between; font-size: 13px; color: var(--ink-2); }
+
+  .found { display: flex; gap: 22px; justify-content: center; flex-wrap: wrap; }
+  .found div { display: grid; justify-items: center; }
+  .found b { font-size: 22px; font-variant-numeric: tabular-nums; }
+  .found span { font-size: 12.5px; color: var(--ink-3); }
+
+  /* ── вариант 2: было → станет ─────────────────────────────────────── */
+  .panes { display: grid; grid-template-columns: 1fr 1fr; min-height: 0; }
+  .pane { display: grid; grid-template-rows: auto 1fr; min-width: 0; }
+  .pane + .pane { border-left: 1px solid var(--line); }
+  .pane-head {
+    padding: 12px 18px; font-size: 12px; letter-spacing: .09em; text-transform: uppercase;
+    color: var(--ink-3); font-weight: 700; border-bottom: 1px solid var(--line); background: var(--surface-2);
+  }
+  .pane-body { padding: 10px 8px; overflow: auto; max-height: 430px; }
+  .node { display: flex; align-items: center; gap: 9px; padding: 7px 10px; border-radius: var(--radius-s); }
+  .node:hover { background: var(--surface-2); }
+  .node .ico { width: 18px; text-align: center; color: var(--ink-3); }
+  .node .nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .node .ct { font-size: 12.5px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+  .node.child { padding-left: 34px; font-size: 13.5px; color: var(--ink-2); }
+  .node.moved { background: var(--accent-soft); }
+  .node.flag { background: var(--warn-soft); }
+  .planbar {
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+    padding: 12px 18px; border-top: 1px solid var(--line); background: var(--surface-2);
+  }
+  .planbar .stats { display: flex; gap: 16px; flex-wrap: wrap; font-size: 13.5px; color: var(--ink-2); }
+  .planbar .stats b { color: var(--ink); font-variant-numeric: tabular-nums; }
+  .planbar .acts { margin-left: auto; display: flex; gap: 8px; }
+
+  /* модалка подтверждения */
+  .modal-wrap {
+    position: absolute; inset: 0; background: color-mix(in oklab, #0A0D14 55%, transparent);
+    display: grid; place-items: center; padding: 20px;
+  }
+  .modal {
+    background: var(--surface); border-radius: var(--radius); border: 1px solid var(--line-2);
+    box-shadow: var(--shadow-lg); width: min(470px, 100%); padding: 22px; display: grid; gap: 14px;
+  }
+  .modal h3 { font-size: 18px; }
+  .modal ul { margin: 0; padding-left: 18px; color: var(--ink-2); font-size: 14px; display: grid; gap: 5px; }
+  .modal .acts { display: flex; gap: 10px; justify-content: flex-end; margin-top: 4px; }
+
+  /* ── вариант 3: документ ──────────────────────────────────────────── */
+  .doc { display: grid; grid-template-columns: 210px 1fr; min-height: 0; }
+  .toc { border-right: 1px solid var(--line); padding: 16px 12px; display: grid; gap: 2px; align-content: start; background: var(--surface-2); }
+  .toc a {
+    color: var(--ink-2); text-decoration: none; font-size: 13.5px; padding: 6px 10px; border-radius: var(--radius-s);
+  }
+  .toc a:hover { background: var(--surface); color: var(--ink); }
+  .toc a.on { background: var(--surface); color: var(--ink); font-weight: 650; box-shadow: var(--shadow); }
+  .doc-main { min-width: 0; }
+  .doc-sticky {
+    position: sticky; top: 0; display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    padding: 12px 22px; background: color-mix(in oklab, var(--surface) 92%, transparent);
+    backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); z-index: 5;
+  }
+  .doc-sticky .sum { font-size: 14px; color: var(--ink-2); }
+  .doc-sticky .sum b { color: var(--ink); font-variant-numeric: tabular-nums; }
+  .doc-sticky .btn { margin-left: auto; }
+  .doc-body { padding: 22px 26px 30px; max-height: 430px; overflow: auto; font-family: var(--doc); }
+  .doc-body h3 {
+    font-family: var(--ui); font-size: 12px; letter-spacing: .10em; text-transform: uppercase;
+    color: var(--ink-3); margin: 22px 0 10px; font-weight: 700;
+  }
+  .doc-body h3:first-child { margin-top: 0; }
+  .doc-body .entry { padding: 10px 0; border-top: 1px solid var(--line); }
+  .doc-body .entry .to { font-size: 16px; }
+  .doc-body .entry .from { font-size: 14px; color: var(--ink-2); }
+  .doc-body .entry .why { font-size: 13.5px; color: var(--ink-3); font-family: var(--ui); }
+  .doc-body .group { font-size: 15px; font-weight: 700; margin-top: 6px; }
+
+  /* ── вариант 4: проводник ─────────────────────────────────────────── */
+  .expl { display: grid; grid-template-columns: 230px 1fr; min-height: 0; }
+  .tree { border-right: 1px solid var(--line); padding: 12px 8px; overflow: auto; max-height: 470px; background: var(--surface-2); }
+  .tree .node { font-size: 14px; }
+  .tree .node.sel { background: var(--accent-soft); color: var(--ink); font-weight: 600; }
+  .grid-head {
+    display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-bottom: 1px solid var(--line);
+  }
+  .toggle { display: inline-flex; background: var(--surface-2); border: 1px solid var(--line); border-radius: 20px; padding: 2px; }
+  .toggle button {
+    border: 0; background: transparent; padding: 5px 14px; border-radius: 20px; font-size: 13px; color: var(--ink-2);
+  }
+  .toggle button[aria-pressed="true"] { background: var(--surface); color: var(--ink); font-weight: 650; box-shadow: var(--shadow); }
+  .thumbs { padding: 14px 16px; display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 12px; overflow: auto; max-height: 420px; }
+  .thumb { display: grid; gap: 5px; }
+  .thumb .img {
+    aspect-ratio: 4 / 3; border-radius: var(--radius-s); border: 1px solid var(--line);
+    background-size: cover; background-position: center;
+  }
+  .thumb .cap { font-size: 11.5px; color: var(--ink-3); text-align: center; }
+  .thumb.flag .img { outline: 2px solid var(--warn); outline-offset: 1px; }
+
+  /* ── вариант 5: панель ────────────────────────────────────────────── */
+  .dash { padding: 22px; display: grid; gap: 18px; align-content: start; }
+  .dash .where { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .dash .where .path { font-family: var(--mono); font-size: 14px; color: var(--ink-2); }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; }
+  .card {
+    background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 16px 18px; display: grid; gap: 6px; text-align: left; align-content: start;
+  }
+  .card:hover { border-color: var(--line-2); }
+  .card .k { font-size: 13px; color: var(--ink-2); }
+  .card .v { font-size: 30px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.1; }
+  .card .go { font-size: 13px; color: var(--accent); font-weight: 600; }
+  .card.attention { background: var(--warn-soft); border-color: color-mix(in oklab, var(--warn) 30%, transparent); }
+  .card.attention .v { color: var(--warn); }
+  .safety {
+    border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 18px; display: grid; gap: 12px;
+  }
+  .safety .ttl { font-size: 13px; color: var(--ink-2); }
+  .safety .row { display: flex; gap: 22px; flex-wrap: wrap; }
+
+  /* ── подпись под макетом ──────────────────────────────────────────── */
+  .notes { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 18px; margin-top: 22px; }
+  .note { display: grid; gap: 5px; }
+  .note h4 { font-size: 12px; letter-spacing: .09em; text-transform: uppercase; color: var(--ink-3); }
+  .note p { font-size: 14px; color: var(--ink-2); }
+  .note.pick h4 { color: var(--safe); }
+
+  .variant { display: none; }
+  .variant.on { display: block; }
+
+  /* ── вопросы ──────────────────────────────────────────────────────── */
+  .questions { margin-top: 56px; display: grid; gap: 14px; }
+  .questions > h2 { font-size: 22px; margin-bottom: 4px; }
+  .q {
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 16px 18px; display: grid; gap: 8px;
+  }
+  .q .qh { display: flex; gap: 10px; align-items: baseline; }
+  .q .qn { font-size: 12px; font-weight: 700; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+  .q .qt { font-weight: 650; }
+  .q .opts { display: grid; gap: 5px; font-size: 14px; color: var(--ink-2); }
+  .q .rec { font-size: 13.5px; color: var(--safe); }
+  .q.blocking { border-left: 3px solid var(--danger); }
+  .q.soft { border-left: 3px solid var(--line-2); }
+
+  footer { margin-top: 44px; color: var(--ink-3); font-size: 13px; }
+
+  @media (max-width: 820px) {
+    .panes, .doc, .expl { grid-template-columns: 1fr; }
+    .pane + .pane, .toc, .tree { border-left: 0; border-right: 0; border-top: 1px solid var(--line); }
+    .wiz-body { padding: 22px 18px; }
+  }
+</style>
+
+<div class="chooser">
+  <div class="chooser-inner" role="tablist" aria-label="Варианты интерфейса">
+    <button class="tab" role="tab" aria-selected="true" data-v="1"><span class="n">Вариант 1</span><span class="t">Мастер</span></button>
+    <button class="tab" role="tab" aria-selected="false" data-v="2"><span class="n">Вариант 2</span><span class="t">Было → Станет</span></button>
+    <button class="tab" role="tab" aria-selected="false" data-v="3"><span class="n">Вариант 3</span><span class="t">Документ</span></button>
+    <button class="tab" role="tab" aria-selected="false" data-v="4"><span class="n">Вариант 4</span><span class="t">Проводник</span></button>
+    <button class="tab" role="tab" aria-selected="false" data-v="5"><span class="n">Вариант 5</span><span class="t">Панель</span></button>
+  </div>
+</div>
+
+<div class="page">
+
+  <div class="lede">
+    <span class="eyebrow">KPOT · интервью 003 · на согласование</span>
+    <h1>Пять вариантов интерфейса — вживую</h1>
+    <p>Все пять делают одно и то же и одинаково безопасны. Разница в том, что вы видите
+       в главный момент — когда решаете, запускать сортировку или нет. Переключайте вкладки сверху,
+       кнопки внутри макетов работают.</p>
+    <div class="warnbar">
+      <b>Это макет.</b>
+      <span>Ни один файл никуда не поедет: цифры и папки выдуманы, кнопки только показывают, как поведёт себя настоящая программа.</span>
+    </div>
+  </div>
+
+  <!-- ═══════════════ ВАРИАНТ 1 — МАСТЕР ═══════════════ -->
+  <section class="variant on" data-variant="1">
+    <div class="window">
+      <div class="titlebar">
+        <span class="dots"><i></i><i></i><i></i></span>
+        <span class="name">KPOT — разбор фотоархива</span>
+        <span class="url">127.0.0.1:8384</span>
+      </div>
+      <div class="screen wiz">
+        <div class="stepper" id="wiz-steps">
+          <button class="step done" data-step="1"><span class="bead"><b></b></span><span class="lbl">Папка</span></button>
+          <button class="step now"  data-step="2"><span class="bead"><b></b></span><span class="lbl">Изучаю</span></button>
+          <button class="step"      data-step="3"><span class="bead"><b></b></span><span class="lbl">План</span></button>
+          <button class="step"      data-step="4"><span class="bead"><b></b></span><span class="lbl">Готово</span></button>
+        </div>
+        <div class="wiz-body" id="wiz-body"></div>
+        <div class="wiz-actions" id="wiz-actions"></div>
+        <div class="guarantees">
+          <span class="g"><span class="mark">✓</span> карта готова</span>
+          <span class="g pending"><span class="mark">2</span> бэкап — перед запуском</span>
+          <span class="g pending"><span class="mark">3</span> сухой прогон</span>
+          <span class="g pending"><span class="mark">4</span> откат одной кнопкой</span>
+        </div>
+      </div>
+    </div>
+    <div class="notes">
+      <div class="note"><h4>Под кого</h4><p>Под человека, который боится что-то сломать: на экране почти всегда одна кнопка, и невозможно нажать не то.</p></div>
+      <div class="note"><h4>Плюсы</h4><p>Самый понятный для новичка. Естественно проводит через четыре гарантии безопасности. Проще всего писать простым языком — на каждом шаге объясняется ровно одна вещь.</p></div>
+      <div class="note"><h4>Минусы</h4><p>Вам самому будет тесно: придётся кликать «Далее» там, где хочется видеть всё сразу. Плохо подходит для повторных запусков — доливки новых фотографий.</p></div>
+      <div class="note pick"><h4>Цена</h4><p>Самый дешёвый в разработке. Рекомендую как скелет — с экраном плана из варианта 2.</p></div>
+    </div>
+  </section>
+
+  <!-- ═══════════════ ВАРИАНТ 2 — БЫЛО → СТАНЕТ ═══════════════ -->
+  <section class="variant" data-variant="2">
+    <div class="window" style="position:relative">
+      <div class="titlebar">
+        <span class="dots"><i></i><i></i><i></i></span>
+        <span class="name">KPOT — план разбора</span>
+        <span class="url">127.0.0.1:8384/план</span>
+      </div>
+      <div class="screen" style="grid-template-rows: 1fr auto auto">
+        <div class="panes">
+          <div class="pane">
+            <div class="pane-head">Как сейчас · D:\Фото</div>
+            <div class="pane-body">
+              <div class="node"><span class="ico">📁</span><span class="nm">Фото с телефона</span><span class="ct">431</span></div>
+              <div class="node child"><span class="ico">🖼</span><span class="nm">IMG_20130704_101112.jpg</span></div>
+              <div class="node child"><span class="ico">🖼</span><span class="nm">IMG_20130705_180032.jpg</span></div>
+              <div class="node"><span class="ico">📁</span><span class="nm">Разное</span><span class="ct">1 204</span></div>
+              <div class="node"><span class="ico">📁</span><span class="nm">копии</span><span class="ct">88</span></div>
+              <div class="node"><span class="ico">📁</span><span class="nm">Отпуск у моря</span><span class="ct">262</span></div>
+              <div class="node flag"><span class="ico">📁</span><span class="nm">Новая папка (2)</span><span class="ct">12</span></div>
+              <div class="node"><span class="ico">📁</span><span class="nm">скриншоты</span><span class="ct">96</span></div>
+              <div class="node"><span class="ico">🖼</span><span class="nm">без названия.jpg</span></div>
+            </div>
+          </div>
+          <div class="pane">
+            <div class="pane-head">Как станет</div>
+            <div class="pane-body">
+              <div class="node moved"><span class="ico">📁</span><span class="nm">2013</span><span class="ct">338</span></div>
+              <div class="node child"><span class="chip season spring">Весна</span><span class="nm"></span><span class="ct">62</span></div>
+              <div class="node child"><span class="chip season summer">Лето</span><span class="nm"></span><span class="ct">118</span></div>
+              <div class="node child"><span class="ico">🖼</span><span class="nm">IMG_20130704_101112.jpg</span></div>
+              <div class="node moved"><span class="ico">📁</span><span class="nm">2014</span><span class="ct">907</span></div>
+              <div class="node moved"><span class="ico">📁</span><span class="nm">2020</span><span class="ct">262</span></div>
+              <div class="node child"><span class="chip season autumn">Осень</span><span class="nm">Отпуск у моря</span><span class="ct">262</span></div>
+              <div class="node"><span class="ico">📁</span><span class="nm">ПРОЧЕЕ / дубликаты</span><span class="ct">88</span></div>
+              <div class="node flag"><span class="ico">⚠</span><span class="nm">НА_РАЗБОР — нужно ваше решение</span><span class="ct">12</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="planbar">
+          <div class="stats">
+            <span><b class="num">812</b> перемещений</span>
+            <span><b class="num">4</b> спорных</span>
+            <span><b class="num">5</b> папок опустеет</span>
+            <span style="color:var(--safe)"><b style="color:var(--safe)">0</b> файлов потеряется</span>
+          </div>
+          <div class="acts">
+            <button class="btn">Сухой прогон</button>
+            <button class="btn btn-primary" id="v2-run">Выполнить сортировку</button>
+          </div>
+        </div>
+        <div class="guarantees">
+          <span class="g"><span class="mark">✓</span> карта готова</span>
+          <span class="g"><span class="mark">✓</span> бэкап сделаем перед запуском</span>
+          <span class="g"><span class="mark">✓</span> сухой прогон доступен</span>
+          <span class="g"><span class="mark">✓</span> откат одной кнопкой</span>
+        </div>
+      </div>
+      <div class="modal-wrap" id="v2-modal" hidden>
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="v2-modal-t">
+          <h3 id="v2-modal-t">Перемещу 812 файлов</h3>
+          <ul>
+            <li>Сначала сделаю бэкап — он занимает секунды и почти не занимает места.</li>
+            <li>Ни один файл не будет удалён или перезаписан.</li>
+            <li>Вернуть всё как было можно одной кнопкой — она останется на экране.</li>
+          </ul>
+          <div class="acts">
+            <button class="btn" data-close>Отмена</button>
+            <button class="btn btn-danger" data-close>Да, сортировать</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="notes">
+      <div class="note"><h4>Под кого</h4><p>Под доверие. Человек видит результат до того, как он случился, и узнаёт в правой панели свои папки.</p></div>
+      <div class="note"><h4>Плюсы</h4><p>Самый убедительный экран из пяти: сразу видно, что ничего не пропадает. Отлично объясняет само слово «план».</p></div>
+      <div class="note"><h4>Минусы</h4><p>На 71 606 файлах обе панели огромны — нужны свёртка, поиск и «показать только изменения». Самый сложный экран.</p></div>
+      <div class="note pick"><h4>Цена</h4><p>Примерно вдвое дороже варианта 1. Рекомендую взять именно этот экран внутрь мастера.</p></div>
+    </div>
+  </section>
+
+  <!-- ═══════════════ ВАРИАНТ 3 — ДОКУМЕНТ ═══════════════ -->
+  <section class="variant" data-variant="3">
+    <div class="window">
+      <div class="titlebar">
+        <span class="dots"><i></i><i></i><i></i></span>
+        <span class="name">KPOT — пред-сортировочный мастер-план</span>
+        <span class="url">127.0.0.1:8384/отчёт</span>
+      </div>
+      <div class="screen doc">
+        <nav class="toc">
+          <a href="#" class="on">Что куда переедет</a>
+          <a href="#">Даты у исходного снимка</a>
+          <a href="#">Дубликаты <span class="num">88</span></a>
+          <a href="#">Спорные <span class="num">4</span></a>
+          <a href="#">Папки на решение <span class="num">5</span></a>
+          <a href="#">Опустеют <span class="num">5</span></a>
+          <a href="#">Останется на месте</a>
+          <a href="#">Как откатить</a>
+        </nav>
+        <div class="doc-main">
+          <div class="doc-sticky">
+            <span class="sum"><b class="num">812</b> перемещений · <b class="num">4</b> спорных · <b class="num">0</b> потерь</span>
+            <button class="btn btn-primary">Выполнить</button>
+          </div>
+          <div class="doc-body">
+            <h3>Что куда переедет</h3>
+            <div class="group">2013 / Лето <span class="chip season summer">Лето</span></div>
+            <div class="entry">
+              <div class="to">IMG_20130704_101112.jpg</div>
+              <div class="from">← Фото с телефона / IMG_20130704_101112.jpg</div>
+              <div class="why">снято 4 июля 2013 в 10:11 — дата записана в самой фотографии</div>
+            </div>
+            <div class="entry">
+              <div class="to">без названия.jpg</div>
+              <div class="from">← без названия.jpg</div>
+              <div class="why">снято 12 августа 2013 — дату взяли у исходного снимка, найденного среди ваших же фотографий</div>
+            </div>
+            <div class="group">2020 / Осень / Отпуск у моря <span class="chip season autumn">Осень</span></div>
+            <div class="entry">
+              <div class="to">DSC_0042.JPG</div>
+              <div class="from">← Отпуск у моря / DSC_0042.JPG</div>
+              <div class="why">снято 3 октября 2020 в 18:24 — дата из фотографии; папку сохранили как есть</div>
+            </div>
+            <h3>Спорные случаи — требуют вашего взгляда</h3>
+            <div class="entry">
+              <div class="to">правка кадра.jpg</div>
+              <div class="why">фоторедактор стёр дату съёмки. Известно только, что снято не позже февраля 2014 — файл уедет в «ПРОЧЕЕ», а не в 2014 год</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="notes">
+      <div class="note"><h4>Под кого</h4><p>Под внимательное чтение. Это ревизия, а не панель управления: можно листать, искать, распечатать и показать жене.</p></div>
+      <div class="note"><h4>Плюсы</h4><p>Ближе всего к тому, что уже готово и проверено — текстовый отчёт существует. Легче всего сделать язык человеческим: это текст, а не иконки.</p></div>
+      <div class="note"><h4>Минусы</h4><p>Выглядит как документ, а не как программа. Неопытный человек может не понять, чего от него хотят, и просто пролистать вниз.</p></div>
+      <div class="note"><h4>Цена</h4><p>Второй по дешевизне после мастера.</p></div>
+    </div>
+  </section>
+
+  <!-- ═══════════════ ВАРИАНТ 4 — ПРОВОДНИК ═══════════════ -->
+  <section class="variant" data-variant="4">
+    <div class="window">
+      <div class="titlebar">
+        <span class="dots"><i></i><i></i><i></i></span>
+        <span class="name">KPOT — просмотр библиотеки</span>
+        <span class="url">127.0.0.1:8384/библиотека</span>
+      </div>
+      <div class="screen expl">
+        <div class="tree">
+          <div class="node"><span class="ico">▾</span><span class="nm">2013</span><span class="ct">338</span></div>
+          <div class="node child"><span class="chip season spring">Весна</span><span class="nm"></span><span class="ct">62</span></div>
+          <div class="node child sel"><span class="chip season summer">Лето</span><span class="nm"></span><span class="ct">118</span></div>
+          <div class="node child" style="padding-left:52px"><span class="ico">🎬</span><span class="nm">видео</span><span class="ct">9</span></div>
+          <div class="node"><span class="ico">▸</span><span class="nm">2014</span><span class="ct">907</span></div>
+          <div class="node"><span class="ico">▸</span><span class="nm">2020</span><span class="ct">262</span></div>
+          <div class="node"><span class="ico">▸</span><span class="nm">ПРОЧЕЕ</span><span class="ct">96</span></div>
+          <div class="node flag"><span class="ico">⚠</span><span class="nm">НА_РАЗБОР</span><span class="ct">12</span></div>
+        </div>
+        <div>
+          <div class="grid-head">
+            <div class="toggle" id="v4-toggle">
+              <button aria-pressed="false">сейчас</button>
+              <button aria-pressed="true">после сортировки</button>
+            </div>
+            <span class="chip warn">у 4 фотографий дата спорная</span>
+            <button class="btn btn-primary" style="margin-left:auto">Выполнить сортировку</button>
+          </div>
+          <div class="thumbs" id="v4-thumbs"></div>
+        </div>
+      </div>
+    </div>
+    <div class="notes">
+      <div class="note"><h4>Под кого</h4><p>Под узнавание. Единственный вариант, где видно сами фотографии, а не их имена.</p></div>
+      <div class="note"><h4>Плюсы</h4><p>Ощущается как фотоприложение. Спорные случаи можно проверить глазами: «это точно зима?»</p></div>
+      <div class="note"><h4>Минусы</h4><p>Миниатюры надо откуда-то взять — это декодирование десятков тысяч снимков, отдельная подсистема и главный источник тормозов. Риск превратить задачу «разложить по годам» в фотогалерею.</p></div>
+      <div class="note"><h4>Цена</h4><p>Самый дорогой: 2–3 фазы, половина из них — миниатюры.</p></div>
+    </div>
+  </section>
+
+  <!-- ═══════════════ ВАРИАНТ 5 — ПАНЕЛЬ ═══════════════ -->
+  <section class="variant" data-variant="5">
+    <div class="window">
+      <div class="titlebar">
+        <span class="dots"><i></i><i></i><i></i></span>
+        <span class="name">KPOT</span>
+        <span class="url">127.0.0.1:8384</span>
+      </div>
+      <div class="screen dash">
+        <div class="where">
+          <h2 style="font-size:20px">Ваша папка</h2>
+          <span class="path">D:\Фото</span>
+          <span class="chip"><span class="num">12 004</span> файла</span>
+          <button class="btn btn-ghost" style="margin-left:auto">Выбрать другую</button>
+        </div>
+        <div class="cards">
+          <button class="card">
+            <span class="k">Разложится по годам</span>
+            <span class="v">11 892</span>
+            <span class="go">посмотреть куда →</span>
+          </button>
+          <button class="card attention">
+            <span class="k">Ждут вашего решения</span>
+            <span class="v">5</span>
+            <span class="go" style="color:var(--warn)">открыть папки →</span>
+          </button>
+          <button class="card">
+            <span class="k">Спорная дата</span>
+            <span class="v">4</span>
+            <span class="go">разобрать →</span>
+          </button>
+          <button class="card">
+            <span class="k">Дубликаты</span>
+            <span class="v">88</span>
+            <span class="go">ничего не удалим →</span>
+          </button>
+        </div>
+        <div class="safety">
+          <span class="ttl">Прежде чем что-нибудь сдвинется с места:</span>
+          <div class="row">
+            <span class="g"><span class="mark">✓</span> карта готова</span>
+            <span class="g"><span class="mark">✓</span> бэкап будет сделан</span>
+            <span class="g"><span class="mark">✓</span> сухой прогон доступен</span>
+            <span class="g"><span class="mark">✓</span> откат одной кнопкой</span>
+          </div>
+        </div>
+        <div style="display:flex; gap:10px; align-items:center">
+          <button class="btn btn-lg btn-primary">Выполнить сортировку</button>
+          <span style="font-size:13.5px; color:var(--ink-2)">Сначала покажу, что именно произойдёт.</span>
+        </div>
+      </div>
+    </div>
+    <div class="notes">
+      <div class="note"><h4>Под кого</h4><p>Под спокойствие. Главный экран отвечает на вопрос «а не потеряю ли я фотографии» раньше, чем на вопрос «куда что поедет».</p></div>
+      <div class="note"><h4>Плюсы</h4><p>Четыре обещания из GOAL.md становятся видимыми — это и есть главный смысл интерфейса. Хорошо переносит 71 606 файлов: показывает числа, а не списки.</p></div>
+      <div class="note"><h4>Минусы</h4><p>Сам план спрятан на второй уровень — человек может нажать «Выполнить», не открыв его.</p></div>
+      <div class="note"><h4>Цена</h4><p>Средняя.</p></div>
+    </div>
+  </section>
+
+  <!-- ═══════════════ ВОПРОСЫ ═══════════════ -->
+  <section class="questions">
+    <h2>Что нужно согласовать</h2>
+    <p style="color:var(--ink-2); max-width:68ch">Отвечать можно коротко: «Q1 — 1+2, Q2 — В…». На что не ответите — возьму рекомендацию и скажу, что взял. Красной чертой отмечено то, без чего нельзя начинать.</p>
+
+    <div class="q blocking">
+      <div class="qh"><span class="qn">Q1</span><span class="qt">Какой дизайн?</span></div>
+      <div class="opts">1 · 2 · 3 · 4 · 5 · или смесь</div>
+      <div class="rec">Рекомендую: вариант 1 как скелет, а на шаге «План» — экран варианта 2. Строка гарантий из варианта 5 внизу каждого шага.</div>
+    </div>
+
+    <div class="q blocking">
+      <div class="qh"><span class="qn">Q2</span><span class="qt">Как программа попадает на чужой компьютер?</span></div>
+      <div class="opts">
+        <div><b>А)</b> Установщик .exe: «Далее → Далее → Готово», ярлык появляется сам, внутри всё нужное (~50–80 МБ).</div>
+        <div><b>Б)</b> Портативный ZIP: распаковал и запустил, без прав администратора.</div>
+        <div><b>В)</b> И то, и другое.</div>
+        <div><b>Г)</b> Через терминал — только для технических людей.</div>
+      </div>
+      <div class="rec">Рекомендую В, проектируем под А: только он честно закрывает «обычных ПК юзеров».</div>
+    </div>
+
+    <div class="q blocking">
+      <div class="qh"><span class="qn">Q3</span><span class="qt">Подпись программы (SmartScreen)</span></div>
+      <div class="opts">
+        <div>Windows на неподписанной программе показывает синее окно «Windows защитила ваш компьютер». Это не вирус — у файла просто нет репутации, но неопытный человек читает это как «опасно».</div>
+        <div><b>А)</b> Пока без подписи + честное объяснение простыми словами в установщике и в README.</div>
+        <div><b>Б)</b> Купить сертификат — предупреждение исчезнет. Сотни долларов ежегодно плюс продление.</div>
+      </div>
+      <div class="rec">Рекомендую А сейчас, Б — когда появятся пользователи кроме нас.</div>
+    </div>
+
+    <div class="q blocking">
+      <div class="qh"><span class="qn">Q4</span><span class="qt">Сколько трения перед кнопкой «Выполнить»?</span></div>
+      <div class="opts">
+        <div><b>А)</b> Одно осознанное подтверждение с числами — как в макете варианта 2.</div>
+        <div><b>Б)</b> Вводить слово «сортировать» руками.</div>
+        <div><b>В)</b> Без подтверждения, раз есть откат.</div>
+      </div>
+      <div class="rec">Рекомендую А: у нас всё обратимо, а лишний страх учит людей кликать не глядя.</div>
+    </div>
+
+    <div class="q soft">
+      <div class="qh"><span class="qn">Q5</span><span class="qt">Показывать ли сами фотографии?</span></div>
+      <div class="opts"><b>А)</b> В первой версии нет · <b>Б)</b> только у спорных · <b>В)</b> везде, как в варианте 4</div>
+      <div class="rec">Рекомендую Б: это два десятка файлов, а не 71 606, и именно там нужен глаз.</div>
+    </div>
+
+    <div class="q soft">
+      <div class="qh"><span class="qn">Q6</span><span class="qt">Что значит «закрыть окно»?</span></div>
+      <div class="opts"><b>А)</b> Программа тихо останавливается · <b>Б)</b> продолжает работать в фоне</div>
+      <div class="rec">Рекомендую А: «я закрыл, а оно работает» — главная претензия к таким программам.</div>
+    </div>
+
+    <div class="q soft">
+      <div class="qh"><span class="qn">Q7</span><span class="qt">Папки, по которым нужно ваше решение</span></div>
+      <div class="opts">Сейчас это текстовый файл. <b>А)</b> перенести в интерфейс: у каждой папки две кнопки · <b>Б)</b> оставить файл</div>
+      <div class="rec">Рекомендую А.</div>
+    </div>
+
+    <div class="q soft">
+      <div class="qh"><span class="qn">Q8</span><span class="qt">Язык интерфейса</span></div>
+      <div class="opts"><b>А)</b> только русский · <b>Б)</b> русский и английский — репозиторий-то публичный</div>
+      <div class="rec">Рекомендую А в первой версии.</div>
+    </div>
+
+    <div class="q soft">
+      <div class="qh"><span class="qn">Q9</span><span class="qt">Лицо программы</span></div>
+      <div class="opts">Логотип KPOT в шапке? Название окна — «KPOT — разбор фотоархива» или ваше? Иконка ярлыка из логотипа?</div>
+      <div class="rec">Рекомендую: окно «KPOT — разбор фотоархива», логотип в шапке, иконка ярлыка та же.</div>
+    </div>
+
+    <div class="q soft">
+      <div class="qh"><span class="qn">Q10</span><span class="qt">Доступ с других устройств</span></div>
+      <div class="opts"><b>А)</b> только этот компьютер · <b>Б)</b> хочу открывать с телефона по домашней сети</div>
+      <div class="rec">Рекомендую А: иначе нужен пароль, и несколько теоретических рисков становятся настоящими.</div>
+    </div>
+  </section>
+
+  <footer>
+    Макеты и оценки — агентские, по разведке <code>researches/07_local_ui_and_delivery.md</code>.
+    Вопросы и ваши ответы живут в <code>interviews/interview_003_interface.md</code>.
+  </footer>
+</div>
+
+<script>
+  // ── переключение вариантов ───────────────────────────────────────────
+  const tabs = [...document.querySelectorAll('.tab')];
+  const variants = [...document.querySelectorAll('.variant')];
+  tabs.forEach((tab) => {
+    tab.addEventListener('click', () => {
+      tabs.forEach((t) => t.setAttribute('aria-selected', String(t === tab)));
+      const v = tab.dataset.v;
+      variants.forEach((s) => s.classList.toggle('on', s.dataset.variant === v));
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  });
+
+  // ── вариант 1: живой мастер ──────────────────────────────────────────
+  const wizSteps = [...document.querySelectorAll('#wiz-steps .step')];
+  const wizBody = document.getElementById('wiz-body');
+  const wizActions = document.getElementById('wiz-actions');
+
+  const screens = {
+    1: {
+      body: `
+        <h2>Покажите папку с фотографиями</h2>
+        <p class="sub">Можно перетащить её сюда мышкой. Я загляну внутрь и ничего не трону, пока вы не разрешите.</p>
+        <div class="dropzone">
+          <span style="font-size:30px">📁</span>
+          <span class="folder">D:\\Фото</span>
+          <span style="font-size:13px;color:var(--ink-3)">перетащите папку или нажмите «Выбрать»</span>
+        </div>`,
+      actions: `<button class="btn">Выбрать папку</button><button class="btn btn-primary" data-go="2">Далее</button>`,
+    },
+    2: {
+      body: `
+        <h2>Изучаю вашу папку</h2>
+        <p class="sub">Смотрю, что за файлы и когда они сняты. Ни один файл при этом не двигается и не меняется.</p>
+        <div class="progress">
+          <div class="bar"><i></i></div>
+          <div class="row"><span class="num">8 431 из 12 004</span><span>осталось примерно 4 минуты</span></div>
+        </div>
+        <div class="found">
+          <div><b class="num">7 902</b><span>фотографии</span></div>
+          <div><b class="num">412</b><span>видео</span></div>
+          <div><b class="num">96</b><span>без даты — разберёмся</span></div>
+        </div>`,
+      actions: `<button class="btn" data-go="1">Назад</button><button class="btn btn-ghost">Остановить</button><button class="btn btn-primary" data-go="3">Дальше к плану</button>`,
+    },
+    3: {
+      body: `
+        <h2>Вот что я предлагаю сделать</h2>
+        <p class="sub">Это только план. Прочитайте его — и, если согласны, я сделаю бэкап и разложу файлы.</p>
+        <div style="width:min(680px,100%);display:grid;gap:8px;text-align:left">
+          <div class="node moved"><span class="ico">📁</span><span class="nm">2013 → Весна, Лето, Осень</span><span class="ct">338</span></div>
+          <div class="node moved"><span class="ico">📁</span><span class="nm">2014 → Зима начало года, Лето</span><span class="ct">907</span></div>
+          <div class="node"><span class="ico">📁</span><span class="nm">ПРОЧЕЕ / дубликаты — ничего не удаляем</span><span class="ct">88</span></div>
+          <div class="node flag"><span class="ico">⚠</span><span class="nm">5 папок с непонятными названиями — спрошу вас отдельно</span><span class="ct">12</span></div>
+        </div>
+        <p class="sub" style="color:var(--ink-3)">Полный список — 812 перемещений — открывается по кнопке «Показать всё».</p>`,
+      actions: `<button class="btn" data-go="2">Назад</button><button class="btn">Показать всё</button><button class="btn btn-primary" data-go="4">Выполнить</button>`,
+    },
+    4: {
+      body: `
+        <h2>Готово. Разложено 812 файлов</h2>
+        <p class="sub">Ни один файл не удалён и не перезаписан. Всё содержимое совпадает с тем, что было до сортировки — я проверил.</p>
+        <div class="found">
+          <div><b class="num">812</b><span>перемещено</span></div>
+          <div><b class="num">0</b><span>ошибок</span></div>
+          <div><b class="num">5</b><span>пустых папок убрано</span></div>
+        </div>
+        <div style="background:var(--safe-soft);border-radius:var(--radius);padding:14px 18px;max-width:560px">
+          <b style="color:var(--safe)">Передумали?</b>
+          <span style="color:var(--ink-2)">Кнопка ниже вернёт всё ровно как было — вместе с папками.</span>
+        </div>`,
+      actions: `<button class="btn">Открыть папку</button><button class="btn btn-danger">Вернуть всё как было</button>`,
+    },
+  };
+
+  function showStep(n) {
+    wizSteps.forEach((s) => {
+      const i = Number(s.dataset.step);
+      s.classList.toggle('done', i < n);
+      s.classList.toggle('now', i === n);
+    });
+    wizBody.innerHTML = screens[n].body;
+    wizActions.innerHTML = screens[n].actions;
+    wizActions.querySelectorAll('[data-go]').forEach((b) => {
+      b.addEventListener('click', () => showStep(Number(b.dataset.go)));
+    });
+    document.querySelectorAll('.wiz .guarantees .g').forEach((g, i) => {
+      g.classList.toggle('pending', i + 1 > n);
+      g.querySelector('.mark').textContent = i + 1 > n ? String(i + 1) : '✓';
+    });
+  }
+  wizSteps.forEach((s) => s.addEventListener('click', () => showStep(Number(s.dataset.step))));
+  showStep(2);
+
+  // ── вариант 2: подтверждение ─────────────────────────────────────────
+  const modal = document.getElementById('v2-modal');
+  document.getElementById('v2-run').addEventListener('click', () => { modal.hidden = false; });
+  modal.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', () => { modal.hidden = true; }));
+
+  // ── вариант 4: миниатюры ─────────────────────────────────────────────
+  // Рисуем «фотографии» градиентами: внешние картинки в артефакте запрещены,
+  // а показать надо именно ощущение сетки снимков.
+  const thumbs = document.getElementById('v4-thumbs');
+  const captions = ['4 июля', '4 июля', '5 июля', '5 июля', '7 июля', '11 июля', '14 июля', '2 августа',
+                    '2 августа', '9 августа', '12 августа', '18 августа'];
+  const hues = [28, 200, 96, 42, 210, 12, 160, 54, 190, 76, 32, 220];
+  captions.forEach((cap, i) => {
+    const h = hues[i];
+    const flag = i === 6 || i === 10;
+    const el = document.createElement('div');
+    el.className = 'thumb' + (flag ? ' flag' : '');
+    el.innerHTML = `<div class="img" style="background-image:linear-gradient(${140 + i * 7}deg,
+        hsl(${h} 42% 62%), hsl(${(h + 38) % 360} 34% 44%))"></div>
+      <div class="cap">${flag ? '⚠ ' : ''}${cap}</div>`;
+    thumbs.appendChild(el);
+  });
+  const toggle = document.getElementById('v4-toggle');
+  toggle.querySelectorAll('button').forEach((b) => {
+    b.addEventListener('click', () => {
+      toggle.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    });
+  });
+</script>
