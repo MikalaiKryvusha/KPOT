@@ -254,6 +254,30 @@ https://github.com/MikalaiKryvusha/KPOT/releases/tag/v0.1
 - **`HANDOFF.md` added** (owner's request, same session): a dated snapshot for handing the work to a
   DIFFERENT agent/tool without this framework loaded.
 
+### Session of 2026-07-28 (late) — the 9a rule's first run: `researches/05`
+The canon rule the owner had just added was applied to the very next task, and it paid for itself on
+the first use — it killed a design the plan had already committed to.
+
+- **`researches/05_perceptual_hashing.md`** — prior-art review for `plans/02` step 2 (find a photo's
+  original by pixels). Web-searched with sources; every unopenable source is **listed as unopenable**
+  rather than quoted from memory (§8 of that document).
+- **The risk that could have killed the feature is dead:** the broken class is saved as PROGRESSIVE
+  JPEG (`SOF2`) and `jpeg-js`'s README never claims to support that. Measured on the real archive:
+  **25/25 progressive files decoded, 0 failures** (plus 25/25 baseline). Cost measured too: ≈76 ms/MP
+  progressive, ≈49 ms/MP baseline.
+- **A wrong fact in the plan, caught:** `plans/02` asserted the dependency was "`jpeg-js`, MIT". It is
+  **BSD-3-Clause**. Permissive and fine — but it had been asserted without checking.
+- **The planned algorithm was refuted by measurement.** Controlled experiment, 40 of the owner's own
+  photos, crops of the same shape the real Photoshop export has: **dHash cannot survive a crop** — a
+  10% crop already scores 19 bits, which is also the *minimum* distance between two UNRELATED photos.
+  `blockhash` degrades gracefully (16 vs a chance median of 32 at the real 70%-of-width crop) but the
+  distributions still overlap, so a global threshold would invent wrong dates — invariant 3 forbids it.
+- **The design that replaces it** (`researches/05` §7): do NOT search the archive. Step 1 already
+  knows the camera, the geometry and the ceiling, which collapses the candidate set from ~61 689 to
+  ~100–200; over a set that small we can afford expensive comparison and decide **by the margin
+  between the best and second-best candidate**, never by a threshold. No margin → the file stays in
+  `ПРОЧЕЕ` with its ceiling, exactly as today.
+
 ---
 
 ## Where we are now
@@ -457,12 +481,16 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
    pure JS) and the hard part (a crop shifts the frame, so compare over an overlapping region or
    via downscaled previews). Side benefit `researches/01` predicted: renamed and re-encoded copies
    that sha256 dedupe cannot see.
-   **⛔ It is an EPIC feature, so it starts with a PRIOR-ART REVIEW, not with code** (owner's canon
-   rule of 2026-07-28, `AGENT_GUIDE.md` step 9a): perceptual hashing is a named, well-studied
-   family — aHash/dHash/pHash/wHash, blockhash, and the pHash literature — with documented failure
-   modes (crop and rotation sensitivity, threshold choice, false-positive rates on near-uniform
-   images) that this project must read rather than rediscover. Write `researches/05_*.md` FIRST,
-   web-searched with sources; the plan's step-2 design is then written by that document. **Step 3 (PRNU) stays unstarted and unauthorised** — it answers
+   **✅ The prior-art review is DONE — `researches/05_perceptual_hashing.md` (2026-07-28).** Read it
+   before writing a line: it **refutes the design the plan contained** (dHash cannot survive a crop —
+   measured on 40 of the owner's photos) and replaces it with candidate-set-first + decide-by-margin
+   (§7). Feasibility is settled: `jpeg-js` decodes the progressive exports, 25/25, and costs
+   ≈76 ms/MP. **The implementation is the next piece of work, and it is fully autonomous.**
+   Suggested shape, straight from §7: one new dependency (`jpeg-js`, BSD-3-Clause); block-mean hash
+   (our own ~20 lines, or `blockhash-core`); candidates nominated by the existing `family.mjs` signs;
+   compare over several crop offsets/widths; emit a new `pixel-original` evidence kind ranked with
+   `derived-original`, whose detail names the source file AND the margin it won by; inherit a date
+   ONLY on a decisive margin. **Step 3 (PRNU) stays unstarted and unauthorised** — it answers
    "which camera", not "which shot", and only wins when the original is gone for good.
 4. **Phase 5, what is left.**
    - ✅ **README refresh + a tagged release** — DONE 2026-07-28: `v0.1` «First KPOT», bilingual

@@ -5,9 +5,12 @@
 > working. It is a *snapshot*, not a second source of truth: where it summarises another document it
 > names it, and that document wins on any disagreement.
 >
-> **Written:** 2026-07-28, at release `v0.1` (commit `5d77dbc`). **Suite: 171/171 green.**
-> If today is much later than that, re-read `STATUS.md` first — it is maintained continuously,
-> this file is not.
+> **Written:** 2026-07-28, at release `v0.1`; refreshed the same day at the end of that session.
+> **Suite: 171/171 green.** If today is much later than that, re-read `STATUS.md` first — it is
+> maintained continuously, this file is not.
+>
+> **Start here, then:** §6 is the next task and it is ready to run — its research is done, its design
+> is decided, and it needs nothing from the owner.
 
 ---
 
@@ -145,12 +148,28 @@ dependency (`jpeg-js`, MIT, pure JS, no native build) and the hard part (a crop 
 compare over an overlapping region or via downscaled previews). Side benefit predicted by
 `researches/01`: it finds renamed and re-encoded copies that sha256 dedupe cannot see.
 
-**This is an EPIC feature, so it does not start with code — it starts with a PRIOR-ART REVIEW**
-(`researches/05_*.md`), web-searched, with sources. That is a hard canon rule here, not a suggestion:
-`AGENT_GUIDE.md` checklist step 9a. Perceptual hashing is a named, well-studied family (aHash / dHash
-/ pHash / wHash, blockhash, and the pHash literature) with failure modes other people have already
-documented — crop and rotation sensitivity, threshold selection, false positives on near-uniform
-images. Read those before designing; the plan's step-2 design is then written *by* that document.
+**The prior-art review is already written — [`researches/05_perceptual_hashing.md`](researches/05_perceptual_hashing.md).
+Read it before writing a line; it supersedes the design inside the plan itself.** Three things it
+settled, all measured on the owner's real archive rather than recalled:
+
+- **Feasibility: yes.** The broken class is saved as *progressive* JPEG (`SOF2`), which `jpeg-js`'s
+  README never claims to handle — measured 25/25 decoded, 0 failures, ≈76 ms/megapixel.
+- **The plan's algorithm was wrong.** dHash cannot survive a crop: on 40 of the owner's own photos a
+  mere 10% crop scores 19 bits, which is also the *minimum* distance between two unrelated photos.
+  `blockhash` (block-mean) is far better — 16 versus a chance median of 32 at the real crop ratio —
+  but the distributions still overlap, so a global threshold would invent wrong dates.
+- **So the design is candidate-set-first, decide-by-margin** (§7 of that document): step 1 already
+  knows the camera, sensor geometry and the ceiling date, which collapses the search from ~61 689
+  photos to ~100–200. Over a set that small, compare expensively (several crop offsets and widths)
+  and inherit a date **only when the best candidate is decisively ahead of the second best** — never
+  on a threshold. No margin → the file stays in `ПРОЧЕЕ` with its ceiling, as today.
+
+Implementation shape it recommends: one new dependency (`jpeg-js`, **BSD-3-Clause** — the plan's
+"MIT" was wrong), a block-mean hash (~20 lines of our own, or the zero-dep `blockhash-core`),
+candidates nominated by the existing `src/meta/family.mjs`, and a new `pixel-original` evidence kind
+ranked beside `derived-original` whose detail names the source file *and the margin it won by*.
+
+This is fully autonomous work — it needs nothing from the owner.
 
 Other open, smaller items: `ideas/01_inbox_topup_flow.md` (an inbox + incremental top-up flow — forks
 still open) and `ideas/02_electron_gui.md` (accepted as direction, scheduled after Phase 5).
@@ -242,7 +261,8 @@ These are distilled from `EXPERIENCE.md` (grep it by tag before a task — it is
 | `plans/` `bugs/` `ideas/` `interviews/` | the backlog. A `DONE` in the filename means closed |
 
 **Framework note for whoever picks this up:** the repo is wrapped in KAIF 1.6 (skills under
-`.claude/skills/`, mirrored to four other agent systems). **KAIF 2.0 was released on 2026-07-28** and
-this project has not migrated — that is an owner decision, not a background chore. If your tooling
+`.claude/skills/`, mirrored to four other agent systems). **Do not propose or perform a KAIF
+update** — the owner stated on 2026-07-28 that he runs framework updates himself («я сам веду
+обновления КАИф»), so a newer release existing is not a task and not a backlog item. If your tooling
 does not understand those skills, ignore them: everything you actually need is in the documents
 above, and this file is the map to them.
