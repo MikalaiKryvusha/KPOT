@@ -19,9 +19,17 @@ import { mkdir, writeFile, utimes } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import process from 'node:process';
+import jpegJs from 'jpeg-js';
 
 /** Version stamp of the fixture catalog — bump when cases change so stale trees are detectable. */
-export const FIXTURE_VERSION = 4; // v4 (2026-07-28): +6 cases — sidecars (researches/04): a THM
+export const FIXTURE_VERSION = 6; // v6 (2026-07-28): +2 cases — a reset camera clock (1 Jan 00:25 in
+                                  // a collection that starts in 2008) and its counter-case, a REAL
+                                  // New Year photo at 00:40 that must survive the same rule
+                                  // v5 (2026-07-28): +6 cases — plans/02 §Шаг 2: JPEGs with REAL
+                                  // decodable pixels, an editor crop whose original is in the tree
+                                  // (found by pixels) and one whose original is absent (must stay
+                                  // honestly undated)
+                                  // v4 (2026-07-28): +6 cases — sidecars (researches/04): a THM
                                   // beside its AVI twin, an orphan THM, an XMP that dates its
                                   // photo, and an XMP that carries only a save date (dates nothing)
                                   // v3 (2026-07-27): +7 cases — the plans/02 editor-export classes
@@ -105,13 +113,21 @@ export function makeMp4(isoUtc, uniq) {
  * optional SOF0 carrying real pixel dimensions (what family geometry reads). Every offset is
  * computed, every segment parseable — "the date is really in the file" stays assertable.
  *
+ * With `pixels` it becomes a REAL image: the RGBA buffer is encoded by jpeg-js and our metadata
+ * segments are spliced in after the encoder's JFIF header, so the file carries genuine decodable
+ * pixel data AND a genuine EXIF/XMP block. `width`/`height` are then taken from the pixels
+ * themselves — the fake SOF0 is not written, because a real one already exists.
+ *
  * @param {{dateTimeOriginal?: string|null, dateTime?: string|null, software?: string|null,
  *          make?: string|null, model?: string|null, width?: number|null, height?: number|null,
- *          documentId?: string|null, derivedFromDocumentId?: string|null, uniq: string}} opts
+ *          documentId?: string|null, derivedFromDocumentId?: string|null,
+ *          pixels?: {data: Uint8Array, width: number, height: number}|null,
+ *          quality?: number, uniq: string}} opts
  */
 export function makeJpegEx({ dateTimeOriginal = null, dateTime = null, software = null,
                              make = null, model = null, width = null, height = null,
-                             documentId = null, derivedFromDocumentId = null, uniq }) {
+                             documentId = null, derivedFromDocumentId = null,
+                             pixels = null, quality = 85, uniq }) {
   const parts = [Buffer.from([0xFF, 0xD8])]; // SOI
 
   // --- APP1/Exif: IFD0 entries in ascending tag order (TIFF requirement) ---
@@ -178,7 +194,7 @@ export function makeJpegEx({ dateTimeOriginal = null, dateTime = null, software 
   }
 
   // --- SOF0: real pixel dimensions (family geometry evidence reads these) ---
-  if (width && height) {
+  if (width && height && !pixels) {
     const sof = Buffer.alloc(19);
     sof.writeUInt16BE(0xFFC0, 0); sof.writeUInt16BE(17, 2);
     sof[4] = 8; sof.writeUInt16BE(height, 5); sof.writeUInt16BE(width, 7); sof[9] = 3;
@@ -189,8 +205,82 @@ export function makeJpegEx({ dateTimeOriginal = null, dateTime = null, software 
   const comText = Buffer.from('kpot-fixture:' + uniq, 'ascii'); // COM segment = per-file uniqueness
   const com = Buffer.alloc(4);
   com.writeUInt16BE(0xFFFE, 0); com.writeUInt16BE(comText.length + 2, 2);
-  parts.push(com, comText, Buffer.from([0xFF, 0xD9])); // EOI
+  parts.push(com, comText);
+
+  if (pixels) {
+    // A real JPEG: encode the pixels, then insert our metadata segments AFTER the encoder's JFIF
+    // APP0 (which every decoder expects first) and before the tables and the scan.
+    const encoded = Buffer.from(jpegJs.encode(pixels, quality).data);
+    const meta = Buffer.concat(parts.slice(1)); // everything except our own SOI
+    const afterApp0 = encoded[2] === 0xFF && encoded[3] === 0xE0 ? 4 + encoded.readUInt16BE(4) : 2;
+    return Buffer.concat([encoded.subarray(0, afterApp0), meta, encoded.subarray(afterApp0)]);
+  }
+  parts.push(Buffer.from([0xFF, 0xD9])); // EOI
   return Buffer.concat(parts);
+}
+
+// ---------------------------------------------------------------------------
+// Real pixels — for plans/02 §Шаг 2 (finding an export's original BY ITS PIXELS).
+// Every other builder above writes metadata-only files on purpose: KPOT decodes nothing to date a
+// file. The pixel search is the one feature that must actually look at an image, so its fixture
+// cases carry genuinely decodable JPEGs — synthetic, deterministic, and tiny.
+// ---------------------------------------------------------------------------
+
+/** xorshift32 — a deterministic generator. `Math.random` must never appear in a fixture: two runs
+ *  of this file have to produce byte-identical trees (AGENT_GUIDE §canonical order). */
+function xorshift(seed) {
+  let s = (seed >>> 0) || 1;
+  return () => {
+    s ^= s << 13; s >>>= 0;
+    s ^= s >> 17;
+    s ^= s << 5; s >>>= 0;
+    return s / 4294967296;
+  };
+}
+
+/**
+ * A synthetic "photograph": a coarse random luminance landscape (which is what a block-mean hash
+ * actually sees) plus a fine deterministic texture (which is what tells two similar frames apart).
+ * Both are functions of ABSOLUTE x/y, so a crop of this image is a true sub-window of it — exactly
+ * the relationship a real crop has to its original.
+ *
+ * @param {{width: number, height: number, seed: number}} opts
+ * @returns {{data: Uint8Array, width: number, height: number}}  RGBA, as jpeg-js expects
+ */
+export function photoPixels({ width, height, seed }) {
+  const CELLS = 8; // coarse structure: an 8×8 luminance landscape
+  const rnd = xorshift(seed);
+  const grid = new Float64Array((CELLS + 1) * (CELLS + 1));
+  for (let i = 0; i < grid.length; i += 1) grid[i] = rnd() * 255;
+  const data = new Uint8Array(width * height * 4);
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      const gx = (x / width) * CELLS;
+      const gy = (y / height) * CELLS;
+      const x0 = Math.floor(gx); const y0 = Math.floor(gy);
+      const fx = gx - x0; const fy = gy - y0;
+      const at = (cx, cy) => grid[cy * (CELLS + 1) + cx];
+      const top = at(x0, y0) * (1 - fx) + at(x0 + 1, y0) * fx;
+      const bottom = at(x0, y0 + 1) * (1 - fx) + at(x0 + 1, y0 + 1) * fx;
+      const texture = 18 * Math.sin((x * 0.7 + seed * 0.01)) * Math.cos(y * 0.5 + seed * 0.02);
+      const v = Math.max(0, Math.min(255, Math.round(top * (1 - fy) + bottom * fy + texture)));
+      const i = (y * width + x) * 4;
+      data[i] = v; data[i + 1] = v; data[i + 2] = v; data[i + 3] = 255;
+    }
+  }
+  return { data, width, height };
+}
+
+/** Crop an RGBA image the way an editor export is cropped: full height, part of the width. */
+export function cropPixels({ data, width, height }, { keep = 0.7, offsetFrac = 0.15 } = {}) {
+  const w = Math.round(width * keep);
+  const x0 = Math.round((width - w) * offsetFrac);
+  const out = new Uint8Array(w * height * 4);
+  for (let y = 0; y < height; y += 1) {
+    const src = (y * width + x0) * 4;
+    out.set(data.subarray(src, src + w * 4), y * w * 4);
+  }
+  return { data: out, width: w, height };
 }
 
 /** Minimal PNG: real signature + IHDR/IEND shells (CRCs zeroed — magic-detection fixtures only). */
@@ -253,6 +343,16 @@ const text = (s) => Buffer.from(s, 'utf8');
 
 /** @returns the full planted-case list (path separators are '/', converted on write) */
 export function catalog() {
+  // plans/02 §Шаг 2 — the pixel cases. One camera dump holding four originals from FOUR DIFFERENT
+  // YEARS (so the camera family cannot narrow the year: only the pixels can answer) and two editor
+  // crops — one whose original is planted here, one whose original was never planted at all.
+  const shots = {
+    a: photoPixels({ width: 320, height: 240, seed: 20110504 }),
+    b: photoPixels({ width: 320, height: 240, seed: 20120615 }),
+    c: photoPixels({ width: 320, height: 240, seed: 20130720 }),
+    d: photoPixels({ width: 320, height: 240, seed: 20140805 }),
+    lost: photoPixels({ width: 320, height: 240, seed: 19990101 }), // deliberately NEVER planted
+  };
   return [
     // — date in the filename (Android camera convention) —
     { path: 'Мобилка/IMG_20140121_183801.jpg', body: makeJpeg(null, 'and1'),
@@ -298,6 +398,16 @@ export function catalog() {
     // — broken camera clock: EXIF says 1979 → implausible, must be disputed, not trusted —
     { path: 'старое/IMAG0001.jpg', body: makeJpeg('1979:01:01 00:00:03', 'clock1'),
       expected: { kind: 'photo', date: null, evidence: 'exif-implausible', disputed: true } },
+    // — a camera whose battery had been out: EXIF says 1 January 00:25, the manufacturer's default,
+    //   in a collection whose earliest real photograph is 2008. The shape alone would not be enough
+    //   (a New Year photo looks the same), so the guard is the collection's own floor — this file
+    //   claims a year the archive has no photography from at all. Owner's decision 2026-07-28.
+    { path: 'старое/IMAG0002.jpg', body: makeJpeg('2000:01:01 00:25:13', 'reset1'),
+      expected: { kind: 'photo', date: null, evidence: 'exif-reset-clock', disputed: true } },
+    // — the SAME shape inside the archive's own era: a real New Year photograph at 00:40 on
+    //   1 January 2016. It must survive untouched — the rule may only fire on a proven reset.
+    { path: 'Мобилка/новогодняя ночь.jpg', body: makeJpeg('2016:01:01 00:40:12', 'newyear1'),
+      expected: { kind: 'photo', date: '2016-01-01 00:40:12', evidence: 'exif' } },
     // — exact duplicates: one shot, three byte-identical copies under different names/dirs —
     { path: '2014/DSC02000.JPG', body: makeJpeg('2014:08:10 12:00:00', 'dup1'),
       expected: { kind: 'photo', date: '2014-08-10 12:00:00', evidence: 'exif', dupGroup: 1 } },
@@ -376,6 +486,32 @@ export function catalog() {
     //     no original — the save date is only a ceiling; the file goes to ПРОЧЕЕ, never to 2014.
     { path: 'обработанное/безымянный.jpg', body: makeJpegEx({ software: 'Picasa',
         dateTime: '2014:11:20 20:15:00', width: 1000, height: 750, uniq: 'edt1' }),
+      expected: { kind: 'photo', date: null, evidence: 'editor-upper-bound', disputed: true } },
+    // (d) plans/02 §Шаг 2 — the original found BY ITS PIXELS. Four originals of one camera, one per
+    //     year, so `family` narrows nothing; the Photoshop crop keeps the full sensor height and
+    //     70% of the width — the geometry researches/05 measured on the owner's own export. Only a
+    //     pixel comparison can say WHICH of the four it came from, and it must say so decisively.
+    { path: '101MEDIA/DSC00101.JPG', body: makeJpegEx({ dateTimeOriginal: '2011:05:04 09:12:00',
+        make: 'SONY', model: 'DSC-HX9V', pixels: shots.a, uniq: 'pix1' }),
+      expected: { kind: 'photo', date: '2011-05-04 09:12:00', evidence: 'exif' } },
+    { path: '101MEDIA/DSC00102.JPG', body: makeJpegEx({ dateTimeOriginal: '2012:06:15 12:30:00',
+        make: 'SONY', model: 'DSC-HX9V', pixels: shots.b, uniq: 'pix2' }),
+      expected: { kind: 'photo', date: '2012-06-15 12:30:00', evidence: 'exif' } },
+    { path: '101MEDIA/DSC00103.JPG', body: makeJpegEx({ dateTimeOriginal: '2013:07:20 18:05:00',
+        make: 'SONY', model: 'DSC-HX9V', pixels: shots.c, uniq: 'pix3' }),
+      expected: { kind: 'photo', date: '2013-07-20 18:05:00', evidence: 'exif' } },
+    { path: '101MEDIA/DSC00104.JPG', body: makeJpegEx({ dateTimeOriginal: '2014:08:05 07:40:00',
+        make: 'SONY', model: 'DSC-HX9V', pixels: shots.d, uniq: 'pix4' }),
+      expected: { kind: 'photo', date: '2014-08-05 07:40:00', evidence: 'exif' } },
+    { path: '101MEDIA/правка кадра.jpg', body: makeJpegEx({ software: 'Adobe Photoshop CS3 Windows',
+        dateTime: '2015:03:03 09:00:00', pixels: cropPixels(shots.b), uniq: 'pix5' }),
+      expected: { kind: 'photo', date: '2012-06-15 12:30:00', evidence: 'pixel-original',
+                  original: '101MEDIA/DSC00102.JPG' } },
+    // (e) the same shape, but the original is NOT in the tree: no candidate may win decisively, so
+    //     the file must stay honestly undated. This is the guard against the failure mode
+    //     researches/05 §5 measured — a look-alike winning a global threshold.
+    { path: '101MEDIA/правка чужого.jpg', body: makeJpegEx({ software: 'Picasa',
+        dateTime: '2015:04:04 10:00:00', pixels: cropPixels(shots.lost), uniq: 'pix6' }),
       expected: { kind: 'photo', date: null, evidence: 'editor-upper-bound', disputed: true } },
     // — junk → quarantine with provenance (interview #001 Q4 = C) —
     { path: '100MEDIA/Thumbs.db', body: text('fake thumbs db'),

@@ -16,8 +16,15 @@
 //      owner's own season word, when the dir carries one), date honestly null.
 //   4. An editor's save date (editor-save, plans/02 §1.1) NEVER determines — it is pushed to
 //      disputed as the upper bound it is, so the owner sees why the file lost its false year.
+//   5. A RESET CAMERA CLOCK is not a date (owner's decision, 2026-07-28). A claim of 1 January just
+//      after midnight is what a camera shows when its battery has been out — but a real New Year
+//      photograph has the same shape, so the shape alone decides nothing. It is rejected only when
+//      the archive itself proves the clock was wrong: the claimed year is earlier than the earliest
+//      year ANY trustworthy capture claim in the whole collection reports. The owner asked for
+//      exactly that condition — «сброшенным часам камеры не доверять, ЕСЛИ это факт, что они
+//      сброшены» — so suspicion is not enough; the collection has to contradict the claim.
 
-import { EVIDENCE_RANK, formatWall, isPlausibleYear, makeEvidence } from './evidence.mjs';
+import { EVIDENCE_RANK, formatWall, isPlausibleYear, isResetClockShape, makeEvidence } from './evidence.mjs';
 
 /** Kinds that can only ever narrow the date to a year(+season) — they yield 'partial' verdicts. */
 const PARTIAL_KINDS = new Set(['dirname', 'filename-year', 'family', 'dir-cohort']);
@@ -79,7 +86,7 @@ const claimYear = (ev) => (ev.wall ? ev.wall.year : ev.instant.getUTCFullYear())
  *            confidence: string|null, winner: string|null, corroborated: boolean,
  *            evidence: object[], disputed: Array<{kind: string, detail?: string, reason: string}>}}
  */
-export function resolveDate(evidence, { now = new Date() } = {}) {
+export function resolveDate(evidence, { now = new Date(), resetFloorYear = null } = {}) {
   const sorted = [...evidence].sort((a, b) => EVIDENCE_RANK[a.kind] - EVIDENCE_RANK[b.kind]);
   const disputed = [];
   const candidates = [];
@@ -87,6 +94,14 @@ export function resolveDate(evidence, { now = new Date() } = {}) {
   for (const ev of sorted) {
     if (!isPlausibleYear(claimYear(ev), now)) {
       disputed.push({ kind: ev.kind, detail: ev.detail, reason: 'implausible-year' });
+      continue;
+    }
+    // A camera whose battery was out shows 1 January, just after midnight (rule 5 above). The SHAPE
+    // is not enough to reject — a real New Year photograph looks identical — so the claim is only
+    // distrusted when the archive itself proves the clock was wrong: its year is EARLIER than the
+    // earliest year any trustworthy capture claim in this whole collection reports.
+    if (resetFloorYear !== null && ev.wall && isResetClockShape(ev.wall) && ev.wall.year < resetFloorYear) {
+      disputed.push({ kind: ev.kind, detail: ev.detail, reason: 'reset-camera-clock' });
       continue;
     }
     if (ev.kind === 'fs-mtime') continue; // informational only — never a candidate (rule 2 above)

@@ -144,6 +144,10 @@ test('Phase 3 acceptance: every planted case lands where the owner decided', asy
       // undatable → the GLOBAL «прочее», with the owner's folder preserved
       'Из ВК/6V2qnCITQIE.jpg': 'ПРОЧЕЕ/Из ВК/6V2qnCITQIE.jpg',
       'старое/IMAG0001.jpg': 'ПРОЧЕЕ/старое/IMAG0001.jpg',
+      // a proven reset camera clock is not a date either — ПРОЧЕЕ, never the year 2000
+      'старое/IMAG0002.jpg': 'ПРОЧЕЕ/старое/IMAG0002.jpg',
+      // …while a REAL New Year photo of the same shape keeps its date and its season
+      'Мобилка/новогодняя ночь.jpg': '2016/Зима начало года/Мобилка/новогодняя ночь.jpg',
       'скриншоты/Screenshot_2017-05-27-19-34-56-006_com.android.chrome.png':
         '2017/Весна/скриншоты/Screenshot_2017-05-27-19-34-56-006_com.android.chrome.png',
       'Разное/IMG-20160404-WA0001.jpg': '2016/Весна/Разное/IMG-20160404-WA0001.jpg',
@@ -167,6 +171,16 @@ test('Phase 3 acceptance: every planted case lands where the owner decided', asy
       'обработанное/экспорт.jpg': '2012/Весна/обработанное/экспорт.jpg',
       // no family, no original → honest global «прочее», NOT the save year 2014
       'обработанное/безымянный.jpg': 'ПРОЧЕЕ/обработанное/безымянный.jpg',
+      // plans/02 §Шаг 2 — four originals of one camera, one per year (so the family narrows nothing)
+      '101MEDIA/DSC00101.JPG': '2011/Весна/DSC00101.JPG',
+      '101MEDIA/DSC00102.JPG': '2012/Лето/DSC00102.JPG',
+      '101MEDIA/DSC00103.JPG': '2013/Лето/DSC00103.JPG',
+      '101MEDIA/DSC00104.JPG': '2014/Лето/DSC00104.JPG',
+      // the crop lands beside the very photo it was cut from — its date came from those pixels
+      '101MEDIA/правка кадра.jpg': '2012/Лето/правка кадра.jpg',
+      // the crop whose original is NOT in the tree: no decisive match, so honest «ПРОЧЕЕ» — never
+      // the 2015 save year, and never the year of the closest-looking stranger
+      '101MEDIA/правка чужого.jpg': 'ПРОЧЕЕ/правка чужого.jpg',
       // junk is quarantined with its provenance in the name — never deleted (interview #001 Q4)
       '100MEDIA/Thumbs.db': 'ПРОЧЕЕ/_мусор/100MEDIA__Thumbs.db',
       'Мобилка/.nomedia': 'ПРОЧЕЕ/_мусор/Мобилка__.nomedia',

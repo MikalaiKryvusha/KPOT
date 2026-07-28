@@ -28,7 +28,11 @@ import { detectMtimeSpikeDays, mtimeEvidence, resolveDate } from './resolve.mjs'
 import { cohortYearByDir, cohortEvidence } from './cohort.mjs';
 import { familyFacts, familyEvidence } from './family.mjs';
 import { pairSidecars, sidecarEvidence } from './sidecar.mjs';
-import { formatWall, makeEvidence } from './evidence.mjs';
+import {
+  imagePreviews, nominateCandidates, pixelEvidence, searchOriginal,
+  PIXEL_ANCESTOR_LEVELS, PIXEL_MIN_CANDIDATES,
+} from './pixels.mjs';
+import { formatWall, isPlausibleYear, isResetClockShape, makeEvidence } from './evidence.mjs';
 
 /** Kinds that get evidence + a verdict; junk/other are not dated (they are not sorted by date). */
 const MEDIA_KINDS = new Set(['photo', 'video', 'audio']);
@@ -60,10 +64,47 @@ async function collectEvidence(root, asset, sidecars = []) {
 }
 
 /** Resolve (or re-resolve) one asset's verdict in place, keeping evidence rank-sorted. */
-function applyVerdict(asset, evidence, now) {
-  const { evidence: ranked, ...verdict } = resolveDate(evidence, { now });
+function applyVerdict(asset, evidence, now, resetFloorYear = null) {
+  const { evidence: ranked, ...verdict } = resolveDate(evidence, { now, resetFloorYear });
   asset.evidence = ranked;
   asset.verdict = verdict;
+}
+
+/**
+ * Evidence kinds that report an actual capture moment recorded at the time — the only claims strong
+ * enough to say when this collection's photography BEGAN. Inferred years (dirname, cohort, family)
+ * are excluded on purpose: they are guesses, and a guess must not be allowed to discredit a date.
+ */
+const CAPTURE_KINDS = new Set([
+  'exif-original', 'derived-original', 'pixel-original',
+  'filename-timestamp', 'sidecar',
+]);
+
+/**
+ * The earliest year this archive can honestly claim to contain photographs from — the corpus-level
+ * fact that turns "1 January just after midnight" from a suspicion into a finding (owner's decision,
+ * 2026-07-28; see `resolve.mjs` rule 5).
+ *
+ * Two exclusions make it trustworthy: claims that themselves have the reset shape never set the
+ * floor (otherwise one broken camera would license every other broken camera), and implausible years
+ * are ignored (a 1979 EXIF is a defect, not the start of the collection).
+ *
+ * @param {object[][]} evidenceLists  every media file's evidence
+ * @param {Date} now
+ * @returns {number|null}  null when the corpus offers no trustworthy capture claim at all — and then
+ *                         the rule never fires, because nothing has been proven
+ */
+export function corpusFloorYear(evidenceLists, now = new Date()) {
+  let floor = null;
+  for (const list of evidenceLists) {
+    for (const ev of list) {
+      if (!CAPTURE_KINDS.has(ev.kind) || !ev.wall) continue;
+      if (isResetClockShape(ev.wall)) continue;
+      if (!isPlausibleYear(ev.wall.year, now)) continue;
+      if (floor === null || ev.wall.year < floor) floor = ev.wall.year;
+    }
+  }
+  return floor;
 }
 
 /** '/'-separated parent directory of a relative asset path. */
@@ -74,7 +115,7 @@ const dirOf = (relPath) => relPath.split('/').slice(0, -1).join('/');
  * several files share a DocumentID (copies), the lexicographically first path with a real capture
  * date is the reference — path order, never enumeration order (AGENT_GUIDE §canonical order).
  */
-function inheritFromOriginals(annotated, now) {
+function inheritFromOriginals(annotated, now, resetFloorYear) {
   const byDocId = new Map(); // DocumentID → the asset to inherit from
   for (const a of [...annotated].sort((x, y) => (x.path < y.path ? -1 : 1))) {
     const id = a.facts?.documentId;
@@ -89,10 +130,108 @@ function inheritFromOriginals(annotated, now) {
     const inherited = makeEvidence('derived-original', {
       wall: orig.wall,
       dateOnly: orig.dateOnly,
-      detail: `original: '${ref.path}' (${formatWall(orig.wall)}, XMP DocumentID match)`,
+      // Owner-facing text: this detail is printed in the plan's «даты, взятые у исходного снимка»
+      // section, and the owner asked for plain language without jargon (2026-07-28).
+      detail: `исходный снимок: '${ref.path}' (${formatWall(orig.wall)}, совпала метка редактора XMP DocumentID)`,
     });
-    applyVerdict(asset, [...asset.evidence, inherited], now);
+    applyVerdict(asset, [...asset.evidence, inherited], now, resetFloorYear);
   }
+}
+
+/**
+ * Pass 4 (plans/02 §Шаг 2): the original found BY ITS PIXELS, when no identifier led to it.
+ *
+ * This is the only place in KPOT that decodes an image, and it is deliberately the LAST resort: it
+ * runs solely for editor exports that steps 1–3 could not date, and it compares them only against
+ * the same-directory candidates `family.mjs` already nominated. Design and the measurements behind
+ * every constant: researches/05 §7 and researches/06.
+ *
+ * Decoding is grouped BY DIRECTORY on purpose: a folder's candidates are decoded once, reused by
+ * every query in that folder, and dropped before the next one — the previews of a 400-photo folder
+ * are megabytes, and holding a whole archive's worth would not fit.
+ *
+ * @returns {Promise<number>} how many files got a date this way
+ */
+async function inheritFromPixels(root, annotated, byDir, now, { progress = null, resetFloorYear = null } = {}) {
+  const isBrokenClass = (a) => a.kind === 'photo' && a.format === 'jpeg'
+    && a.verdict.status !== 'dated'
+    && a.evidence.some((e) => e.kind === 'editor-save');
+
+  const dirs = new Map(); // dir → queries, in path order (determinism)
+  for (const a of [...annotated].sort((x, y) => (x.path < y.path ? -1 : 1))) {
+    if (!isBrokenClass(a)) continue;
+    const dir = dirOf(a.path);
+    if (!dirs.has(dir)) dirs.set(dir, []);
+    dirs.get(dir).push(a);
+  }
+  if (dirs.size === 0) return 0;
+
+  // Where to look for the original: its OWN folder first, then outward through the ancestors, one
+  // level at a time, stopping at the first level that offers enough candidates.
+  //
+  // Measured on the owner's archive (researches/06 §6) — this is not a generalisation: 201 files are
+  // in the broken class, and 166 of them sit in ONE folder that holds no dated photo at all («фоты
+  // на альб» — pictures collected for an album). Searching strictly inside the folder, as
+  // researches/05 §7 assumed from the owner's own example, could have helped 31 of 201. One level up
+  // the same subtree holds ~80 dated photographs of the same family.
+  const poolFor = (query) => {
+    let dir = dirOf(query.path);
+    for (let level = 0; level <= PIXEL_ANCESTOR_LEVELS; level += 1) {
+      const pool = level === 0
+        ? (byDir.get(dir) ?? [])
+        : annotated.filter((a) => (dir === '' ? true : a.path.startsWith(`${dir}/`)));
+      const nominated = nominateCandidates(query, pool, query.verdict.family);
+      if (nominated.candidates.length >= PIXEL_MIN_CANDIDATES) return nominated;
+      if (dir === '') break;
+      dir = dir.includes('/') ? dir.slice(0, dir.lastIndexOf('/')) : '';
+    }
+    return { candidates: [], available: 0 };
+  };
+
+  // Nominate first, decode second: a query whose neighbourhood holds too few candidates costs nothing.
+  const jobs = [];
+  let decodes = 0;
+  for (const [, queries] of dirs) {
+    const nominated = queries
+      .map((query) => ({ query, ...poolFor(query) }))
+      .filter((j) => j.candidates.length >= PIXEL_MIN_CANDIDATES);
+    if (nominated.length === 0) continue;
+    const files = new Set();
+    for (const j of nominated) { files.add(j.query); for (const c of j.candidates) files.add(c); }
+    decodes += files.size;
+    jobs.push({ nominated, files: [...files] });
+  }
+  if (jobs.length === 0) return 0;
+
+  progress?.start('Ищу оригиналы по пикселям', decodes);
+  let found = 0;
+  for (const job of jobs) {
+    const previews = new Map();
+    for (const asset of job.files) {
+      try {
+        previews.set(asset.path, imagePreviews(await readFile(join(root, ...asset.path.split('/')))));
+      } catch {
+        previews.set(asset.path, null); // unreadable is not fatal — this file simply cannot compete
+      }
+      progress?.tick();
+    }
+    for (const { query, candidates, available } of job.nominated) {
+      const qp = previews.get(query.path);
+      if (!qp) continue; // the export itself did not decode (truncated, or metadata-only)
+      const pool = candidates
+        .map((asset) => ({ path: asset.path, date: asset.verdict.date, asset, previews: previews.get(asset.path) }))
+        .filter((c) => c.previews);
+      if (pool.length < PIXEL_MIN_CANDIDATES) continue;
+      const decision = searchOriginal({ previews: qp }, pool);
+      if (!decision.decisive) continue; // no decisive margin → the file stays honestly undated
+      const evidence = pixelEvidence(decision, decision.best.asset, { available });
+      if (!evidence) continue;
+      applyVerdict(query, [...query.evidence, evidence], now, resetFloorYear);
+      found += 1;
+    }
+  }
+  progress?.done(null);
+  return found;
 }
 
 /**
@@ -101,11 +240,14 @@ function inheritFromOriginals(annotated, now) {
  *
  * @param {string} root  the scanned tree's root (asset paths are relative to it)
  * @param {object[]} assets  from scanTree
- * @param {{now?: Date, concurrency?: number}} [opts]
+ * @param {{now?: Date, concurrency?: number, pixels?: boolean, progress?: object}} [opts]
+ *        `pixels: false` skips the pixel search entirely (the CLI's `--no-pixels`).
  * @returns {Promise<{dated: number, partial: number, unknown: number,
  *                    errors: Array<{path: string, error: string}>}>}
  */
-export async function annotateAssets(root, assets, { now = new Date(), concurrency = DEFAULT_CONCURRENCY } = {}) {
+export async function annotateAssets(root, assets, {
+  now = new Date(), concurrency = DEFAULT_CONCURRENCY, pixels = true, progress = null,
+} = {}) {
   const media = assets.filter(a => MEDIA_KINDS.has(a.kind));
   // Copy-spike detection is corpus-level: one pass over all media mtimes before any per-file work.
   const spikeDays = detectMtimeSpikeDays(media.map(a => a.mtimeMs));
@@ -113,16 +255,24 @@ export async function annotateAssets(root, assets, { now = new Date(), concurren
   // (`other`) and would be invisible to a media-only pass.
   const sidecarsByMedia = pairSidecars(assets);
 
+  // Pass 1 is split in two on purpose: every file's evidence is COLLECTED first, because one of the
+  // resolver's rules is corpus-level. Deciding whether a "1 January 00:25" claim is a reset camera
+  // clock needs to know when this collection's photography actually began, and that is not knowable
+  // from the file being resolved (owner's decision 2026-07-28; `resolve.mjs` rule 5).
   const results = await mapLimit(media, concurrency, async (asset) => {
     const evidence = await collectEvidence(root, asset, sidecarsByMedia.get(asset.path));
     evidence.push(...mtimeEvidence(asset.mtimeMs, spikeDays));
-    applyVerdict(asset, evidence, now);
+    return evidence;
   });
+  const resetFloorYear = corpusFloorYear(results.filter(r => r.ok).map(r => r.value), now);
+  for (const [i, asset] of media.entries()) {
+    if (results[i].ok) applyVerdict(asset, results[i].value, now, resetFloorYear);
+  }
 
   const annotated = media.filter(a => a.verdict);
 
   // Pass 2 — the exact original by XMP DocumentID ↔ DerivedFrom (plans/02 §1.2).
-  inheritFromOriginals(annotated, now);
+  inheritFromOriginals(annotated, now, resetFloorYear);
 
   // Pass 3 — corpus inference for what is still undated: dir-cohort year consensus
   // (owner-approved 2026-07-24) and camera-family signs (plans/02 §1.3). The resolver's precedence
@@ -152,9 +302,13 @@ export async function annotateAssets(root, assets, { now = new Date(), concurren
         if (fe) extra.push(fe);
       }
     }
-    if (extra.length > 0) applyVerdict(asset, [...asset.evidence, ...extra], now);
+    if (extra.length > 0) applyVerdict(asset, [...asset.evidence, ...extra], now, resetFloorYear);
     if (fam) asset.verdict.family = fam;
   }
+
+  // Pass 4 — the last resort: find the actual original BY ITS PIXELS among the candidates pass 3
+  // already narrowed down (plans/02 §Шаг 2). Runs only for editor exports still without a date.
+  if (pixels) await inheritFromPixels(root, annotated, byDir, now, { progress, resetFloorYear });
 
   const counts = { dated: 0, partial: 0, unknown: 0, errors: [] };
   for (const [i, r] of results.entries()) {

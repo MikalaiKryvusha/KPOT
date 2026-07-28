@@ -36,6 +36,17 @@ function suffixed(name, n) {
 }
 
 /**
+ * Evidence kinds whose date belongs to ANOTHER file — the original photograph this one was made
+ * from (plans/02 §1.2 by the editor's identity chain, §Шаг 2 by comparing pixels). The value is how
+ * the original was found, said in the owner's words: he asked for plain language without jargon
+ * (2026-07-28), and «pixel-original» is jargon.
+ */
+const INHERITED_FROM_ORIGINAL = {
+  'derived-original': 'по метке редактора',
+  'pixel-original': 'по самому изображению',
+};
+
+/**
  * The owner-facing family line for an editor export with no capture date (plans/02 §1.3), built
  * from whatever signs exist: «семейство GT-I9100 (по геометрии кадра), соседи той же камеры:
  * 2011–2013, снято не позже 2014-02». Deterministic — pure string assembly.
@@ -99,6 +110,7 @@ export function buildPlan(scan, { now = new Date(), decisions = new Map() } = {}
   const operations = [];
   const stay = [];
   const disputed = [];
+  const inherited = [];
 
   for (const asset of scan.assets) {
     const origPath = originalOf.get(asset.path);
@@ -151,6 +163,19 @@ export function buildPlan(scan, { now = new Date(), decisions = new Map() } = {}
         path: asset.path,
         issue: 'editor-export-no-capture-date',
         detail: familyPhrase(asset.verdict.family),
+      });
+    }
+    // plans/02 §1.2 and §Шаг 2 — a date this file does not own: it was inherited from the ORIGINAL
+    // photograph, found either by the editor's own identity chain or by comparing pixels. That is a
+    // claim the owner must be able to check with his own eyes, so it gets its own report section
+    // naming the source file — not a line of evidence jargon inside a move.
+    if (asset.verdict?.winner in INHERITED_FROM_ORIGINAL) {
+      const ev = (asset.evidence ?? []).find((e) => e.kind === asset.verdict.winner);
+      inherited.push({
+        path: asset.path,
+        date: asset.verdict.date,
+        how: INHERITED_FROM_ORIGINAL[asset.verdict.winner],
+        detail: ev?.detail ?? '',
       });
     }
 
@@ -215,6 +240,7 @@ export function buildPlan(scan, { now = new Date(), decisions = new Map() } = {}
     stay,
     duplicates: groups,
     disputed,
+    inherited,
     collisions,
     emptied,
     suspicious,
@@ -361,6 +387,21 @@ export function renderPlan(plan) {
       L.push(`    хранитель: ${g.keeper}`);
       L.push(`               (выбран: ${g.keeperReason})`);
       for (const copy of g.copies) L.push(`    копия:     ${copy}  → ПРОЧЕЕ/_дубликаты/`);
+    }
+    L.push('');
+  }
+
+  if (plan.inherited?.length > 0) {
+    L.push('ДАТЫ, ВЗЯТЫЕ У ИСХОДНОГО СНИМКА');
+    L.push('-'.repeat(60));
+    L.push('  У этих файлов своей даты съёмки нет: её стёр фоторедактор, когда файл сохраняли.');
+    L.push('  KPOT нашёл среди ваших же фотографий тот самый исходный снимок и взял дату у него.');
+    L.push('  Ниже указано, какой это файл — чтобы вы могли проверить своими глазами.');
+    L.push('');
+    for (const i of plan.inherited) {
+      L.push(`  ${i.path}`);
+      L.push(`    дата ${i.date}, найдено ${i.how}`);
+      if (i.detail) L.push(`    ${i.detail}`);
     }
     L.push('');
   }

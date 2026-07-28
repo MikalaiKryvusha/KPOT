@@ -90,6 +90,12 @@ These hold at all times. Breaking one is a bug even if the run completes and the
 3. **Every DateVerdict is explainable.** A date is never invented. A verdict names its Evidence and the
    rule that picked the winner; an Asset with no usable Evidence gets *unknown* and goes to global
    "прочее" — it is never quietly assigned to a plausible year.
+   *Sharpened 2026-07-28 by the pixel search (`src/meta/pixels.mjs`):* where a claim rests on a
+   COMPARISON rather than on a record, the comparison must be decided **by the margin between the best
+   and the second-best candidate, never by a threshold**. Measured on the owner's archive
+   (`researches/06` §3), the best candidate can score better than a true original even when the true
+   original does not exist — so a threshold would have fabricated dates while looking rigorous. No
+   decisive margin means *unknown*, exactly as no evidence does.
 4. **Conflicts surface, they do not resolve themselves.** Contradicting Evidence, ambiguous seasons and
    destination collisions are recorded in the SortPlan's disputed section and shown to the owner.
 5. **Nothing the owner put there is destroyed.** Operations move; they never delete a file. Duplicates

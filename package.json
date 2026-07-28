@@ -27,6 +27,7 @@
     "kaif:update": "node .kaif/kaif-core.mjs update"
   },
   "dependencies": {
-    "exifreader": "^4.41.3"
+    "exifreader": "^4.41.3",
+    "jpeg-js": "^0.4.4"
   }
 }

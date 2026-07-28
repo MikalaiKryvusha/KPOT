@@ -204,6 +204,15 @@ test('ACCEPTANCE: every planted date recovered, every undatable honestly unknown
           assert.ok(a.evidence.find(e => e.kind === 'derived-original')?.detail.includes('оригинал.jpg'),
             `the report must name the original it took the date from: ${f.path}`);
           break;
+        case 'pixel-original': // plans/02 §Шаг 2 — the original found BY ITS PIXELS among neighbours
+          assert.equal(v.status, 'dated', f.path);
+          assert.equal(v.winner, 'pixel-original', f.path);
+          assert.equal(v.date, exp.date, `the ORIGINAL's real capture date, not the save date: ${f.path}`);
+          assert.ok(a.evidence.find(e => e.kind === 'pixel-original')?.detail.includes(exp.original),
+            `the report must name the file the date came from: ${f.path}`);
+          assert.ok(v.disputed.some(d => d.reason === 'editor-save-date'),
+            `the overruled save date must stay visible even when pixels won: ${f.path}`);
+          break;
         case 'family': // plans/02 §1.3 — camera family narrowed to one year: flagged ASSUMPTION
           assert.equal(v.status, 'partial', f.path);
           assert.equal(v.winner, 'family', f.path);
@@ -228,6 +237,12 @@ test('ACCEPTANCE: every planted date recovered, every undatable honestly unknown
           assert.equal(v.date, exp.date, f.path);
           assert.ok(a.evidence.find(e => e.kind === 'sidecar')?.detail,
             `the report must name the sidecar the date came from: ${f.path}`);
+          break;
+        case 'exif-reset-clock': // owner 2026-07-28 — a proven reset clock is not a date
+          assert.equal(v.status, 'unknown', `a reset camera clock must not date a file: ${f.path}`);
+          assert.equal(v.date, null, f.path);
+          assert.ok(v.disputed.some(d => d.reason === 'reset-camera-clock'),
+            `the owner must see WHY the date was refused: ${f.path}`);
           break;
         case 'exif-implausible':
           assert.equal(v.status, 'unknown', `broken clock must not be trusted: ${f.path}`);

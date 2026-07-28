@@ -27,6 +27,11 @@ export const EVIDENCE_PRECEDENCE = Object.freeze([
   'derived-original',    // the ORIGINAL file's DateTimeOriginal, inherited via an exact XMP
                          // DocumentID ↔ DerivedFrom match (plans/02 §1.2) — a real shutter moment,
                          // just read from the file this one was exported from
+  'pixel-original',      // the ORIGINAL's DateTimeOriginal, inherited after finding that original
+                         // BY ITS PIXELS among the same-camera neighbours (plans/02 §Шаг 2,
+                         // designed by researches/05 §7). Also a real shutter moment read from
+                         // another file — one notch below the XMP chain because that match is an
+                         // exact identifier and this one is a decisive comparison
   'filename-timestamp',  // full date(+time) written into the name by the device (wall)
   'container-created',   // MP4/MOV mvhd or QuickTime creation date (instant, UTC)
   'filename-epoch',      // unix epoch in the name, seconds or ms (instant)
@@ -53,6 +58,7 @@ export const EVIDENCE_RANK = Object.freeze(
 export const DEFAULT_CONFIDENCE = Object.freeze({
   'exif-original': 'high',
   'derived-original': 'high',
+  'pixel-original': 'high',
   'filename-timestamp': 'high',
   'container-created': 'high',
   'filename-epoch': 'high',
@@ -86,6 +92,24 @@ export function isPlausibleYear(year, now = new Date()) {
   return Number.isInteger(year)
     && year >= MIN_PLAUSIBLE_YEAR
     && year <= now.getFullYear() + MAX_FUTURE_YEARS;
+}
+
+/**
+ * Does this claim have the SHAPE of a camera whose clock was reset — 1 January, in the first hour
+ * after midnight? That is what a camera shows after the battery has been out: the manufacturer's
+ * default date, plus however long the owner then spent taking pictures.
+ *
+ * The shape ALONE proves nothing, and this function is deliberately not a rejection rule: a New
+ * Year photograph taken at 00:25 on 1 January has exactly the same shape and is perfectly real.
+ * The resolver only distrusts such a claim when the archive itself says the clock must have been
+ * wrong — see `resolveDate`'s `resetFloorYear` (the owner's rule, 2026-07-28: «сброшенным часам
+ * камеры не доверять, ЕСЛИ это факт, что они сброшены»).
+ *
+ * @param {{year:number,month:number,day:number,hour?:number}} [wall]
+ * @returns {boolean}
+ */
+export function isResetClockShape(wall) {
+  return Boolean(wall) && wall.month === 1 && wall.day === 1 && (wall.hour ?? 0) === 0;
 }
 
 // --- Wall-clock helpers ------------------------------------------------------------------------

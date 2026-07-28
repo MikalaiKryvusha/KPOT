@@ -53,6 +53,9 @@ Options:
   --allow-no-snapshot           apply: proceed where the filesystem cannot make hardlinks
                                 (exFAT/FAT32). Structure stays restorable, CONTENT is unprotected.
   --no-cache                    ignore and do not refresh the scan cache — re-hash everything
+  --no-pixels                   skip the search for an edited photo's original by its pixels
+                                (plans/02 §Шаг 2 — the only step that decodes images, and the only
+                                slow one; without it those files keep their «снято не позже» ceiling)
   --resume                      apply: continue an interrupted run instead of starting a new one
                                 (same backup, same journal — one rollback still undoes everything)
   -h, --help                    show this help and exit
@@ -95,6 +98,7 @@ export async function run(argv, { out = console.log, err = console.error } = {})
         'dry-run': { type: 'boolean' },
         'allow-no-snapshot': { type: 'boolean' },
         'no-cache': { type: 'boolean' },
+        'no-pixels': { type: 'boolean' },
         resume: { type: 'boolean' },
         json: { type: 'boolean' },
       },
@@ -135,15 +139,16 @@ export async function run(argv, { out = console.log, err = console.error } = {})
   }
 
   const cache = parsed.values['no-cache'] !== true;
+  const pixels = parsed.values['no-pixels'] !== true;
   // A live progress line, but only when a person is watching: `createProgress` is inert unless
   // stderr is a terminal, so piping or redirecting output is unaffected and stdout never sees it.
   const progress = createProgress();
 
-  if (command === 'scan') return runScan(target, { out, err, cache, progress });
-  if (command === 'plan') return runPlan(target, { out, err, cache, progress, json: parsed.values.json === true });
+  if (command === 'scan') return runScan(target, { out, err, cache, pixels, progress });
+  if (command === 'plan') return runPlan(target, { out, err, cache, pixels, progress, json: parsed.values.json === true });
   if (command === 'apply') {
     return runApply(target, {
-      out, err, cache, progress,
+      out, err, cache, pixels, progress,
       dryRun: parsed.values['dry-run'] === true,
       allowNoSnapshot: parsed.values['allow-no-snapshot'] === true,
       resume: parsed.values.resume === true,
@@ -169,7 +174,7 @@ export async function run(argv, { out = console.log, err = console.error } = {})
  * Re-plans the tree immediately before executing, on purpose: applying a plan built minutes or days
  * ago against a tree that has changed since is exactly how a sorter destroys data.
  */
-async function runApply(dir, { out, err, dryRun, allowNoSnapshot, json, cache, progress, resume }) {
+async function runApply(dir, { out, err, dryRun, allowNoSnapshot, json, cache, pixels, progress, resume }) {
   const root = resolve(dir);
   let result;
   try {
@@ -187,7 +192,7 @@ async function runApply(dir, { out, err, dryRun, allowNoSnapshot, json, cache, p
       return EXIT_ERROR;
     }
 
-    const { result: scan } = await scanAndAnnotate(root, { cache, progress });
+    const { result: scan } = await scanAndAnnotate(root, { cache, pixels, progress });
     const { plan, decisionsPath } = await planWithDecisions(root, scan);
     const resumeId = resume ? unfinished.at(-1).runId : null;
     // Folders awaiting a decision are announced BEFORE the run, not after: the owner asked to be
@@ -243,11 +248,11 @@ async function runRollback(runId, dir, { out, err, dryRun }) {
  * re-hashing 551 GB (`researches/02` §4) — the plan→apply pair alone pays that cost twice without it.
  * `--no-cache` opts out entirely.
  */
-async function scanAndAnnotate(dir, { cache = true, progress = null } = {}) {
+async function scanAndAnnotate(dir, { cache = true, pixels = true, progress = null } = {}) {
   const loaded = cache ? await loadScanCache(dir) : { entries: null };
   const result = await scanTree(dir, { cache: loaded.entries, progress });
   progress?.start('Определяю даты', result.assets.length);
-  const verdicts = await annotateAssets(result.root, result.assets);
+  const verdicts = await annotateAssets(result.root, result.assets, { pixels, progress });
   result.errors.push(...verdicts.errors);
   progress?.done(null);
   if (cache) await saveScanCache(dir, result.assets);
@@ -273,10 +278,10 @@ async function planWithDecisions(dir, scan) {
  * with `--json`, which is what Phase 4/5 (dry run, apply, rollback) will consume.
  * Nothing is written and nothing is moved: planning is strictly read-only.
  */
-async function runPlan(dir, { out, err, json, cache, progress }) {
+async function runPlan(dir, { out, err, json, cache, pixels, progress }) {
   let plan, scan, unreadable;
   try {
-    const { result } = await scanAndAnnotate(dir, { cache, progress });
+    const { result } = await scanAndAnnotate(dir, { cache, pixels, progress });
     scan = result;
     ({ plan, unreadable } = await planWithDecisions(dir, result));
   } catch (e) {
@@ -307,10 +312,10 @@ function cacheNote(scan) {
  * `kpot scan dir > map.json` just works. Read-only over the tree (RULE 1). Per-file errors are
  * inside the JSON and do not fail the run; only a scan-level failure exits non-zero.
  */
-async function runScan(dir, { out, err, cache, progress }) {
+async function runScan(dir, { out, err, cache, pixels, progress }) {
   let result, verdicts;
   try {
-    ({ result, verdicts } = await scanAndAnnotate(dir, { cache, progress }));
+    ({ result, verdicts } = await scanAndAnnotate(dir, { cache, pixels, progress }));
   } catch (e) {
     err(`kpot scan: ${e.message}`);
     return EXIT_ERROR;
