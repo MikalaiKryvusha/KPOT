@@ -163,6 +163,32 @@ sufficient by itself** — which §5 explains.
    not asked for it and it turns every §5.1 risk from theoretical into real), no auto-update, no
    telemetry, no thumbnails until the owner says so.
 
+## 7a. What the owner decided, and the measurement that supports it (2026-07-29)
+
+The recommendation above said "design for the installer". **The owner chose the portable package
+instead** — «проще портабл. Скачал - распаковал - готово» — and «портабл - нет этой проблемы» about
+signing. Two measurements taken on this machine settle whether that is as clean as it sounds:
+
+| Measured 2026-07-29 | Value |
+|---|---|
+| `node.exe` (v24.15.0) Authenticode signature | **Valid**, `CN=OpenJS Foundation` |
+| `node.exe` size on disk | 87.4 MB |
+| …compressed into a ZIP | **32.7 MB** (63% reduction, 4 s) |
+
+**He is right, and for a better reason than "installers are scary".** A portable package that ships
+**Node's own signed binary** plus our `.mjs` sources never introduces an unsigned executable at all —
+so the SmartScreen *unknown publisher* prompt, which §5.5 flagged as the worst first-run experience,
+has nothing to fire on. The single-exe (SEA) route would have re-created exactly that problem, because
+injecting our code into the binary invalidates its signature. Choosing portable therefore **deletes**
+the code-signing question rather than deferring it — and the whole download is 33 MB, not 50–80.
+
+**The residual, stated honestly and NOT yet verified locally:** files extracted from a ZIP downloaded
+by a browser inherit the Mark-of-the-Web, and Windows' Attachment Manager can still show an
+"Open File — Security Warning" on a `.cmd` launcher (this is a different mechanism from SmartScreen
+reputation). The design answer is to make that a one-time event: the first run offers to create a
+desktop shortcut, and a shortcut created locally carries no Mark-of-the-Web, so every later launch is
+silent. **This must be verified on a real download before the epic plan promises it.**
+
 ## 8. Sources I could not open — listed, not quoted
 
 - The Oligo "0.0.0.0 Day" post, the NN/g proximity article, the SmartScreen/code-signing guides and
