@@ -62,7 +62,7 @@ sorting half a terabyte takes minutes, not hours.
 ### Status
 
 🚧 **All four phases work end to end, and the tool has now sorted a real archive.** Verified by
-156 green tests *and* by a supervised run on a 3 397-file / 13 GB sample of a genuinely messy
+171 green tests *and* by a supervised run on a 3 397-file / 13 GB sample of a genuinely messy
 551 GB collection.
 
 ```
@@ -169,7 +169,7 @@ KPOT **не переместит ни одного файла**, пока не �
 ### Статус
 
 🚧 **Все четыре фазы работают от начала до конца, и инструмент уже разобрал настоящий архив.**
-Проверено 156 зелёными тестами *и* контролируемым прогоном на выборке из 3 397 файлов / 13 ГБ,
+Проверено 171 зелёным тестом *и* контролируемым прогоном на выборке из 3 397 файлов / 13 ГБ,
 взятой из по-настоящему захламлённой коллекции на 551 ГБ.
 
 ```
