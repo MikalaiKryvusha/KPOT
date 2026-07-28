@@ -5,6 +5,7 @@
 # KPOT — Krinik Photo Organizer Tool
 
 ![License](https://img.shields.io/badge/license-MIT-green)
+![Release](https://img.shields.io/badge/release-0.1%20«First%20KPOT»-blue)
 ![Status](https://img.shields.io/badge/status-all%20phases%20work%20·%20sorted%20a%20real%20archive-brightgreen)
 ![Node](https://img.shields.io/badge/node-%E2%89%A520-brightgreen)
 ![Platform](https://img.shields.io/badge/platform-Windows--first-blue)
@@ -59,11 +60,25 @@ Every ambiguous case (conflicting dates, suspicious duplicates) is documented an
 pre-sort master plan — never resolved silently. Moves are filesystem *renames*, not copy+delete —
 sorting half a terabyte takes minutes, not hours.
 
+### Install
+
+Node.js ≥ 20, nothing else — no build step, no native modules, one runtime dependency.
+
+```bash
+# from the release
+npm i -g https://github.com/MikalaiKryvusha/KPOT/releases/download/v0.1/kpot-0.1.0.tgz
+kpot --help
+
+# or from source
+git clone https://github.com/MikalaiKryvusha/KPOT.git && cd KPOT && npm i
+node bin/kpot.mjs --help
+```
+
 ### Status
 
-🚧 **All four phases work end to end, and the tool has now sorted a real archive.** Verified by
-171 green tests *and* by a supervised run on a 3 397-file / 13 GB sample of a genuinely messy
-551 GB collection.
+🎉 **Release 0.1 “First KPOT”.** All four phases work end to end, and the tool has already sorted a
+real archive. Verified by 171 green tests *and* by a supervised run on a 3 397-file / 13 GB sample
+of a genuinely messy 551 GB collection.
 
 ```
 kpot scan <dir>               what each file is, and when it was taken — with the evidence
@@ -96,13 +111,20 @@ What is behind that:
 - **It asks instead of guessing** — folders whose name cannot say whether they are yours or a
   program's are set aside in `НА_РАЗБОР/`, keeping their original structure, and only when sorting
   would actually scatter them. You answer in a plain text file; answers survive between runs.
+- **A file with no date of its own can borrow its twin's** — a camera writes a `.THM` thumbnail next
+  to a video, and [sidecar evidence](src/meta/sidecar.mjs) reads it. That matters more than it
+  sounds: AVI carries no container date at all, so on the real archive 25 videos knew only a folder
+  year — and now they are dated to the second. The thumbnails themselves go to quarantine, not into
+  your gallery.
 - **Idempotent** — sorting an already-sorted library moves nothing.
 - Grounded in real chaos: [prior-art research](researches/01_prior_art.md) ·
   [real-archive survey](researches/02_real_archive_survey.md) ·
-  [the first real run](researches/03_first_real_run.md), which found four bugs no synthetic fixture had.
+  [the first real run](researches/03_first_real_run.md), which found four bugs no synthetic fixture
+  had · [what a sidecar really contains](researches/04_sidecars.md).
 
-Still ahead: a tagged release; then, at the owner's word, pixel-level search for a lost photo's
-original ([plan 02](plans/02_lost_photo_family.md), steps 2–3).
+Still ahead: pixel-level search for a lost photo's original
+([plan 02](plans/02_lost_photo_family.md), step 2 — authorized by the owner), then a desktop GUI
+over the same plan artifact ([idea 02](ideas/02_electron_gui.md)).
 
 Roadmap: `MASTER_PLAN.md` · current state: `STATUS.md`.
 
@@ -166,11 +188,25 @@ KPOT **не переместит ни одного файла**, пока не �
 пред-сортировочном мастер-плане — ничего не решается молча. Перемещения — это *переименования* в
 файловой системе, а не копирование с удалением: сортировка полутерабайта занимает минуты, а не часы.
 
+### Установка
+
+Нужен только Node.js ≥ 20 — ни сборки, ни нативных модулей, одна зависимость времени выполнения.
+
+```bash
+# из релиза
+npm i -g https://github.com/MikalaiKryvusha/KPOT/releases/download/v0.1/kpot-0.1.0.tgz
+kpot --help
+
+# или из исходников
+git clone https://github.com/MikalaiKryvusha/KPOT.git && cd KPOT && npm i
+node bin/kpot.mjs --help
+```
+
 ### Статус
 
-🚧 **Все четыре фазы работают от начала до конца, и инструмент уже разобрал настоящий архив.**
-Проверено 171 зелёным тестом *и* контролируемым прогоном на выборке из 3 397 файлов / 13 ГБ,
-взятой из по-настоящему захламлённой коллекции на 551 ГБ.
+🎉 **Релиз 0.1 «First KPOT».** Все четыре фазы работают от начала до конца, и инструмент уже разобрал
+настоящий архив. Проверено 171 зелёным тестом *и* контролируемым прогоном на выборке из
+3 397 файлов / 13 ГБ, взятой из по-настоящему захламлённой коллекции на 551 ГБ.
 
 ```
 kpot scan <dir>               что за файл и когда снят — вместе с уликами
@@ -203,14 +239,19 @@ kpot rollback <run-id> <dir>  всё возвращается как было
 - **Спрашивает, а не угадывает** — папки, по имени которых нельзя понять, ваши они или созданы
   программой, откладываются в `НА_РАЗБОР/` со своей исходной структурой — и только если сортировка
   их действительно разорвёт. Отвечаете в обычном текстовом файле, ответы сохраняются между прогонами.
+- **Файл без своей даты берёт её у близнеца** — камера кладёт рядом с видео миниатюру `.THM`, и
+  [доказательство из сайдкара](src/meta/sidecar.mjs) её читает. Это важнее, чем звучит: у AVI нет
+  даты в контейнере вообще, поэтому на реальном архиве 25 видео знали только год папки — а теперь
+  датированы до секунды. Сами миниатюры едут в карантин, а не в вашу галерею.
 - **Идемпотентность** — сортировка уже разобранной библиотеки не двигает ничего.
 - Опирается на реальный хаос: [исследование готовых решений](researches/01_prior_art.md) ·
   [обзор реального архива](researches/02_real_archive_survey.md) ·
   [первый настоящий прогон](researches/03_first_real_run.md), который нашёл четыре бага, невидимых
-  ни одной синтетической фикстуре.
+  ни одной синтетической фикстуре · [что на самом деле лежит в сайдкаре](researches/04_sidecars.md).
 
-Впереди: релиз с тегом; затем, по слову владельца, — поиск оригинала потерявшегося фото по
-пикселям ([план 02](plans/02_lost_photo_family.md), шаги 2–3).
+Впереди: поиск оригинала потерявшегося фото по пикселям
+([план 02](plans/02_lost_photo_family.md), шаг 2 — владелец дал добро), затем десктопный GUI над тем
+же артефактом плана ([идея 02](ideas/02_electron_gui.md)).
 
 
 Дорожная карта: `MASTER_PLAN.md` · текущее состояние: `STATUS.md`.

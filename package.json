@@ -1,6 +1,6 @@
 {
   "name": "kpot",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Turns a chaotic home photo/video collection into a chronological library: scans, dates by metadata, groups duplicates, sorts into year/season folders — with a dry run, a backup commit and rollback.",
   "type": "module",
   "license": "MIT",
@@ -12,6 +12,11 @@
   "bin": {
     "kpot": "./bin/kpot.mjs"
   },
+  "//files": "What a user installing KPOT actually needs. Without this npm packs the WHOLE repo — the release rehearsal for 0.1 produced a 17 MB tarball carrying the .psd logo source, the KAIF framework and every internal working document. npm adds package.json/README/LICENSE by itself.",
+  "files": [
+    "bin",
+    "src"
+  ],
   "engines": {
     "node": ">=20"
   },

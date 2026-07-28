@@ -11,6 +11,9 @@ node_modules/
 *.log
 /.kpot-runs/
 
+# npm pack artifacts (release rehearsals) — built on demand, never versioned
+*.tgz
+
 # OS
 Thumbs.db
 .DS_Store
