@@ -529,7 +529,7 @@
     <div class="window" style="position:relative">
       <div class="titlebar">
         <span class="dots"><i></i><i></i><i></i></span>
-        <span class="name" id="d-title">KPOT — разбор фотоархива</span>
+        <span class="name" id="d-title">Krinik Photo Organizer Tool (KPOT)</span>
         <span class="url">127.0.0.1:8384</span>
       </div>
       <div class="modebar">
@@ -565,6 +565,11 @@
           <span class="when">библиотека собрана 29 июля в 14:02</span>
           <span class="spacer"></span>
           <button class="link" data-toast="Открыл бы папку D:\Фото в проводнике">Открыть папку</button>
+          <span class="seg" id="lang-seg" style="margin-left:6px">
+            <button aria-pressed="true">Рус</button>
+            <button aria-pressed="false">Eng</button>
+          </span>
+          <button class="btn btn-ghost" data-toast="Спросил бы, точно ли выключить, и остановил бы сервер">Завершить работу</button>
         </div>
 
         <div class="sec">
@@ -664,6 +669,8 @@
       <div class="note"><h4>Пульт умеет</h4><p>Запускать заново любой из трёх прогонов — разведку, план, сортировку; показывать, что требует решения; доливать новые файлы из папки НОВОЕ; откатывать любой прошлый прогон.</p></div>
       <div class="note"><h4>Без миниатюр</h4><p>Смотреть фотографии — работа проводника, а не наша. Везде, где нужен глаз, стоит ссылка «открыть папку», и Windows показывает снимки сам.</p></div>
       <div class="note"><h4>Что это даёт</h4><p>Первый раз человека ведут за руку, а дальше он получает пульт, а не мастер, который каждый раз спрашивает одно и то же.</p></div>
+      <div class="note"><h4>Сервер и «морда»</h4><p>Закрытая вкладка программу не выключает: сортировка идёт минутами и не должна умирать оттого, что кто-то закрыл окно. Поэтому в пульте есть явное «Завершить работу», а повторный запуск ярлыка находит уже работающий сервер и просто открывает «морду» на нём.</p></div>
+      <div class="note"><h4>Два языка</h4><p>Переключатель «Рус / Eng» в шапке: все надписи живут в словаре с первой строки кода — дёшево сразу и дорого задним числом.</p></div>
     </div>
   </section>
 
@@ -672,7 +679,7 @@
     <div class="window">
       <div class="titlebar">
         <span class="dots"><i></i><i></i><i></i></span>
-        <span class="name">KPOT — разбор фотоархива</span>
+        <span class="name">Krinik Photo Organizer Tool (KPOT)</span>
         <span class="url">127.0.0.1:8384</span>
       </div>
       <div class="screen wiz" id="v1-wiz">
@@ -705,7 +712,7 @@
     <div class="window" style="position:relative">
       <div class="titlebar">
         <span class="dots"><i></i><i></i><i></i></span>
-        <span class="name">KPOT — план разбора</span>
+        <span class="name">Krinik Photo Organizer Tool (KPOT) — план разбора</span>
         <span class="url">127.0.0.1:8384/план</span>
       </div>
       <div class="screen" style="grid-template-rows: 1fr auto auto">
@@ -786,7 +793,7 @@
     <div class="window">
       <div class="titlebar">
         <span class="dots"><i></i><i></i><i></i></span>
-        <span class="name">KPOT — пред-сортировочный мастер-план</span>
+        <span class="name">Krinik Photo Organizer Tool (KPOT) — мастер-план</span>
         <span class="url">127.0.0.1:8384/отчёт</span>
       </div>
       <div class="screen doc">
@@ -846,7 +853,7 @@
     <div class="window">
       <div class="titlebar">
         <span class="dots"><i></i><i></i><i></i></span>
-        <span class="name">KPOT — просмотр библиотеки</span>
+        <span class="name">Krinik Photo Organizer Tool (KPOT) — библиотека</span>
         <span class="url">127.0.0.1:8384/библиотека</span>
       </div>
       <div class="screen expl">
@@ -886,7 +893,7 @@
     <div class="window">
       <div class="titlebar">
         <span class="dots"><i></i><i></i><i></i></span>
-        <span class="name">KPOT</span>
+        <span class="name">Krinik Photo Organizer Tool (KPOT)</span>
         <span class="url">127.0.0.1:8384</span>
       </div>
       <div class="screen dash">
@@ -1141,7 +1148,7 @@
       document.querySelectorAll('[data-variant="0"] .stage').forEach((s) => {
         s.classList.toggle('on', s.dataset.stage === stage);
       });
-      dTitle.textContent = stage === 'ctl' ? 'KPOT — пульт управления' : 'KPOT — разбор фотоархива';
+      dTitle.textContent = stage === 'ctl' ? 'Krinik Photo Organizer Tool (KPOT) — пульт' : 'Krinik Photo Organizer Tool (KPOT)';
       dHint.textContent = hints[stage];
     });
   });
@@ -1183,6 +1190,14 @@
     libTable.appendChild(misc);
     wireToasts(libTable);
   }
+  // переключатель языка — в макете только переключается, надписи не переводятся
+  const langSeg = document.getElementById('lang-seg');
+  langSeg.querySelectorAll('button').forEach((b) => {
+    b.addEventListener('click', () => {
+      langSeg.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    });
+  });
+
   const libSeg = document.getElementById('lib-seg');
   libSeg.querySelectorAll('button').forEach((b) => {
     b.addEventListener('click', () => {

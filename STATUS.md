@@ -345,6 +345,48 @@ The owner authorised the agent to make its own sample: «создай себе �
   album folder, where 94 of 95 exports are refused because their originals do not exist — both
   behaviours are correct, and that is the point of deciding by margin.)
 
+### Session of 2026-07-29 — the interface epic: researched, designed, and fully agreed
+No product code this session by design: the owner's own order of work is **эпик → фазы →
+операционные планы**, and his canon forbids designing an epic before reading what the field settled.
+Both were done, and all ten forks are now closed.
+
+- **`researches/07_local_ui_and_delivery.md`** — prior-art review for a local browser UI and for
+  getting a Node program onto a normal Windows PC. The section that shaped the design is the
+  documented failure modes: "it only listens on 127.0.0.1" is not a security model (DNS rebinding has
+  a filed advisory against Glances, a tool of our exact shape — the defence is a `Host` whitelist plus
+  a start-up token, Jupyter's model), the default port will be taken one day (Syncthing falls back to
+  a random one), the browser must not open before the server listens, a server left running is the
+  classic complaint, SmartScreen warns on anything unsigned, and confirmation fatigue destroys the
+  protection it pretends to add.
+- **`interviews/interview_003_interface.md` + `interview_003_designs.html`** — five genuinely
+  different designs, drawn as a working web page rather than described (the owner's words: «а ну-ка
+  мне HTML сверстай, а не этот ужас в чат»). The mock-up is self-contained, clickable, themed, and
+  lives in the repo; it was published as an artifact for review.
+- **All ten questions answered by the owner the same day.** The two that reshape the epic:
+  - **The interface is TWO screens.** A wizard leads the first flight; once the library exists it
+    steps aside for a **control panel** that can re-launch any of the three runs (scan · plan · sort),
+    shows what needs a decision, offers the top-up from `НОВОЕ`, links out to folders, and keeps a run
+    history with a rollback on each row. **No thumbnails** — «если нужно отправить человека на
+    просмотр - ссылки на папки». That single answer deletes the most expensive and most
+    performance-risky subsystem in the epic.
+  - **Delivery is a portable package**, and that **removes** the code-signing question rather than
+    deferring it. Measured on the machine, not assumed: the official `node.exe` is Authenticode-signed
+    by OpenJS Foundation (Valid), 87.4 MB on disk, **32.7 MB zipped**. Shipping that signed binary plus
+    our `.mjs` means we introduce **no unsigned executable at all**, so SmartScreen's unknown-publisher
+    prompt has nothing to fire on. The single-exe (SEA) route would have re-created exactly that
+    problem, since injecting code invalidates the signature.
+- Also settled: one deliberate confirmation with the numbers before the sort (never type-a-word) ·
+  **server and «морда» are separate — closing the browser does NOT stop the server** (the agent had
+  recommended the opposite; the owner is right, a multi-minute sort must not die with a tab) ·
+  folders awaiting a decision are answered in the UI · **bilingual RU/EN with a switch** · the window
+  is «Krinik Photo Organizer Tool (KPOT)» · no access from other devices.
+- **Three obligations the server/face split creates**, recorded so they cannot be forgotten: an
+  explicit plainly-worded «Завершить работу»; a second launch of the shortcut must find the running
+  server and open the face on it rather than start a second one (port conflict); and the server stays
+  the only writer, so internal-map RULE 1 holds with the UI as one more caller above `src/apply/`.
+- README refreshed in both languages: 192 tests, two supervised real runs, the pixel search and the
+  reset-clock rule described for users, and "still ahead" now points at the interface.
+
 ---
 
 ## Where we are now
@@ -564,27 +606,44 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
    the copy on 2026-07-28). Undo it with
    `node bin/kpot.mjs rollback run-20260728-201538-437c4d D:\work\ai_sandbox\KPOT_SANDBOX`.
    Do not delete it without his word, and never copy more of his photographs without a fresh one.
-3. ⭐ **THE NEXT PIECE OF WORK — the INTERFACE epic, and it is the owner's own priority now.**
-   He closed every fork on 2026-07-28: a **local Web UI** (not Electron, not Tauri) plus an
-   **installer that puts a desktop shortcut** which starts it and opens the browser; the **full**
-   cycle (scan → plan → apply → rollback); and the audience is **the owner AND inexperienced PC
-   users**, so «ОЧЕНЬ ЮЗЕР ФРЕНДЛИ, С ЗАЩИТАМИ ОТ ДУРАКА… БЕЗ ЖАРГОНИЗМОВ И СЛЕНГА».
-   He also named the order of work: **эпик → фазы → операционные планы**. So the sequence is:
-   - **(a)** a prior-art review in `researches/` — this is an epic feature by every threshold in
-     `AGENT_GUIDE` step 9a (new subsystem, a new promise to the owner, an installer). What to look
-     up: how local-first desktop tools ship a browser UI without a bundled runtime, what Windows
-     shortcut + installer approaches exist for a Node CLI, and above all the failure modes others
-     documented (port conflicts, a server left running, antivirus/SmartScreen on an unsigned
-     installer, the browser opening before the server is ready).
-   - **(b)** the epic document in `plans/`, then `/revision` to add an interface phase to
-     `MASTER_PLAN.md`, then per-phase operational plans. **Code comes last**, by his stated order.
-   - **(c)** the language rule is part of the deliverable, not a polish pass: every string the user
-     sees — UI, installer, README for users — plain, academic Russian without jargon. The core
-     already prints `dated 2012-06-15 (exif-original)` at him inside the plan; that line and its
-     relatives are a known debt to clear when the UI work reaches the reports.
-   - Idea 01 (the inbox + top-up flow) belongs to this epic: the owner answered its forks the same
-     day (inbox **inside** the library, default name **`НОВОЕ`**, emptied inbox folders deleted) and
-     the «ярлычок» he asked for IS the UI's shortcut.
+3. ⭐ **THE NEXT PIECE OF WORK — the interface epic. Everything it needs from the owner is DONE;
+   what remains is writing, in his order: эпик → фазы → операционные планы, and only then code.**
+
+   Read first, both finished this session: `researches/07_local_ui_and_delivery.md` (the prior-art
+   review — the failure-modes section is the one that shapes the design) and
+   `interviews/interview_003_interface.md` (all ten answers, verbatim). The clickable mock-up of the
+   agreed design is `interviews/interview_003_designs.html` — open it in a browser, first tab.
+
+   **The design, settled:**
+   - **Two screens.** A wizard for the first flight (four steps, one thing per screen, the four
+     `GOAL.md` guarantees visible at the bottom). Once the library exists, it steps aside for a
+     **control panel**: three run cards (scan · plan · sort) each re-launchable at any time, an
+     attention section (folders awaiting a decision, disputed dates), the library by year with
+     **links that open folders** (no thumbnails — the owner cut them), the `НОВОЕ` top-up block, and
+     a run history with a rollback per row.
+   - **Server + «морда» are separate.** Closing the browser does NOT stop the server. Three
+     obligations follow: an explicit «Завершить работу» control; a second launch must FIND the
+     running server and open the face on it (never start a second one — port conflict); and the
+     server stays the only writer, so RULE 1 holds with the UI as one more caller above `src/apply/`.
+   - **Security is not optional even on localhost** (`researches/07` §5.1): bind `127.0.0.1`, default
+     port with a random fallback, a token minted at start-up and carried in the opened URL, a `Host`
+     header whitelist, and the browser opened only after the `listening` event.
+   - **Delivery: a portable ZIP** — «скачал - распаковал - готово». It carries Node's own signed
+     binary (measured: Authenticode Valid, OpenJS Foundation, 87.4 MB → **32.7 MB zipped**) plus our
+     `.mjs`, so no unsigned executable is ever introduced and SmartScreen has nothing to fire on.
+     First run offers to create a desktop shortcut. **Verify on a real download** before promising it:
+     files from a downloaded ZIP inherit the Mark-of-the-Web and the Attachment Manager may warn once
+     on a `.cmd` launcher — a locally-created shortcut carries no such mark.
+   - **Bilingual RU/EN with a switch** (Russian default) ⇒ every UI string lives in a dictionary from
+     the first line of code. Window title: «Krinik Photo Organizer Tool (KPOT)». One deliberate
+     confirmation with the numbers before the sort. No access from other devices.
+   - Idea 01 (the inbox/top-up) is part of this epic: inbox **inside** the library, named `НОВОЕ`,
+     emptied inbox folders deleted; the «ярлычок» he asked for IS this UI's shortcut.
+
+   **A debt to clear while doing it:** the plan report still prints `dated 2012-06-15 (exif-original)`
+   at the owner. He made plain language a hard requirement on 2026-07-28; the «даты, взятые у
+   исходного снимка» section was already rewritten, the move lines were not.
+
 4. **Phase 5 is CLOSED** (2026-07-28): the supervised run on `KPOT_SANDBOX` sorted 813 real files
    with 0 failures, an identical SHA-256 multiset, and a rehearsed rollback. Nothing is left in it.
 5. **Writing to the owner's REAL archive still needs a fresh `AUTH:`** — the standing grant is

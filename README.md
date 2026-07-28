@@ -62,7 +62,7 @@ sorting half a terabyte takes minutes, not hours.
 
 ### Install
 
-Node.js ≥ 20, nothing else — no build step, no native modules, one runtime dependency.
+Node.js ≥ 20, nothing else — no build step, no native modules, two runtime dependencies.
 
 ```bash
 # from the release
@@ -76,9 +76,9 @@ node bin/kpot.mjs --help
 
 ### Status
 
-🎉 **Release 0.1 “First KPOT”.** All four phases work end to end, and the tool has already sorted a
-real archive. Verified by 171 green tests *and* by a supervised run on a 3 397-file / 13 GB sample
-of a genuinely messy 551 GB collection.
+🎉 **Release 0.1 “First KPOT”.** Every phase works end to end, and the tool has already sorted real
+archives. Verified by **192 green tests** *and* by two supervised runs on real material taken out of
+a genuinely messy 551 GB collection — a 3 397-file / 13 GB sample, and a fresh 813-file / 943 MB one.
 
 ```
 kpot scan <dir>               what each file is, and when it was taken — with the evidence
@@ -88,9 +88,9 @@ kpot apply <dir>              the sort — refuses to start without a verified b
 kpot rollback <run-id> <dir>  everything back where it was
 ```
 
-**On that real run:** 3 154 files sorted in 7 seconds, 0 failures, and the multiset of SHA-256
-content hashes was *identical* before and after — nothing lost, nothing invented. The rollback
-rehearsal restores all 3 154 files and 495 folders.
+**On those real runs:** 3 154 and 813 files sorted, 0 failures either time, and the multiset of
+SHA-256 content hashes was *identical* before and after — nothing lost, nothing invented. The
+rollback rehearsals restore every file and every folder the sort removed.
 
 What is behind that:
 
@@ -116,15 +116,28 @@ What is behind that:
   sounds: AVI carries no container date at all, so on the real archive 25 videos knew only a folder
   year — and now they are dated to the second. The thumbnails themselves go to quarantine, not into
   your gallery.
+- **It can find a photo's original by its pixels** — when an editor stripped the capture date, KPOT
+  compares the export against the same-camera neighbours step 1 already narrowed down, and inherits
+  the original's *real* date only when the best match is decisively ahead of the runner-up — never on
+  a threshold ([how, and why a threshold cannot work](researches/06_pixel_original_calibration.md)).
+  On one real folder it found `S8305319 +.jpg`'s original at a distance of 30 bits of 1024 with a
+  margin of 284; on another, 4 of 4. Where the original is simply not in the archive, it says nothing
+  — 94 of 95 such files stayed honestly undated, which is the correct answer, not a missed one.
+- **A reset camera clock is not a date** — a "1 January 00:25" claim is refused only when the
+  collection itself contradicts it (its year is below the earliest year the archive really holds).
+  A genuine New Year photograph of exactly the same shape keeps its date; the owner's archive has 13
+  of those, and all 13 are untouched.
 - **Idempotent** — sorting an already-sorted library moves nothing.
 - Grounded in real chaos: [prior-art research](researches/01_prior_art.md) ·
   [real-archive survey](researches/02_real_archive_survey.md) ·
   [the first real run](researches/03_first_real_run.md), which found four bugs no synthetic fixture
   had · [what a sidecar really contains](researches/04_sidecars.md).
 
-Still ahead: pixel-level search for a lost photo's original
-([plan 02](plans/02_lost_photo_family.md), step 2 — authorized by the owner), then a desktop GUI
-over the same plan artifact ([idea 02](ideas/02_electron_gui.md)).
+Still ahead: **the interface** — a local web UI shipped as a portable package (download, unpack,
+done), with a wizard for the first run and a control panel afterwards. Design and delivery are
+settled: [interview 003](interviews/interview_003_interface.md), with
+[clickable mock-ups](interviews/interview_003_designs.html) and the
+[prior-art review](researches/07_local_ui_and_delivery.md) behind them.
 
 Roadmap: `MASTER_PLAN.md` · current state: `STATUS.md`.
 
@@ -190,7 +203,7 @@ KPOT **не переместит ни одного файла**, пока не �
 
 ### Установка
 
-Нужен только Node.js ≥ 20 — ни сборки, ни нативных модулей, одна зависимость времени выполнения.
+Нужен только Node.js ≥ 20 — ни сборки, ни нативных модулей, две зависимости времени выполнения.
 
 ```bash
 # из релиза
@@ -204,9 +217,10 @@ node bin/kpot.mjs --help
 
 ### Статус
 
-🎉 **Релиз 0.1 «First KPOT».** Все четыре фазы работают от начала до конца, и инструмент уже разобрал
-настоящий архив. Проверено 171 зелёным тестом *и* контролируемым прогоном на выборке из
-3 397 файлов / 13 ГБ, взятой из по-настоящему захламлённой коллекции на 551 ГБ.
+🎉 **Релиз 0.1 «First KPOT».** Все фазы работают от начала до конца, и инструмент уже разобрал
+настоящие архивы. Проверено **192 зелёными тестами** *и* двумя контролируемыми прогонами на живом
+материале из по-настоящему захламлённой коллекции на 551 ГБ — на выборке 3 397 файлов / 13 ГБ и на
+свежей 813 файлов / 943 МБ.
 
 ```
 kpot scan <dir>               что за файл и когда снят — вместе с уликами
@@ -216,9 +230,9 @@ kpot apply <dir>              сортировка — не начнётся б�
 kpot rollback <run-id> <dir>  всё возвращается как было
 ```
 
-**Тот самый прогон:** 3 154 файла разложены за 7 секунд, 0 сбоев, а множество SHA-256 содержимого
-до и после — *идентично*: ничего не потеряно и ничего не выдумано. Репетиция отката возвращает все
-3 154 файла и 495 папок.
+**Те самые прогоны:** 3 154 и 813 файлов разложены, 0 сбоев в обоих случаях, а множество SHA-256
+содержимого до и после — *идентично*: ничего не потеряно и ничего не выдумано. Репетиции отката
+возвращают каждый файл и каждую папку, которую убрала сортировка.
 
 Что за этим стоит:
 
@@ -243,15 +257,28 @@ kpot rollback <run-id> <dir>  всё возвращается как было
   [доказательство из сайдкара](src/meta/sidecar.mjs) её читает. Это важнее, чем звучит: у AVI нет
   даты в контейнере вообще, поэтому на реальном архиве 25 видео знали только год папки — а теперь
   датированы до секунды. Сами миниатюры едут в карантин, а не в вашу галерею.
+- **Находит оригинал фотографии по её пикселям** — если редактор стёр дату съёмки, KPOT сравнивает
+  экспорт с теми же снимками той же камеры, круг которых уже сузил шаг 1, и наследует *настоящую*
+  дату оригинала только когда лучший кандидат убедительно оторвался от второго — никогда по порогу
+  ([как именно и почему порог не работает](researches/06_pixel_original_calibration.md)). На одной
+  реальной папке нашёл оригинал `S8305319 +.jpg` с различием 30 из 1024 бит при отрыве 284; на другой
+  — 4 из 4. Там, где оригинала в архиве просто нет, он молчит: 94 из 95 таких файлов честно остались
+  без даты, и это правильный ответ, а не упущенный.
+- **Сброшенные часы камеры — не дата** — заявке «1 января 00:25» отказывают только если сама
+  коллекция ей противоречит (её год ниже того, с которого в архиве реально начинаются снимки).
+  Настоящая новогодняя фотография точно такой же формы дату сохраняет: в архиве владельца их 13, и
+  все 13 не тронуты.
 - **Идемпотентность** — сортировка уже разобранной библиотеки не двигает ничего.
 - Опирается на реальный хаос: [исследование готовых решений](researches/01_prior_art.md) ·
   [обзор реального архива](researches/02_real_archive_survey.md) ·
   [первый настоящий прогон](researches/03_first_real_run.md), который нашёл четыре бага, невидимых
   ни одной синтетической фикстуре · [что на самом деле лежит в сайдкаре](researches/04_sidecars.md).
 
-Впереди: поиск оригинала потерявшегося фото по пикселям
-([план 02](plans/02_lost_photo_family.md), шаг 2 — владелец дал добро), затем десктопный GUI над тем
-же артефактом плана ([идея 02](ideas/02_electron_gui.md)).
+Впереди: **интерфейс** — локальный веб-интерфейс, поставляемый портативным пакетом (скачал,
+распаковал, готово), с мастером на первый запуск и пультом управления дальше. Дизайн и способ
+поставки согласованы: [интервью 003](interviews/interview_003_interface.md), к нему
+[кликабельные макеты](interviews/interview_003_designs.html) и
+[разведка готовых решений](researches/07_local_ui_and_delivery.md).
 
 
 Дорожная карта: `MASTER_PLAN.md` · текущее состояние: `STATUS.md`.
