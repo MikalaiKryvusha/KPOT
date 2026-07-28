@@ -305,6 +305,10 @@ suite 171 → **191**.
   a date — a perfect find (`S8305319 +.jpg` → `S8305319.jpg`, distance 30/1024, margin 284). The other
   94 refusals are correct, not shy: their best candidates score 182–376 with margins 0–32, i.e. those
   originals are not in the archive at all (the same conclusion the XMP chain reached in `researches/03`).
+- **Verified end to end on the owner's own file** (read-only, library composition over the folder
+  that holds it): the floor for that folder alone comes out as **2005**, `ВИТЯ/Imag0151.jpg` with its
+  EXIF `2000-01-01 00:25:13` is now `unknown` with BOTH its claims in disputed as `reset-camera-clock`
+  — and it is the **only** one of the folder's 216 media files affected. No collateral damage.
 - **Reset camera clocks — the owner's decision of 2026-07-28** («сброшенным часам камеры не доверять,
   если это факт, что они сброшены»): a «1 января 00:25» date is refused **only when the collection
   itself proves it wrong** — its year is below the earliest trustworthy capture year in the whole
