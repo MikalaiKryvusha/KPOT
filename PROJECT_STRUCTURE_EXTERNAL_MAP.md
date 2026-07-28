@@ -24,6 +24,7 @@ KPOT/
 ├── AGENT_GUIDE.md                       # how to work here: canon, build/harness/git, code style
 ├── PHILOSOPHY.md · BUG_FIXING_FRAMEWORK.md · TESTING_FRAMEWORK.md
 ├── EXPERIENCE.md                        # cross-task lessons, grep by tag
+├── HANDOFF.md                           # snapshot for handing the work to a DIFFERENT agent/tool
 ├── KAIF_FRAMEWORK.md                    # what KAIF is + this project's deployment record
 ├── PROJECT_STRUCTURE_EXTERNAL_MAP.md    # ← you are here (where things live)
 ├── PROJECT_ARCHITECTURE_INTERNAL_MAP.md # how the system thinks (abstractions)
@@ -57,6 +58,7 @@ KPOT/
 | `GOAL.md` | The owner's statement of the product, in his own words (Russian). The contract. | nothing — everything else derives from it |
 | `MASTER_PLAN.md` | Phases from the current state to `GOAL.md`, with acceptance criteria + decision log | `GOAL.md` |
 | `STATUS.md` | Where we actually are; autonomous backlog; what the next session does first | `MASTER_PLAN.md`, `bugs/`, `interviews/` |
+| `HANDOFF.md` | A dated **snapshot** for handing the work to a different agent/model/tool that does not have this framework loaded: what the project is, how to get productive, the architecture and its three rules, the decisions not to re-open, the next task, what waits on the owner, the traps. Summarises — never overrides — the documents it names; `STATUS.md` is live, this is a point in time | every root doc (as a map to them) |
 | `AGENT_GUIDE.md` | Working canon: identity, target architecture, build/harness/git policy, Node code style | both maps, `TESTING_FRAMEWORK.md` |
 | `.claude/skills/` | The canonical skill definitions (`/resume`, `/autoloop`, `/fable-*`, `/kaif-*`, …) | `.kaif/spheres/`, the root docs |
 | `.agents/`, `.grok/`, `.cline/`, `.roo/` | Derived copies of the same skills for Codex / Grok / Cline / Zoo Code | `.claude/skills/` (one-way) |

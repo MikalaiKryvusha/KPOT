@@ -232,6 +232,28 @@ owner's videos has. Commit `d26ebb5`; suite 156 → **170**.
   `ПРОЧЕЕ/_мусор` with provenance. Both halves verified together on real data: the 34 thumbnails
   carry no verdict, and the 25 videos they describe are still dated to the second. Suite **171**.
 
+### Release 0.1 «First KPOT» — published 2026-07-28
+Owner's word: «давай оформим релиз 0.1 в GH»; codename his choice. Tag `v0.1`, commit `5d77dbc`.
+https://github.com/MikalaiKryvusha/KPOT/releases/tag/v0.1
+
+- **Bilingual release notes** in the house style of the owner's other repos (logo, date+place header,
+  `English · Русский` anchors, ✨/🔬/⚠️/🚀 sections), including an explicit **honest-limits** section
+  (no GUI · no pixel matching yet · the real-data proof is a 13 GB sample, not the 551 GB archive ·
+  Windows-first · the XMP-date path is fixture-only).
+- **The judge pass caught a real defect before publishing:** `npm pack` was shipping the WHOLE
+  repository — **17 176 090 bytes** carrying `KPOT.psd`, the 12 MB PNG logo sources, the entire KAIF
+  framework and every internal working document. A `files` field now limits the package to `bin/` +
+  `src/` (+ README/LICENSE/package.json npm adds itself): **90 417 bytes**. `*.tgz` was gitignored
+  BEFORE the rehearsal artifact existed.
+- **Release gates, all run rather than asserted:** 171/171 · a full end-to-end smoke on a fresh
+  fixture, read by eye · domain invariants compared as numbers (dry run leaves the tree
+  byte-identical · a real apply keeps the SHA-256 multiset identical while paths change · a re-plan
+  yields 0 operations · rollback restores byte-for-byte) · the trimmed package installed into a clean
+  directory with no dev tree, then **installed again straight from the release URL**, running
+  `--version`/`plan` at exit 0 — so the install command printed in the notes is verified, not hoped.
+- **`HANDOFF.md` added** (owner's request, same session): a dated snapshot for handing the work to a
+  DIFFERENT agent/tool without this framework loaded.
+
 ---
 
 ## Where we are now
@@ -249,7 +271,7 @@ being guessed at.
 `researches/02` predicted now exists in code.
 **What remains in Phase 5:** a supervised run on a fresh *copy* of a real directory (the previous
 sample is gone — the owner deleted `KPOT_SAMPLE` between sessions; a new one is the owner's
-homework), then README + a tagged release via `/release`. Suite **171/171**.
+homework). **README + the tagged release are DONE** (`v0.1`, 2026-07-28). Suite **171/171**.
 
 | Phase | Status | What's there |
 |-------|--------|--------------|
@@ -258,7 +280,7 @@ homework), then README + a tagged release via `/release`. Suite **171/171**.
 | Phase 2 — scan & metadata | ✅ done (fully closed 2026-07-28) | acceptance spec green; `kpot scan` = assets + evidence + verdicts; the last deferred cut — THM/XMP sidecar evidence — is implemented and proven on real data |
 | Phase 3 — dedup & plan | ✅ done | `kpot plan` = SortPlan + owner-facing master plan; acceptance spec green (23 planted destinations + both ambiguities) |
 | Phase 4 — safety (backup / dry run / rollback) | ✅ done | interview #002 answered; `src/apply/` = backup + the single writer + rollback; all three acceptance criteria green; guards proven by breaking them |
-| Phase 5 — first real use & release | 🔶 in progress | ✅ scan cache · ✅ idempotent sorting (bug 01) · ✅ empty-folder cleanup · ✅ the `НА_РАЗБОР/` approval quarantine · ✅ progress output · ✅ resumability · ✅ plans/02 step 1 (editor exports dated honestly) · ✅ THM/XMP sidecar evidence (Phase 2's last cut, closed 2026-07-28) · 🔲 supervised run on a COPY of a real dir (the sample is gone — owner deleted it; needs a fresh one) · 🔲 README + `/release` |
+| Phase 5 — first real use & release | 🔶 in progress · ✅ released `v0.1` | ✅ scan cache · ✅ idempotent sorting (bug 01) · ✅ empty-folder cleanup · ✅ the `НА_РАЗБОР/` approval quarantine · ✅ progress output · ✅ resumability · ✅ plans/02 step 1 (editor exports dated honestly) · ✅ THM/XMP sidecar evidence (Phase 2's last cut, closed 2026-07-28) · 🔲 supervised run on a COPY of a real dir (the sample is gone — owner deleted it; needs a fresh one) · 🔲 README + `/release` |
 
 Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
 
@@ -437,10 +459,9 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
    that sha256 dedupe cannot see. **Step 3 (PRNU) stays unstarted and unauthorised** — it answers
    "which camera", not "which shot", and only wins when the original is gone for good.
 4. **Phase 5, what is left.**
-   - 🔲 **README refresh + a tagged release** via `/release` — now UNBLOCKED: plans/02 step 1 landed,
-     so the README can describe the honest dating of editor exports AND sidecar dating (171/171,
-     new evidence kinds; `.thm` quarantined per the owner's 2026-07-28 answer).
-     This is the next autonomous piece of work.
+   - ✅ **README refresh + a tagged release** — DONE 2026-07-28: `v0.1` «First KPOT», bilingual
+     notes, `kpot-0.1.0.tgz` attached (88 KB after the packaging fix). The install command in the
+     notes was verified by installing from the release URL, not assumed.
    - 🔲 **A fresh supervised run needs a fresh sample:** `KPOT_SAMPLE` no longer exists — the owner
      deleted it between sessions (his data, his call; do NOT recreate 13 GB of his photos without a
      fresh word). Phase 5's acceptance still wants a supervised run on a *copy* of a real dir.
