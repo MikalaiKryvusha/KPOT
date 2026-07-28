@@ -456,7 +456,13 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
    and inherits its real `DateTimeOriginal`. The plan already names the dependency (`jpeg-js`, MIT,
    pure JS) and the hard part (a crop shifts the frame, so compare over an overlapping region or
    via downscaled previews). Side benefit `researches/01` predicted: renamed and re-encoded copies
-   that sha256 dedupe cannot see. **Step 3 (PRNU) stays unstarted and unauthorised** — it answers
+   that sha256 dedupe cannot see.
+   **⛔ It is an EPIC feature, so it starts with a PRIOR-ART REVIEW, not with code** (owner's canon
+   rule of 2026-07-28, `AGENT_GUIDE.md` step 9a): perceptual hashing is a named, well-studied
+   family — aHash/dHash/pHash/wHash, blockhash, and the pHash literature — with documented failure
+   modes (crop and rotation sensitivity, threshold choice, false-positive rates on near-uniform
+   images) that this project must read rather than rediscover. Write `researches/05_*.md` FIRST,
+   web-searched with sources; the plan's step-2 design is then written by that document. **Step 3 (PRNU) stays unstarted and unauthorised** — it answers
    "which camera", not "which shot", and only wins when the original is gone for good.
 4. **Phase 5, what is left.**
    - ✅ **README refresh + a tagged release** — DONE 2026-07-28: `v0.1` «First KPOT», bilingual

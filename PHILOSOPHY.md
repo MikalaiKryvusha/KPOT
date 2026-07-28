@@ -75,6 +75,15 @@ usually accumulated, empirically-proven wisdom on how it *should* and *should no
 result fastest and best. Look for the established pattern first; adopt it unless there's a concrete reason
 not to. This is Occam applied to method: don't invent where a proven path exists.
 
+**Mechanized, because a principle in a list never fires on its own:** before an *epic* feature the agent
+must web-search the field and write a **prior-art review** into `researches/` — the golden standard, the
+papers, the reference implementations, and above all the failure modes other people already documented —
+*before* choosing an approach (`AGENT_GUIDE.md` checklist step 9a). The owner's instruction that made this
+canon: «почти на всё в индустрии есть золотые стандарты и научные работы» (2026-07-28). Note the danger
+this gate carries with it: the review is exactly where a model is most tempted to substitute confident
+recollection for a source, so an unsourceable claim goes in as an **open question**, never as a fact —
+the three-doors rule below, applied to the literature.
+
 ### The Eisenhower Matrix — grooming and choosing tasks
 When grooming the backlog and planning the work front, classify tasks by **urgent × important**:
 *important + urgent* → do now; *important + not urgent* → schedule; *urgent + not important* → delegate or

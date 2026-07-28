@@ -28,7 +28,9 @@ relies entirely on this document to get to work.
 6. Load ONLY the relevant slice   # use the Context router below — read the required minimum + task-type docs, not everything
 7. Execute by the fable loop      # /fable-method: gates + forced artifacts (INTENT/AUTH/TWINS/PENDING); /fable-loop to orchestrate; /fable-judge before claiming done
 8. Read the relevant plan         # plans/<feature>.md, if the task touches a specific feature. Code by citing the plan: before implementing a step, QUOTE the anchor line you are doing right now — if you can't name the line, that's scope drift caught BEFORE the diff
-9. Recon before code (external truth)  # the task rests on an external truth (a file format spec, a third-party lib's real behavior, the owner's real archive, another tool's semantics)? The FIRST artifact is a recon doc in researches/ — code is forbidden until it exists; then code by the document, not from recall. Recon docs are reused by every future session (researches/01_prior_art.md, researches/02_real_archive_survey.md)
+9. Recon before code — TWO gates, in this order. Both write into researches/, both replace invention with reading, and both are reused by every future session (researches/01…04):
+   (a) EPIC feature? → FIRST a PRIOR-ART REVIEW, web-searched, never recalled: what the industry and the literature already settled about this problem. "Almost everything in the industry has golden standards and scientific papers" (owner, 2026-07-28). DESIGN is forbidden until it exists — deciding the approach IS the thing this gate protects
+   (b) Rests on an external truth (a file-format spec, a third-party lib's real behavior, the owner's real archive, another tool's semantics)? → a RECON DOC describing how that truth ACTUALLY works, read from the live source. CODE is forbidden until it exists; then code by the document, not from recall
 10. Check the map & blast radius   # before editing code: PROJECT_ARCHITECTURE_INTERNAL_MAP.md — who is affected; update the map if relations change
 11. Run the build (if touching code)   # NO build step — pure Node ESM. The gate is `npm test`. Do NOT run `npm run build` (no such script).
 12. Use the test harness          # `npm test` (node --test) + CLI runs against tests/fixtures/ — drive/observe the software without a human
@@ -66,17 +68,49 @@ Don't read every document "just in case" — that fills the context you're tryin
 | Feature / idea     | `ideas/<this>` · `MASTER_PLAN.md` · the relevant `plans/<this>`        |
 | Refactor / edit    | `AGENT_GUIDE.md` · the two maps (blast radius)                         |
 | Planning           | `MASTER_PLAN.md` · `GOAL.md` · open backlog                            |
-| External truth involved (file-format spec / third-party lib / the real archive / another tool) | the recon doc in `researches/` — **create it first** if it doesn't exist (checklist step 9) |
+| **Epic feature** (named algorithm · new dependency or `src/` subsystem · a new promise to the owner · its own `plans/NN` · you can't explain it in one sentence) | the **prior-art review** in `researches/` — **web-search and write it FIRST**; designing before it exists is the violation (checklist step 9a) |
+| External truth involved (file-format spec / third-party lib / the real archive / another tool) | the recon doc in `researches/` — **create it first** if it doesn't exist (checklist step 9b) |
 
 Sections in these documents are anchored — address a slice (`DOC.md#anchor`) rather than re-reading the
 whole file. The required minimum is **not** subject to laziness: `PHILOSOPHY.md` always applies.
 
 ### Recon artifacts — when the task has an external truth
 
-Three artifact types live in `researches/`, each replacing a specific kind of invention with
+Four artifact types live in `researches/`, each replacing a specific kind of invention with
 observation (a session that "remembers" a domain invents it):
 
-- **Recon doc** (checklist step 9) — *describes* how the external truth actually works, read from the
+- **Prior-art review** (checklist step 9a) — *what the world already knows* about this problem,
+  **web-searched in this session, never recalled**. The owner's standing instruction (2026-07-28):
+  «почти на всё в индустрии есть золотые стандарты и научные работы» — so before an epic feature the
+  first move is to go and read them. This is `PHILOSOPHY.md`'s *Best practices* principle mechanized:
+  the principle alone never fires, a gate does.
+
+  **When it is REQUIRED — any one of these makes a feature "epic":**
+  - it rests on an algorithm that has a NAME in the literature (perceptual hashing, PRNU, CRDT, HNSW…);
+  - it adds a runtime dependency, or a new subsystem under `src/`;
+  - it changes a promise the product makes to the owner;
+  - it is big enough to need its own multi-step `plans/NN` document;
+  - **you cannot state in one plain sentence how it works, from your own knowledge** — the honest
+    detector, and the one that catches the cases the other four miss.
+
+  **Minimum content** (a stub does not discharge the gate):
+  1. the question in one sentence, and OUR constraints it must be answered against;
+  2. the established/canonical approach, each claim carrying a **link opened in this session** + a date;
+  3. the academic or reference basis where one exists (paper, RFC, spec, reference implementation);
+  4. 2–3 real alternatives compared **against our constraints**, not in the abstract;
+  5. **the failure modes other people documented** — the highest-value section, and the first one a
+     hurried session drops. Someone has already stepped on this rake; find out where;
+  6. a recommendation, plus what we are deliberately NOT doing and why;
+  7. what remains unknown and must be measured locally — which is what hands off to (b).
+
+  **Anti-fraud clause.** This is the document a model is most tempted to fill with plausible
+  recollection. A claim you could not source is written as an **open question**, never as a fact;
+  an invented citation is worse than a missing one (`PHILOSOPHY.md`, the three doors). `/fable-judge`
+  treats unsourced claims here as findings.
+
+  Precedent: `researches/01_prior_art.md` is exactly this artifact — it is what kept KPOT from writing
+  its own EXIF parser, and what deferred perceptual hashing on measured grounds rather than taste.
+- **Recon doc** (checklist step 9b) — *describes* how the external truth actually works, read from the
   live source (the format spec, the library's real output, the running tool) — never from recall. The
   first artifact of any task that rests on one; reused by every future session. KPOT already has
   four: `researches/01_prior_art.md` (npm/prior-art facts, spot-verified),
@@ -450,6 +484,11 @@ preferences:
 - **Preserve what the user named.** Custom filenames and meaningful directory names survive the sort.
 - **Reuse before writing.** If a GitHub project already solves part of this well, use it for that part;
   write our own `.mjs` only where nothing suitable exists. Record the comparison in `researches/`.
+- **Research the field before building an epic feature** (2026-07-28, verbatim): «вообще, почти на всё
+  в индустрии есть золотые стандарты и научные работы. давай зафиксируем в канон ИИ агента, что перед
+  крупными эпик-фичами, нучно проводить гуглёж разветку и написание research документа». Mechanized as
+  checklist step 9a and the **prior-art review** artifact above — an epic feature is designed *after*
+  reading what the industry and the papers already settled, not from the model's own recollection.
 
 General working rules:
 - Always check the current time and the log file's time before reading logs — read fresh logs, not stale ones.

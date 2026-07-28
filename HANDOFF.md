@@ -145,8 +145,12 @@ dependency (`jpeg-js`, MIT, pure JS, no native build) and the hard part (a crop 
 compare over an overlapping region or via downscaled previews). Side benefit predicted by
 `researches/01`: it finds renamed and re-encoded copies that sha256 dedupe cannot see.
 
-**Before writing any code for it, produce a recon document** (`researches/05_*.md`) — that is a hard
-rule here, see §8.
+**This is an EPIC feature, so it does not start with code — it starts with a PRIOR-ART REVIEW**
+(`researches/05_*.md`), web-searched, with sources. That is a hard canon rule here, not a suggestion:
+`AGENT_GUIDE.md` checklist step 9a. Perceptual hashing is a named, well-studied family (aHash / dHash
+/ pHash / wHash, blockhash, and the pHash literature) with failure modes other people have already
+documented — crop and rotation sensitivity, threshold selection, false positives on near-uniform
+images. Read those before designing; the plan's step-2 design is then written *by* that document.
 
 Other open, smaller items: `ideas/01_inbox_topup_flow.md` (an inbox + incremental top-up flow — forks
 still open) and `ideas/02_electron_gui.md` (accepted as direction, scheduled after Phase 5).
@@ -185,10 +189,17 @@ These are distilled from `EXPERIENCE.md` (grep it by tag before a task — it is
    transform.
 5. **An owner-provided path recorded in `STATUS.md` is a PAST observation.** Check it still exists
    before planning around it (EXP-0011 — a 13 GB sample had vanished).
-6. **Recon before code when the task rests on an external truth** (a file format, a library's real
-   behaviour, the real archive). The first artifact is a document in `researches/`, read from the live
-   source, never from memory — and this is not ceremony: the most recent one turned a backlog item
-   labelled "optional filler" into the only date 25 real videos have (EXP-0012).
+6. **Go and look, twice — this is the project's hardest gate** (`AGENT_GUIDE.md` step 9, two parts).
+   **(a)** Before an *epic* feature (named algorithm · new dependency or subsystem · a new promise to
+   the owner · its own `plans/NN` · you cannot explain it in one plain sentence) — **web-search the
+   field and write a prior-art review** into `researches/`: the golden standard, the papers, and
+   above all the failure modes other people documented. Designing before it exists is the violation.
+   Every claim carries a link you actually opened; anything you cannot source is written as an open
+   question, never as a fact. **(b)** Before code that rests on an external truth (a file format, a
+   library's real behaviour, the real archive) — a recon doc read from the live source, never from
+   memory. Neither is ceremony: (a) is what stopped this project writing its own EXIF parser, and the
+   most recent (b) turned a backlog item labelled "optional filler" into the only date 25 real videos
+   have (EXP-0012).
 7. **A backlog item's own description is a hypothesis about value**, written by a session that had not
    looked. Measure what the product currently does to the affected files *before* writing the fix —
    that before-number sets the priority and later proves the result.
