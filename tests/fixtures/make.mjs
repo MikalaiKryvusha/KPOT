@@ -320,15 +320,18 @@ export function catalog() {
     //   shape, all of them stuck at "a year, no season" until this evidence exists.
     { path: 'видео/MVI_0042.avi', body: makeAvi('avi1'),
       expected: { kind: 'video', date: '2012-04-11 20:18:02', evidence: 'sidecar' } },
+    //   The thumbnail itself is JUNK by the owner's decision (2026-07-28) — a valid JPEG, but a
+    //   160x120 camera artifact, not a photograph: quarantined with provenance, never in the
+    //   library, and STILL the source of its video's date.
     { path: 'видео/MVI_0042.THM', body: makeJpegEx({ dateTimeOriginal: '2012:04:11 20:18:02',
         make: 'SONY', model: 'DSC-S3000', width: 160, height: 120, uniq: 'thm1' }),
-      expected: { kind: 'photo', date: '2012-04-11 20:18:02', evidence: 'exif' } },
+      expected: { kind: 'junk', date: null, evidence: 'none' } },
     // — an ORPHAN THM (9 of the archive's 34): the video it described is gone. It must pair with
     //   nothing rather than attach itself to a neighbour — the extension is mixed-case on purpose,
     //   since real ones arrive that way and pairing is case-insensitive.
     { path: 'видео/MVI_9999.THM', body: makeJpegEx({ dateTimeOriginal: '2010:09:07 17:10:04',
         make: 'Canon', model: 'Canon PowerShot A580', width: 160, height: 120, uniq: 'thm2' }),
-      expected: { kind: 'photo', date: '2010-09-07 17:10:04', evidence: 'exif' } },
+      expected: { kind: 'junk', date: null, evidence: 'none' } },
     // — an XMP sidecar in the full-name convention (`photo.jpg.xmp`, the one form observed), whose
     //   exif:DateTimeOriginal dates a photo that has no metadata of its own.
     { path: 'сканы/скан_без_даты.jpg', body: makeJpeg(null, 'xmp1'),

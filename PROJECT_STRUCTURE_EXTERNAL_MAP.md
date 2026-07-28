@@ -47,7 +47,7 @@ KPOT/
 └── tests/          # ✅ fixtures/make.mjs (deterministic messy-tree generator, 38 cases v4,
                     #    expected.json ground truth) + the Phase-2/3/4 acceptance specs and the
                     #    Phase-5 ones (cache · idempotence · empty dirs · quarantine · plans/02
-                    #    editor exports · sidecars) — npm test 170/170
+                    #    editor exports · sidecars) — npm test 171/171
 ```
 
 ## What each part is

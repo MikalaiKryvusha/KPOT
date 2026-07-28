@@ -226,8 +226,11 @@ owner's videos has. Commit `d26ebb5`; suite 156 → **170**.
   fixture only, and says so in its `[TESTED]` marker.
 - Fixture v3 → **v4** (+6 planted files, new `makeAvi`/`makeXmp` builders); 13 new specs plus the
   acceptance case. **All five guards verified by breaking the code first** (1/5/3/1/1 specs go red).
-- **Found but NOT decided:** a THM is a JPEG, so KPOT files all 34 thumbnails into the library as
-  photographs. Placement is the owner's call (invariant 10) — surfaced below, not guessed.
+- **Found, surfaced, and then decided BY THE OWNER the same session:** a THM is a JPEG, so KPOT was
+  filing all 34 thumbnails into the library as photographs. Asked rather than guessed (invariant
+  10); the owner chose «в мусорный карантин», so `.thm` is now junk-by-extension →
+  `ПРОЧЕЕ/_мусор` with provenance. Both halves verified together on real data: the 34 thumbnails
+  carry no verdict, and the 25 videos they describe are still dated to the second. Suite **171**.
 
 ---
 
@@ -246,7 +249,7 @@ being guessed at.
 `researches/02` predicted now exists in code.
 **What remains in Phase 5:** a supervised run on a fresh *copy* of a real directory (the previous
 sample is gone — the owner deleted `KPOT_SAMPLE` between sessions; a new one is the owner's
-homework), then README + a tagged release via `/release`. Suite **170/170**.
+homework), then README + a tagged release via `/release`. Suite **171/171**.
 
 | Phase | Status | What's there |
 |-------|--------|--------------|
@@ -308,7 +311,8 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
       only a folder year. `src/meta/sidecar.mjs` pairs by stem or full name (case-insensitively,
       within one directory), donates capture properties ONLY, and refuses to pair an orphan or an
       ambiguous stem. Fixture v4 (+6 cases), 13 new specs + the acceptance case; all five guards
-      break-verified (1/5/3/1/1 red). Real-data proof: **25/25 now `dated`, winner `sidecar`** —
+      break-verified (1/5/3/1/1 red), plus the THM-quarantine guard (2 red). Real-data proof:
+      **25/25 now `dated`, winner `sidecar`** —
       19 → `2012/Весна/видео/`, 2 → `2012/Зима конец года/видео/`, 4 → `2013/Осень/видео/`.
       Honest limit recorded: the XMP *date* path is fixture-only — the single real `.xmp` is an
       ACDSee catalog sidecar with no date at all.
@@ -391,14 +395,11 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
 - ✅ **Logo source PNGs — SETTLED** (this entry was stale; corrected 2026-07-28). Both design
   sources and `KPOT.jpg` live in `assets/` and are tracked (commit `581ca6b`). Nothing is awaiting
   a decision here.
-- ❓ **NEW 2026-07-28 — where should a `.thm` thumbnail itself go?** A THM is a JPEG, so KPOT
-  identifies it as a `photo` and files all 34 into the chronological library — 160×120 camera
-  thumbnails sitting among real photographs (3 of them are even byte-identical, so dedupe groups
-  them as if they were duplicate shots). Their *dates* are now used properly (they date their
-  videos); their *placement* is untouched, because it decides where 34 of the owner's files go and
-  invariant 10 says the tool does not make that call. Options to put to him: follow the video into
-  `<год>/<сезон>/видео/` · quarantine as camera litter like `Thumbs.db` · leave as today.
-  Evidence: `researches/04_sidecars.md` §6.
+- ✅ **THM placement — ANSWERED 2026-07-28** (in chat): «В мусорный карантин». A `.thm` is camera
+  litter like `Thumbs.db`, so it is kind `junk` → `ПРОЧЕЕ/_мусор` with provenance, never in the
+  library, deleted never. Implemented the same session; it keeps dating its video twin. Verified on
+  real data: 34 thumbnails now carry no verdict, and 25/25 videos stay `dated` by `sidecar`.
+  Recorded in the `MASTER_PLAN.md` decision log.
 - ✅ **plans/02 step 2 (pixels) — AUTHORISED by the owner 2026-07-28** (in chat, answering the
   resume question): «Да, ищи оригинал по пикселям». This REVERSES the standing «пиксели не надо»
   for step 2 only. It unblocks perceptual-hash search for the actual original (`plans/02` §Шаг 2),
@@ -412,7 +413,7 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
 > A concrete checklist so the next session (empty context) can start immediately: which files, which
 > commands, what to verify first.
 
-1. Verify the environment: `node -v` (≥20), `npm test` (**must be 170/170**), `git status` (clean),
+1. Verify the environment: `node -v` (≥20), `npm test` (**must be 171/171**), `git status` (clean),
    `gh auth status` (MikalaiKryvusha). Owner-provided paths from this file are PAST observations —
    re-check they still exist before planning around them (EXP-0011: `KPOT_SAMPLE` vanished).
 2. **Run the whole product once, end to end, before designing on top of it.** It all works now:
@@ -437,7 +438,8 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
    "which camera", not "which shot", and only wins when the original is gone for good.
 4. **Phase 5, what is left.**
    - 🔲 **README refresh + a tagged release** via `/release` — now UNBLOCKED: plans/02 step 1 landed,
-     so the README can describe the honest dating of editor exports (156/156, new evidence kinds).
+     so the README can describe the honest dating of editor exports AND sidecar dating (171/171,
+     new evidence kinds; `.thm` quarantined per the owner's 2026-07-28 answer).
      This is the next autonomous piece of work.
    - 🔲 **A fresh supervised run needs a fresh sample:** `KPOT_SAMPLE` no longer exists — the owner
      deleted it between sessions (his data, his call; do NOT recreate 13 GB of his photos without a

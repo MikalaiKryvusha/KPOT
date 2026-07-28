@@ -104,13 +104,19 @@ parse, and Lightroom/darktable sidecars (the standard date-bearing kind) are ord
 world this open-source tool ships into. But its guard is a **fixture**, never real data — no
 `[TESTED]` marker on the XMP path may claim otherwise.
 
-## 6. The question this research raises but does NOT answer
+## 6. The question this research raised — and the owner's answer
 
-A THM is a JPEG, so KPOT identifies it as a `photo` and sorts all 34 into the chronological
-library — 160×120 thumbnails filed among the owner's photographs. That is almost certainly not what
-the owner wants, but *where* they should go instead (follow their video · quarantine as camera
-litter · stay put) decides the placement of 34 of his files and is his call, not the tool's —
-internal-map invariant 10. Surfaced to the owner; not decided in this document.
+A THM is a JPEG, so KPOT identified it as a `photo` and sorted all 34 into the chronological
+library — 160×120 thumbnails filed among the owner's photographs (three of them byte-identical, so
+dedupe grouped them as duplicate shots). *Where* they should go instead decides the placement of 34
+of his files, so it was put to him rather than guessed (invariant 10).
+
+**Answered 2026-07-28: «В мусорный карантин»** — a THM is camera litter in the same sense
+`Thumbs.db` is Windows litter. `.thm` is now a junk extension in `src/scan/identify.mjs`, so the
+thumbnails go to `ПРОЧЕЕ/_мусор` with provenance and are never deleted. It costs the dating nothing,
+because `pairSidecars` runs over the whole asset list regardless of kind — re-measured on the real
+archive with the decision applied: **34 thumbnails carry no verdict, and 25/25 videos are still
+`dated` by `sidecar`.** Decision-log row recorded; a spec guards both halves.
 
 ## 7. What the implementation must therefore do
 

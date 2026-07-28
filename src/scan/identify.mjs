@@ -27,8 +27,19 @@ export const SNIFF_LENGTH = 208;
 
 /** System litter identified by exact basename (case-insensitive). */
 const JUNK_BASENAMES = new Set(['thumbs.db', '.nomedia', 'desktop.ini', '.ds_store']);
-/** System litter identified by extension (case-insensitive). */
-const JUNK_EXTS = new Set(['.tmp', '.lnk', '.bak']);
+/**
+ * Litter identified by extension (case-insensitive).
+ *
+ * `.thm` is here by the OWNER'S decision (2026-07-28): a THM is a camera's 160x120 video
+ * thumbnail, and although it is a perfectly valid JPEG it is not a photograph — filing all 34 of
+ * the archive's into the chronological library put thumbnails among real pictures (and three
+ * byte-identical ones into a duplicate group). It is camera litter in the same sense `Thumbs.db`
+ * is Windows litter, so it takes the same route: quarantine with provenance, deleted never.
+ *
+ * This costs nothing in evidence: `src/meta/sidecar.mjs` pairs sidecars over the WHOLE asset list
+ * regardless of kind, so a quarantined THM still donates its capture date to its video twin.
+ */
+const JUNK_EXTS = new Set(['.tmp', '.lnk', '.bak', '.thm']);
 
 /** ISO-BMFF (`ftyp`) major brands that are still-image containers, not video. */
 const BMFF_PHOTO_BRANDS = new Set(['heic', 'heix', 'heif', 'hevc', 'mif1', 'msf1', 'avif']);

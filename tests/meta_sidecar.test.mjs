@@ -20,6 +20,7 @@ import {
 import { makeFixtureTree, makeJpegEx, makeXmp } from './fixtures/make.mjs';
 import { scanTree } from '../src/scan/scan.mjs';
 import { annotateAssets } from '../src/meta/annotate.mjs';
+import { buildPlan } from '../src/plan/plan.mjs';
 
 const NOW = new Date('2026-07-28T00:00:00Z');
 
@@ -167,6 +168,34 @@ test('ACCEPTANCE: on the fixture tree the sidecar dates its twin, and only its t
     const saveOnly = byPath.get('сканы/только_правка.jpg');
     assert.equal(saveOnly.verdict.status, 'unknown',
       'a save date in a sidecar must not date a photograph');
+  } finally { await rm(dir, { recursive: true, force: true }); }
+});
+
+test('a THM is quarantined as camera litter — and STILL dates its video', async () => {
+  // The owner's decision of 2026-07-28. The two halves must hold together: if quarantining the
+  // thumbnail cost the video its date, the decision would have been a regression instead of a
+  // tidy-up. Pairing runs over the whole asset list precisely so kind cannot break it.
+  const dir = await mkdtemp(join(tmpdir(), 'kpot-thm-junk-'));
+  try {
+    await makeFixtureTree(dir);
+    const scan = await scanTree(dir);
+    await annotateAssets(scan.root, scan.assets, { now: NOW });
+
+    const thm = scan.assets.find(a => a.path === 'видео/MVI_0042.THM');
+    assert.equal(thm.kind, 'junk', 'a 160x120 camera thumbnail is not a photograph');
+    assert.equal(thm.verdict, undefined, 'junk is not dated — it is not sorted by date');
+
+    const avi = scan.assets.find(a => a.path === 'видео/MVI_0042.avi');
+    assert.equal(avi.verdict.winner, 'sidecar');
+    assert.equal(avi.verdict.date, '2012-04-11 20:18:02',
+      'quarantining the thumbnail must not cost the video the only date it has');
+
+    const plan = buildPlan(scan, { now: NOW, decisions: new Map() });
+    const op = plan.operations.find(o => o.from === 'видео/MVI_0042.THM');
+    assert.ok(op, 'the thumbnail must still be accounted for, not silently left behind');
+    assert.match(op.to, /^ПРОЧЕЕ\/_мусор\//, `quarantine, not the library: ${op.to}`);
+    const videoOp = plan.operations.find(o => o.from === 'видео/MVI_0042.avi');
+    assert.match(videoOp.to, /^2012\/Весна\/видео\//, `the video is now seasoned: ${videoOp.to}`);
   } finally { await rm(dir, { recursive: true, force: true }); }
 });
 
