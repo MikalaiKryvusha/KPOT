@@ -385,6 +385,95 @@
   .variant { display: none; }
   .variant.on { display: block; }
 
+  /* ── РЕШЕНО: мастер → пульт ───────────────────────────────────────── */
+  .seg { display: inline-flex; background: var(--surface-2); border: 1px solid var(--line); border-radius: 20px; padding: 3px; }
+  .seg button { border: 0; background: transparent; padding: 6px 16px; border-radius: 20px; font-size: 13.5px; color: var(--ink-2); }
+  .seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); font-weight: 650; box-shadow: var(--shadow); }
+
+  .modebar { display: flex; align-items: center; gap: 12px; padding: 12px 18px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+  .modebar .hint { font-size: 13px; color: var(--ink-3); }
+
+  .stage { display: none; }
+  .stage.on { display: grid; }
+
+  /* пульт */
+  .ctl-screen { padding: 20px 22px 24px; display: grid; gap: 20px; align-content: start; }
+  .ctl-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .ctl-head .path { font-family: var(--mono); font-size: 14px; color: var(--ink); }
+  .ctl-head .when { font-size: 13px; color: var(--ink-3); }
+  .ctl-head .spacer { margin-left: auto; }
+
+  .link {
+    display: inline-flex; align-items: center; gap: 5px; font-size: 13.5px; font-weight: 600;
+    color: var(--accent); text-decoration: none; background: none; border: 0; padding: 2px 4px; border-radius: 4px;
+  }
+  .link:hover { background: var(--accent-soft); }
+  .link::after { content: "↗"; font-size: 12px; opacity: .75; }
+
+  .sec { display: grid; gap: 10px; }
+  .sec > h3 {
+    font-size: 11.5px; letter-spacing: .10em; text-transform: uppercase; color: var(--ink-3); font-weight: 700;
+  }
+
+  .ctl-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(215px, 1fr)); gap: 12px; }
+  .ctl {
+    border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px;
+    display: grid; gap: 8px; align-content: start; background: var(--surface);
+  }
+  .ctl .k { font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); font-weight: 700; }
+  .ctl .v { font-size: 15px; font-weight: 650; }
+  .ctl .m { font-size: 13px; color: var(--ink-2); }
+  .ctl .btn { justify-self: start; margin-top: 2px; }
+  .ctl.fresh { border-color: color-mix(in oklab, var(--safe) 40%, var(--line)); background: var(--safe-soft); }
+  .ctl.stale { border-color: color-mix(in oklab, var(--warn) 45%, var(--line)); background: var(--warn-soft); }
+  .ctl .tag { font-size: 11.5px; font-weight: 700; letter-spacing: .04em; }
+  .ctl.fresh .tag { color: var(--safe); }
+  .ctl.stale .tag { color: var(--warn); }
+
+  .attn { display: grid; gap: 8px; }
+  .attn-row {
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    padding: 11px 14px; border-radius: var(--radius-s);
+    background: var(--warn-soft); border: 1px solid color-mix(in oklab, var(--warn) 28%, transparent);
+  }
+  .attn-row .ic { color: var(--warn); font-size: 15px; }
+  .attn-row .tx { flex: 1; min-width: 220px; font-size: 14px; }
+  .attn-row .tx b { font-variant-numeric: tabular-nums; }
+
+  .lib { border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+  .lib-row {
+    display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-top: 1px solid var(--line);
+  }
+  .lib-row:first-child { border-top: 0; }
+  .lib-row:hover { background: var(--surface-2); }
+  .lib-row .yr { font-weight: 650; min-width: 56px; font-variant-numeric: tabular-nums; }
+  .lib-row .seasons { display: flex; gap: 6px; flex-wrap: wrap; flex: 1; }
+  .lib-row .ct { font-size: 13px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+  .lib-row .delta { font-size: 12.5px; color: var(--accent); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+  .inbox {
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    padding: 14px 16px; border-radius: var(--radius); border: 1px dashed var(--line-2); background: var(--surface-2);
+  }
+  .inbox .big { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .inbox .tx { flex: 1; min-width: 240px; font-size: 14px; color: var(--ink-2); }
+
+  .runs { display: grid; gap: 6px; }
+  .run-row {
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    padding: 9px 14px; border: 1px solid var(--line); border-radius: var(--radius-s); font-size: 13.5px;
+  }
+  .run-row .dt { color: var(--ink-2); min-width: 120px; }
+  .run-row .what { flex: 1; min-width: 200px; }
+  .run-row .what b { font-variant-numeric: tabular-nums; }
+  .run-row.old { color: var(--ink-3); }
+
+  .toast {
+    position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%);
+    background: var(--ink); color: var(--surface); padding: 9px 16px; border-radius: 20px;
+    font-size: 13.5px; box-shadow: var(--shadow-lg); z-index: 30;
+  }
+
   /* ── вопросы ──────────────────────────────────────────────────────── */
   .questions { margin-top: 56px; display: grid; gap: 14px; }
   .questions > h2 { font-size: 22px; margin-bottom: 4px; }
@@ -411,7 +500,8 @@
 
 <div class="chooser">
   <div class="chooser-inner" role="tablist" aria-label="Варианты интерфейса">
-    <button class="tab" role="tab" aria-selected="true" data-v="1"><span class="n">Вариант 1</span><span class="t">Мастер</span></button>
+    <button class="tab" role="tab" aria-selected="true" data-v="0"><span class="n">Решено</span><span class="t">Мастер → пульт</span></button>
+    <button class="tab" role="tab" aria-selected="false" data-v="1"><span class="n">Вариант 1</span><span class="t">Мастер</span></button>
     <button class="tab" role="tab" aria-selected="false" data-v="2"><span class="n">Вариант 2</span><span class="t">Было → Станет</span></button>
     <button class="tab" role="tab" aria-selected="false" data-v="3"><span class="n">Вариант 3</span><span class="t">Документ</span></button>
     <button class="tab" role="tab" aria-selected="false" data-v="4"><span class="n">Вариант 4</span><span class="t">Проводник</span></button>
@@ -422,35 +512,179 @@
 <div class="page">
 
   <div class="lede">
-    <span class="eyebrow">KPOT · интервью 003 · на согласование</span>
-    <h1>Пять вариантов интерфейса — вживую</h1>
-    <p>Все пять делают одно и то же и одинаково безопасны. Разница в том, что вы видите
-       в главный момент — когда решаете, запускать сортировку или нет. Переключайте вкладки сверху,
-       кнопки внутри макетов работают.</p>
+    <span class="eyebrow">KPOT · интервью 003 · дизайн выбран 2026-07-29</span>
+    <h1>Мастер для первого полёта, дальше — пульт</h1>
+    <p>Ваш выбор: мастер из варианта 1 ведёт человека, пока библиотека не собрана, а потом уступает
+       место пульту управления — панели из варианта 5 с таблицей «было → станет» из варианта 2.
+       Первая вкладка — это решение вживую; остальные пять оставлены как были, для истории.
+       Кнопки внутри макетов работают.</p>
     <div class="warnbar">
       <b>Это макет.</b>
       <span>Ни один файл никуда не поедет: цифры и папки выдуманы, кнопки только показывают, как поведёт себя настоящая программа.</span>
     </div>
   </div>
 
+  <!-- ═══════════════ РЕШЕНО: МАСТЕР → ПУЛЬТ ═══════════════ -->
+  <section class="variant on" data-variant="0">
+    <div class="window" style="position:relative">
+      <div class="titlebar">
+        <span class="dots"><i></i><i></i><i></i></span>
+        <span class="name" id="d-title">KPOT — разбор фотоархива</span>
+        <span class="url">127.0.0.1:8384</span>
+      </div>
+      <div class="modebar">
+        <div class="seg" id="d-seg">
+          <button aria-pressed="true" data-stage="wiz">Первый полёт</button>
+          <button aria-pressed="false" data-stage="ctl">Пульт управления</button>
+        </div>
+        <span class="hint" id="d-hint">Мастер ведёт по шагам, пока библиотека не собрана. Дальше он больше не нужен.</span>
+      </div>
+
+      <!-- первый полёт -->
+      <div class="screen wiz stage on" data-stage="wiz" id="d-wiz">
+        <div class="stepper" data-role="steps">
+          <button class="step done" data-step="1"><span class="bead"><b></b></span><span class="lbl">Папка</span></button>
+          <button class="step now"  data-step="2"><span class="bead"><b></b></span><span class="lbl">Изучаю</span></button>
+          <button class="step"      data-step="3"><span class="bead"><b></b></span><span class="lbl">План</span></button>
+          <button class="step"      data-step="4"><span class="bead"><b></b></span><span class="lbl">Готово</span></button>
+        </div>
+        <div class="wiz-body" data-role="body"></div>
+        <div class="wiz-actions" data-role="actions"></div>
+        <div class="guarantees" data-role="guarantees">
+          <span class="g"><span class="mark">✓</span> карта готова</span>
+          <span class="g pending"><span class="mark">2</span> бэкап — перед запуском</span>
+          <span class="g pending"><span class="mark">3</span> сухой прогон</span>
+          <span class="g pending"><span class="mark">4</span> откат одной кнопкой</span>
+        </div>
+      </div>
+
+      <!-- пульт управления -->
+      <div class="screen ctl-screen stage" data-stage="ctl">
+        <div class="ctl-head">
+          <span class="path">D:\Фото</span>
+          <span class="when">библиотека собрана 29 июля в 14:02</span>
+          <span class="spacer"></span>
+          <button class="link" data-toast="Открыл бы папку D:\Фото в проводнике">Открыть папку</button>
+        </div>
+
+        <div class="sec">
+          <h3>Прогоны — можно запускать в любой момент</h3>
+          <div class="ctl-grid">
+            <div class="ctl stale">
+              <span class="k">Разведка</span>
+              <span class="tag">папка изменилась</span>
+              <span class="v"><span class="num">12 038</span> файлов</span>
+              <span class="m">проверялась 3 дня назад · с тех пор добавилось 34</span>
+              <button class="btn" data-toast="Пошла разведка: смотрю, что изменилось. Файлы не трогаю.">Перепроверить папку</button>
+            </div>
+            <div class="ctl stale">
+              <span class="k">План</span>
+              <span class="tag">устарел</span>
+              <span class="v"><span class="num">812</span> перемещений</span>
+              <span class="m">собран до последних изменений — стоит пересобрать</span>
+              <button class="btn" data-toast="Пересобираю план. Ничего не двигаю — это только карта.">Пересобрать план</button>
+            </div>
+            <div class="ctl fresh">
+              <span class="k">Сортировка</span>
+              <span class="tag">выполнена</span>
+              <span class="v">29 июля, 14:02</span>
+              <span class="m"><span class="num">812</span> перемещено · <span class="num">0</span> ошибок · бэкап на месте</span>
+              <button class="btn btn-danger" data-toast="Спросил бы подтверждение и вернул всё как было.">Вернуть всё как было</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="sec">
+          <h3>Требует вашего внимания</h3>
+          <div class="attn">
+            <div class="attn-row">
+              <span class="ic">⚠</span>
+              <span class="tx"><b>5 папок</b> с непонятными названиями ждут решения — разобрать их или оставить как есть</span>
+              <button class="btn" data-toast="Открыл бы список папок: у каждой две кнопки.">Решить</button>
+              <button class="link" data-toast="Открыл бы папку НА_РАЗБОР в проводнике">Посмотреть в проводнике</button>
+            </div>
+            <div class="attn-row">
+              <span class="ic">⚠</span>
+              <span class="tx"><b>4 фотографии</b> со спорной датой — я не стал угадывать и сложил их в «ПРОЧЕЕ»</span>
+              <button class="btn" data-toast="Показал бы список с пояснением, почему дата спорная.">Посмотреть</button>
+              <button class="link" data-toast="Открыл бы папку ПРОЧЕЕ в проводнике">Открыть папку</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="sec">
+          <h3>
+            Что где лежит
+            <span style="float:right; font-weight:400; text-transform:none; letter-spacing:0">
+              <span class="seg" id="lib-seg" style="transform:translateY(-4px)">
+                <button aria-pressed="true" data-lib="now">как лежит сейчас</button>
+                <button aria-pressed="false" data-lib="diff">что изменил прогон</button>
+              </span>
+            </span>
+          </h3>
+          <div class="lib" id="lib-table"></div>
+        </div>
+
+        <div class="sec">
+          <h3>Новые файлы</h3>
+          <div class="inbox">
+            <span class="big num">34</span>
+            <span class="tx">новых файла лежат в папке <b>НОВОЕ</b>. Их можно разложить по годам, не трогая остальную библиотеку.</span>
+            <button class="link" data-toast="Открыл бы папку НОВОЕ в проводнике">Открыть НОВОЕ</button>
+            <button class="btn btn-primary" data-toast="Показал бы план доливки: что и куда добавится.">Разложить их</button>
+          </div>
+        </div>
+
+        <div class="sec">
+          <h3>История прогонов</h3>
+          <div class="runs">
+            <div class="run-row">
+              <span class="dt">29 июля, 14:02</span>
+              <span class="what">сортировка · <b>812</b> перемещено · <b>0</b> ошибок</span>
+              <button class="link" data-toast="Показал бы отчёт этого прогона целиком">Отчёт</button>
+              <button class="btn btn-danger" data-toast="Спросил бы подтверждение и вернул всё как было.">Вернуть как было</button>
+            </div>
+            <div class="run-row old">
+              <span class="dt">29 июля, 13:58</span>
+              <span class="what">сухой прогон · показал <b>812</b> перемещений, ничего не тронул</span>
+              <button class="link" data-toast="Показал бы отчёт сухого прогона">Отчёт</button>
+            </div>
+            <div class="run-row old">
+              <span class="dt">26 июля, 21:10</span>
+              <span class="what">разведка · <b>12 004</b> файла</span>
+              <button class="link" data-toast="Показал бы карту разведки">Отчёт</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="notes">
+      <div class="note pick"><h4>Ваше решение</h4><p>Мастер (вариант 1) ведёт первый полёт. Как только библиотека собрана, он уступает место пульту — панели из варианта 5 с таблицей «было → станет» из варианта 2.</p></div>
+      <div class="note"><h4>Пульт умеет</h4><p>Запускать заново любой из трёх прогонов — разведку, план, сортировку; показывать, что требует решения; доливать новые файлы из папки НОВОЕ; откатывать любой прошлый прогон.</p></div>
+      <div class="note"><h4>Без миниатюр</h4><p>Смотреть фотографии — работа проводника, а не наша. Везде, где нужен глаз, стоит ссылка «открыть папку», и Windows показывает снимки сам.</p></div>
+      <div class="note"><h4>Что это даёт</h4><p>Первый раз человека ведут за руку, а дальше он получает пульт, а не мастер, который каждый раз спрашивает одно и то же.</p></div>
+    </div>
+  </section>
+
   <!-- ═══════════════ ВАРИАНТ 1 — МАСТЕР ═══════════════ -->
-  <section class="variant on" data-variant="1">
+  <section class="variant" data-variant="1">
     <div class="window">
       <div class="titlebar">
         <span class="dots"><i></i><i></i><i></i></span>
         <span class="name">KPOT — разбор фотоархива</span>
         <span class="url">127.0.0.1:8384</span>
       </div>
-      <div class="screen wiz">
-        <div class="stepper" id="wiz-steps">
+      <div class="screen wiz" id="v1-wiz">
+        <div class="stepper" data-role="steps">
           <button class="step done" data-step="1"><span class="bead"><b></b></span><span class="lbl">Папка</span></button>
           <button class="step now"  data-step="2"><span class="bead"><b></b></span><span class="lbl">Изучаю</span></button>
           <button class="step"      data-step="3"><span class="bead"><b></b></span><span class="lbl">План</span></button>
           <button class="step"      data-step="4"><span class="bead"><b></b></span><span class="lbl">Готово</span></button>
         </div>
-        <div class="wiz-body" id="wiz-body"></div>
-        <div class="wiz-actions" id="wiz-actions"></div>
-        <div class="guarantees">
+        <div class="wiz-body" data-role="body"></div>
+        <div class="wiz-actions" data-role="actions"></div>
+        <div class="guarantees" data-role="guarantees">
           <span class="g"><span class="mark">✓</span> карта готова</span>
           <span class="g pending"><span class="mark">2</span> бэкап — перед запуском</span>
           <span class="g pending"><span class="mark">3</span> сухой прогон</span>
@@ -805,11 +1039,7 @@
     });
   });
 
-  // ── вариант 1: живой мастер ──────────────────────────────────────────
-  const wizSteps = [...document.querySelectorAll('#wiz-steps .step')];
-  const wizBody = document.getElementById('wiz-body');
-  const wizActions = document.getElementById('wiz-actions');
-
+  // ── мастер: один и тот же экран живёт на двух вкладках ───────────────
   const screens = {
     1: {
       body: `
@@ -867,24 +1097,120 @@
     },
   };
 
-  function showStep(n) {
-    wizSteps.forEach((s) => {
-      const i = Number(s.dataset.step);
-      s.classList.toggle('done', i < n);
-      s.classList.toggle('now', i === n);
+  function mountWizard(root) {
+    if (!root) return;
+    const steps = [...root.querySelectorAll('[data-role="steps"] .step')];
+    const body = root.querySelector('[data-role="body"]');
+    const actions = root.querySelector('[data-role="actions"]');
+    const marks = [...root.querySelectorAll('[data-role="guarantees"] .g')];
+
+    function show(n) {
+      steps.forEach((s) => {
+        const i = Number(s.dataset.step);
+        s.classList.toggle('done', i < n);
+        s.classList.toggle('now', i === n);
+      });
+      body.innerHTML = screens[n].body;
+      actions.innerHTML = screens[n].actions;
+      actions.querySelectorAll('[data-go]').forEach((b) => {
+        b.addEventListener('click', () => show(Number(b.dataset.go)));
+      });
+      marks.forEach((g, i) => {
+        g.classList.toggle('pending', i + 1 > n);
+        g.querySelector('.mark').textContent = i + 1 > n ? String(i + 1) : '✓';
+      });
+    }
+    steps.forEach((s) => s.addEventListener('click', () => show(Number(s.dataset.step))));
+    show(2);
+  }
+  mountWizard(document.getElementById('v1-wiz'));
+  mountWizard(document.getElementById('d-wiz'));
+
+  // ── решено: переключение «первый полёт» ⇄ «пульт» ────────────────────
+  const dSeg = document.getElementById('d-seg');
+  const dTitle = document.getElementById('d-title');
+  const dHint = document.getElementById('d-hint');
+  const hints = {
+    wiz: 'Мастер ведёт по шагам, пока библиотека не собрана. Дальше он больше не нужен.',
+    ctl: 'Библиотека собрана — теперь это пульт: отсюда запускаются любые прогоны и виден весь порядок.',
+  };
+  dSeg.querySelectorAll('button').forEach((b) => {
+    b.addEventListener('click', () => {
+      const stage = b.dataset.stage;
+      dSeg.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+      document.querySelectorAll('[data-variant="0"] .stage').forEach((s) => {
+        s.classList.toggle('on', s.dataset.stage === stage);
+      });
+      dTitle.textContent = stage === 'ctl' ? 'KPOT — пульт управления' : 'KPOT — разбор фотоархива';
+      dHint.textContent = hints[stage];
     });
-    wizBody.innerHTML = screens[n].body;
-    wizActions.innerHTML = screens[n].actions;
-    wizActions.querySelectorAll('[data-go]').forEach((b) => {
-      b.addEventListener('click', () => showStep(Number(b.dataset.go)));
+  });
+
+  // ── пульт: таблица библиотеки в двух режимах ─────────────────────────
+  const libRows = [
+    { yr: 2011, seasons: [['spring', 'Весна', 41], ['summer', 'Лето', 88]], total: 129, delta: 0 },
+    { yr: 2013, seasons: [['spring', 'Весна', 62], ['summer', 'Лето', 118], ['autumn', 'Осень', 158]], total: 338, delta: 338 },
+    { yr: 2014, seasons: [['winter1', 'Зима начало года', 402], ['summer', 'Лето', 505]], total: 907, delta: 907 },
+    { yr: 2020, seasons: [['autumn', 'Осень', 262]], total: 262, delta: 262 },
+  ];
+  const libTable = document.getElementById('lib-table');
+  function renderLib(mode) {
+    libTable.innerHTML = '';
+    libRows.forEach((r) => {
+      const row = document.createElement('div');
+      row.className = 'lib-row';
+      const seasons = r.seasons
+        .map(([cls, name, n]) => `<span class="chip season ${cls}">${name} <span class="num">${n}</span></span>`)
+        .join('');
+      row.innerHTML = `
+        <span class="yr num">${r.yr}</span>
+        <span class="seasons">${seasons}</span>
+        ${mode === 'diff'
+          ? `<span class="delta">${r.delta ? '+' + r.delta.toLocaleString('ru-RU') + ' в этот прогон' : 'не менялся'}</span>`
+          : `<span class="ct">${r.total.toLocaleString('ru-RU')}</span>`}
+        <button class="link" data-toast="Открыл бы папку ${r.yr} в проводнике">Открыть</button>`;
+      libTable.appendChild(row);
     });
-    document.querySelectorAll('.wiz .guarantees .g').forEach((g, i) => {
-      g.classList.toggle('pending', i + 1 > n);
-      g.querySelector('.mark').textContent = i + 1 > n ? String(i + 1) : '✓';
+    const misc = document.createElement('div');
+    misc.className = 'lib-row';
+    misc.innerHTML = `
+      <span class="yr">ПРОЧЕЕ</span>
+      <span class="seasons"><span class="chip">без даты <span class="num">96</span></span>
+        <span class="chip">дубликаты <span class="num">88</span></span>
+        <span class="chip">мусор <span class="num">34</span></span></span>
+      <span class="ct num">218</span>
+      <button class="link" data-toast="Открыл бы папку ПРОЧЕЕ в проводнике">Открыть</button>`;
+    libTable.appendChild(misc);
+    wireToasts(libTable);
+  }
+  const libSeg = document.getElementById('lib-seg');
+  libSeg.querySelectorAll('button').forEach((b) => {
+    b.addEventListener('click', () => {
+      libSeg.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+      renderLib(b.dataset.lib);
+    });
+  });
+
+  // ── подсказки вместо действий: это макет, ничего не выполняется ──────
+  let toastTimer = null;
+  function wireToasts(scope) {
+    scope.querySelectorAll('[data-toast]').forEach((b) => {
+      if (b.dataset.wired) return;
+      b.dataset.wired = '1';
+      b.addEventListener('click', () => {
+        const host = b.closest('.window');
+        host.querySelector('.toast')?.remove();
+        const t = document.createElement('div');
+        t.className = 'toast';
+        t.textContent = 'В настоящей программе: ' + b.dataset.toast;
+        host.appendChild(t);
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => t.remove(), 3200);
+      });
     });
   }
-  wizSteps.forEach((s) => s.addEventListener('click', () => showStep(Number(s.dataset.step))));
-  showStep(2);
+  renderLib('now');
+  wireToasts(document);
 
   // ── вариант 2: подтверждение ─────────────────────────────────────────
   const modal = document.getElementById('v2-modal');
