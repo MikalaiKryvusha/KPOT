@@ -78,6 +78,12 @@ directory years KPOT already reads** — so this is pure refinement: it adds the
 timestamp, and creates no new conflicts. Nothing the owner sees today gets contradicted; 25 videos
 simply stop sitting in the year's «прочее» drawer.
 
+**Verified after implementing it** (2026-07-28, same read-only measurement re-run against the new
+code): the "with sidecar evidence" column above is now an observation, not a projection —
+**25 of 25** twinned videos are `dated`, all with winner `sidecar`, 0 errors; across those six
+directories `dated` went 212 → 237 and `partial` 34 → 9. Destinations: 19 land in
+`2012/Весна/видео/`, 2 in `2012/Зима конец года/видео/`, 4 in `2013/Осень/видео/`.
+
 ## 5. XMP — the honest result
 
 There is exactly **one** `.xmp` in 71 606 files, and it does not carry a date.

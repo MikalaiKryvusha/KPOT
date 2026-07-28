@@ -202,6 +202,33 @@ owner's value order followed exactly (metadata only — no pixels). Commit `e55a
   found in the wild: HTC Touch2, Digimax S830, DSC-S780. XMP identity exists (35/19) but no
   original matched in that slice — §1.2 waits for a full-tree run.
 
+### Session of 2026-07-28 — Phase 2's last cut closed: sidecar evidence
+The item the backlog called "optional filler" turned out to be the only date a whole class of the
+owner's videos has. Commit `d26ebb5`; suite 156 → **170**.
+
+- **Recon before code, and it changed the design** (`researches/04_sidecars.md`, read-only over the
+  real archive): a `.thm` is a **160×120 JPEG with a full 44-tag EXIF block**, and **34/34 carry
+  `DateTimeOriginal`**. 25 of them sit beside an **`.avi`** — and AVI is RIFF, not ISO-BMFF, so
+  `src/meta/mp4.mjs` extracts *nothing* from those videos. Measured with the real pipeline before
+  writing a line: all 25 were `partial` — a year from the folder name, no season, no time.
+- **`src/meta/sidecar.mjs`** — pairs by stem (`VID.THM`↔`VID.AVI`) or by full name
+  (`photo.jpg.xmp`↔`photo.jpg`), case-insensitively, inside one directory. Donates **capture
+  properties only**: a THM's `DateTimeOriginal` (never its `DateTime` — that is when the camera
+  wrote the thumbnail), an XMP's `exif:DateTimeOriginal`/`photoshop:DateCreated` (never
+  `xmp:CreateDate`/`ModifyDate`/`MetadataDate`, which editors write on save). An orphan sidecar
+  dates nobody; a stem matching two media files dates nobody.
+- **Real-data proof, read-only within the grant: 25/25 videos went `partial` → `dated`,** winner
+  `sidecar`, 0 errors — 19 to `2012/Весна/видео/`, 2 to `2012/Зима конец года/видео/`, 4 to
+  `2013/Осень/видео/`. The years match what the folder names already said, so it contradicts
+  nothing: it adds the season and the timestamp.
+- **Honest limit, recorded not glossed:** the archive holds exactly **one** `.xmp`, an ACDSee
+  catalog sidecar with **no date properties at all**. The XMP *date* path is therefore guarded by
+  fixture only, and says so in its `[TESTED]` marker.
+- Fixture v3 → **v4** (+6 planted files, new `makeAvi`/`makeXmp` builders); 13 new specs plus the
+  acceptance case. **All five guards verified by breaking the code first** (1/5/3/1/1 specs go red).
+- **Found but NOT decided:** a THM is a JPEG, so KPOT files all 34 thumbnails into the library as
+  photographs. Placement is the owner's call (invariant 10) — surfaced below, not guessed.
+
 ---
 
 ## Where we are now
@@ -215,19 +242,20 @@ being guessed at.
 
 **KPOT may now write — and every guarantee `GOAL.md` demands before it does exists and is proven.**
 
-Deliberate cut, small and recorded: THM/XMP sidecar evidence (needs a fixture case first).
+**Phase 2 has no cuts left**: THM/XMP sidecar evidence landed 2026-07-28, so every evidence tier
+`researches/02` predicted now exists in code.
 **What remains in Phase 5:** a supervised run on a fresh *copy* of a real directory (the previous
 sample is gone — the owner deleted `KPOT_SAMPLE` between sessions; a new one is the owner's
-homework), then README + a tagged release via `/release`. Suite **156/156**.
+homework), then README + a tagged release via `/release`. Suite **170/170**.
 
 | Phase | Status | What's there |
 |-------|--------|--------------|
 | Phase 0 — foundation | ✅ done | repo, license, KAIF, docs, `npm test` gate |
 | Phase 1 — research + decisions + skeleton | ✅ done | researches 01+02, interview #001 ✅, fixtures, CLI, seasons, `src/core/`, `src/meta/` evidence model |
-| Phase 2 — scan & metadata | ✅ done | acceptance spec green; `kpot scan` = assets + evidence + verdicts; deferred: sidecar evidence (needs a fixture case first) |
+| Phase 2 — scan & metadata | ✅ done (fully closed 2026-07-28) | acceptance spec green; `kpot scan` = assets + evidence + verdicts; the last deferred cut — THM/XMP sidecar evidence — is implemented and proven on real data |
 | Phase 3 — dedup & plan | ✅ done | `kpot plan` = SortPlan + owner-facing master plan; acceptance spec green (23 planted destinations + both ambiguities) |
 | Phase 4 — safety (backup / dry run / rollback) | ✅ done | interview #002 answered; `src/apply/` = backup + the single writer + rollback; all three acceptance criteria green; guards proven by breaking them |
-| Phase 5 — first real use & release | 🔶 in progress | ✅ scan cache · ✅ idempotent sorting (bug 01) · ✅ empty-folder cleanup · ✅ the `НА_РАЗБОР/` approval quarantine · ✅ progress output · ✅ resumability · ✅ plans/02 step 1 (editor exports dated honestly) · 🔲 supervised run on a COPY of a real dir (the sample is gone — owner deleted it; needs a fresh one) · 🔲 README + `/release` |
+| Phase 5 — first real use & release | 🔶 in progress | ✅ scan cache · ✅ idempotent sorting (bug 01) · ✅ empty-folder cleanup · ✅ the `НА_РАЗБОР/` approval quarantine · ✅ progress output · ✅ resumability · ✅ plans/02 step 1 (editor exports dated honestly) · ✅ THM/XMP sidecar evidence (Phase 2's last cut, closed 2026-07-28) · 🔲 supervised run on a COPY of a real dir (the sample is gone — owner deleted it; needs a fresh one) · 🔲 README + `/release` |
 
 Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
 
@@ -273,8 +301,17 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
       same loop with inert effects), `src/apply/rollback.mjs` (journal replayed backwards,
       idempotent, prunes only what the run created). `kpot apply`/`rollback` wired. 13 specs;
       suite 88/88; every guard verified by breaking it first.
-- [ ] Sidecar evidence (THM/XMP) — plant a fixture case first (THM next to its video twin, per the
-      survey), then a collector feeding 'sidecar' evidence into the resolver. Small, self-contained.
+- [x] Sidecar evidence (THM/XMP) — ✅ done 2026-07-28 (commit `d26ebb5`). Recon FIRST
+      (`researches/04_sidecars.md`, read-only over the real archive), and it changed the design:
+      a `.thm` is a 160×120 JPEG with full EXIF (34/34 carry `DateTimeOriginal`), and 25 of them sit
+      beside an **AVI** — RIFF, not ISO-BMFF, so `mp4.mjs` reads nothing from it. Those 25 videos had
+      only a folder year. `src/meta/sidecar.mjs` pairs by stem or full name (case-insensitively,
+      within one directory), donates capture properties ONLY, and refuses to pair an orphan or an
+      ambiguous stem. Fixture v4 (+6 cases), 13 new specs + the acceptance case; all five guards
+      break-verified (1/5/3/1/1 red). Real-data proof: **25/25 now `dated`, winner `sidecar`** —
+      19 → `2012/Весна/видео/`, 2 → `2012/Зима конец года/видео/`, 4 → `2013/Осень/видео/`.
+      Honest limit recorded: the XMP *date* path is fixture-only — the single real `.xmp` is an
+      ACDSee catalog sidecar with no date at all.
 - [x] Scan-map cache keyed by (path, size, mtime) — ✅ done 2026-07-26. `src/core/scan_cache.mjs`
       (load/lookup/save/re-key), wired into every phase via the CLI, `--no-cache` opts out. A repeat
       run reports `cache 26/26 reused (no re-hash)`, and `apply` re-keys the cache from its own moves
@@ -351,10 +388,22 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
   a desktop shortcut running an incremental **top-up flow** into the structured library (owner's
   own request in chat 2026-07-24; forks to close: auto-apply vs stop-at-plan, inbox location,
   emptied-folder policy, inbox default name). Touches Phases 3–5; does not block Phase 2 work.
-- ❓ **Logo source PNGs untracked** — owner dropped `KPOT_orinigal.png` (2.7 MB) and
-  `KPOT_upscale.png` (9.5 MB) into the repo root; the committed logo is `KPOT.jpg` (400 KB, used
-  by README). The two PNGs look like design sources — awaiting the owner's word: commit (maybe
-  under `assets/`), keep locally untracked, or delete. Do not commit silently (public repo, 12 MB).
+- ✅ **Logo source PNGs — SETTLED** (this entry was stale; corrected 2026-07-28). Both design
+  sources and `KPOT.jpg` live in `assets/` and are tracked (commit `581ca6b`). Nothing is awaiting
+  a decision here.
+- ❓ **NEW 2026-07-28 — where should a `.thm` thumbnail itself go?** A THM is a JPEG, so KPOT
+  identifies it as a `photo` and files all 34 into the chronological library — 160×120 camera
+  thumbnails sitting among real photographs (3 of them are even byte-identical, so dedupe groups
+  them as if they were duplicate shots). Their *dates* are now used properly (they date their
+  videos); their *placement* is untouched, because it decides where 34 of the owner's files go and
+  invariant 10 says the tool does not make that call. Options to put to him: follow the video into
+  `<год>/<сезон>/видео/` · quarantine as camera litter like `Thumbs.db` · leave as today.
+  Evidence: `researches/04_sidecars.md` §6.
+- ✅ **plans/02 step 2 (pixels) — AUTHORISED by the owner 2026-07-28** (in chat, answering the
+  resume question): «Да, ищи оригинал по пикселям». This REVERSES the standing «пиксели не надо»
+  for step 2 only. It unblocks perceptual-hash search for the actual original (`plans/02` §Шаг 2),
+  including the one small pure-JS decode dependency that step names (`jpeg-js`, MIT, no native
+  build) — a decision-log row, not a new interview. Step 3 (PRNU) stays unstarted and unauthorised.
 
 ---
 
@@ -363,7 +412,7 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
 > A concrete checklist so the next session (empty context) can start immediately: which files, which
 > commands, what to verify first.
 
-1. Verify the environment: `node -v` (≥20), `npm test` (**must be 156/156**), `git status` (clean),
+1. Verify the environment: `node -v` (≥20), `npm test` (**must be 170/170**), `git status` (clean),
    `gh auth status` (MikalaiKryvusha). Owner-provided paths from this file are PAST observations —
    re-check they still exist before planning around them (EXP-0011: `KPOT_SAMPLE` vanished).
 2. **Run the whole product once, end to end, before designing on top of it.** It all works now:
@@ -377,9 +426,15 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
    (Fresh temp dir each time — `%TEMP%` is cleaned between sessions. The run id is printed by
    `apply`; run data lives in `<tmp>/.kpot-runs/`, which scans deliberately skip.)
 3. **`plans/02` — step 1 is ✅ DONE (2026-07-27, commit `e55ae91`; measurement in the plan's status
-   section).** Steps 2–3 are deliberately NOT started: the owner said «пиксели не надо» — step 2
-   (perceptual hash finds the actual original) needs his word after he reviews step-1 results,
-   step 3 (PRNU) only wins when the original is gone. Do not start either autonomously.
+   section).** **Step 2 is now AUTHORISED** — the owner said «Да, ищи оригинал по пикселям» in chat
+   on 2026-07-28, reversing his earlier «пиксели не надо» for this step. So the next substantial
+   piece of product work is `plans/02` §Шаг 2: a perceptual hash (dHash/aHash over a downscaled
+   copy) that finds the ACTUAL original of an editor export — crops and re-compressions included —
+   and inherits its real `DateTimeOriginal`. The plan already names the dependency (`jpeg-js`, MIT,
+   pure JS) and the hard part (a crop shifts the frame, so compare over an overlapping region or
+   via downscaled previews). Side benefit `researches/01` predicted: renamed and re-encoded copies
+   that sha256 dedupe cannot see. **Step 3 (PRNU) stays unstarted and unauthorised** — it answers
+   "which camera", not "which shot", and only wins when the original is gone for good.
 4. **Phase 5, what is left.**
    - 🔲 **README refresh + a tagged release** via `/release` — now UNBLOCKED: plans/02 step 1 landed,
      so the README can describe the honest dating of editor exports (156/156, new evidence kinds).
@@ -387,8 +442,8 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
    - 🔲 **A fresh supervised run needs a fresh sample:** `KPOT_SAMPLE` no longer exists — the owner
      deleted it between sessions (his data, his call; do NOT recreate 13 GB of his photos without a
      fresh word). Phase 5's acceptance still wants a supervised run on a *copy* of a real dir.
-   - Optional filler, self-contained: THM/XMP sidecar evidence — model the fixture case on the
-     34 real `.thm`+twin pairs catalogued in `researches/03` (the observation survives the sample).
+   - ✅ THM/XMP sidecar evidence — DONE 2026-07-28 (`researches/04_sidecars.md`, commit `d26ebb5`).
+     It was listed here as "optional filler" and turned out to be the only date 25 real videos have.
 5. **The first run on real data is the owner's call and needs a fresh `AUTH:`** — the archive grant
    in agent memory is READ-ONLY. Phase 5's acceptance says a *copy* of a real messy directory
    (owner's homework), never the original.

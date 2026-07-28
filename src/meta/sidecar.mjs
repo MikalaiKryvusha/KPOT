@@ -1,6 +1,10 @@
 // src/meta/sidecar.mjs — sidecar evidence: a THM/XMP twin file donates its capture date to the
 // media file it describes.
-// [NOT-TESTED]
+// [TESTED: 2026-07-28 · tests/meta_sidecar.test.mjs (13 specs) + the Phase-2 acceptance case;
+//  all five guards verified by breaking them first (1/5/3/1/1 specs go red). Real data, read-only:
+//  the archive's 25 THM-twinned videos went from `partial` (a year, no season) to `dated` to the
+//  second — 25/25 winner `sidecar`, 0 errors. The XMP DATE path is fixture-only: the single real
+//  .xmp carries no date at all (researches/04 §5), and no observation claims otherwise.]
 //
 // The last deliberate cut of Phase 2, deferred until a fixture case existed (MASTER_PLAN §Phase 2).
 // The `sidecar` evidence kind and its rank have been in `evidence.mjs` since then; this is the

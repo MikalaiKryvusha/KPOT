@@ -78,9 +78,12 @@ observation (a session that "remembers" a domain invents it):
 
 - **Recon doc** (checklist step 9) — *describes* how the external truth actually works, read from the
   live source (the format spec, the library's real output, the running tool) — never from recall. The
-  first artifact of any task that rests on one; reused by every future session. KPOT already has two:
-  `researches/01_prior_art.md` (npm/prior-art facts, spot-verified) and
-  `researches/02_real_archive_survey.md` (the owner's real archive, observed read-only).
+  first artifact of any task that rests on one; reused by every future session. KPOT already has
+  four: `researches/01_prior_art.md` (npm/prior-art facts, spot-verified),
+  `researches/02_real_archive_survey.md` (the owner's real archive, observed read-only),
+  `researches/03_first_real_run.md` (what the tool actually did on a real sample) and
+  `researches/04_sidecars.md` (what a THM/XMP file really contains — which overturned the guess that
+  a sidecar merely corroborates: for 25 real videos it is the ONLY date that exists).
 - **Canon map** — for any domain with facts: a table of entities → their roles → mappings, **approved by
   the owner**. The map precedes the canon: every edit is checked against it, ONLY the owner may change
   it, and a conflict between text and map = stop and ask. Key facts of the map deserve guards
