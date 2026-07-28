@@ -464,7 +464,7 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
    re-check they still exist before planning around them (EXP-0011: `KPOT_SAMPLE` vanished).
 2. **Run the whole product once, end to end, before designing on top of it.** It all works now:
    ```
-   node tests/fixtures/make.mjs <tmp>          # 25 planted cases + expected.json ground truth
+   node tests/fixtures/make.mjs <tmp>          # fixture v4: 39 planted files + expected.json
    node bin/kpot.mjs plan <tmp>                # the owner-facing master plan
    node bin/kpot.mjs apply --dry-run <tmp>     # full simulation, zero writes
    node bin/kpot.mjs apply <tmp>               # the real sort (backup first, always)
@@ -472,26 +472,29 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
    ```
    (Fresh temp dir each time — `%TEMP%` is cleaned between sessions. The run id is printed by
    `apply`; run data lives in `<tmp>/.kpot-runs/`, which scans deliberately skip.)
-3. **`plans/02` — step 1 is ✅ DONE (2026-07-27, commit `e55ae91`; measurement in the plan's status
-   section).** **Step 2 is now AUTHORISED** — the owner said «Да, ищи оригинал по пикселям» in chat
-   on 2026-07-28, reversing his earlier «пиксели не надо» for this step. So the next substantial
-   piece of product work is `plans/02` §Шаг 2: a perceptual hash (dHash/aHash over a downscaled
-   copy) that finds the ACTUAL original of an editor export — crops and re-compressions included —
-   and inherits its real `DateTimeOriginal`. The plan already names the dependency (`jpeg-js`, MIT,
-   pure JS) and the hard part (a crop shifts the frame, so compare over an overlapping region or
-   via downscaled previews). Side benefit `researches/01` predicted: renamed and re-encoded copies
-   that sha256 dedupe cannot see.
-   **✅ The prior-art review is DONE — `researches/05_perceptual_hashing.md` (2026-07-28).** Read it
-   before writing a line: it **refutes the design the plan contained** (dHash cannot survive a crop —
-   measured on 40 of the owner's photos) and replaces it with candidate-set-first + decide-by-margin
-   (§7). Feasibility is settled: `jpeg-js` decodes the progressive exports, 25/25, and costs
-   ≈76 ms/MP. **The implementation is the next piece of work, and it is fully autonomous.**
-   Suggested shape, straight from §7: one new dependency (`jpeg-js`, BSD-3-Clause); block-mean hash
-   (our own ~20 lines, or `blockhash-core`); candidates nominated by the existing `family.mjs` signs;
-   compare over several crop offsets/widths; emit a new `pixel-original` evidence kind ranked with
-   `derived-original`, whose detail names the source file AND the margin it won by; inherit a date
-   ONLY on a decisive margin. **Step 3 (PRNU) stays unstarted and unauthorised** — it answers
-   "which camera", not "which shot", and only wins when the original is gone for good.
+3. ⭐ **THE NEXT PIECE OF WORK — `plans/02` §Шаг 2, and it is ready to run.** Authorised by the owner
+   («Да, ищи оригинал по пикселям», 2026-07-28, reversing his earlier «пиксели не надо» for this step
+   only), fully autonomous, needs nothing from him.
+
+   **Read `researches/05_perceptual_hashing.md` FIRST — it supersedes the design written inside the
+   plan.** Do not implement what §Шаг 2 originally described; that design was refuted by measurement.
+   The settled position:
+   - **Feasible.** `jpeg-js` decodes the progressive (`SOF2`) editor exports — 25/25, 0 failures,
+     ≈76 ms/megapixel. Licence is **BSD-3-Clause** (the plan's "MIT" was wrong).
+   - **dHash is out.** On 40 of the owner's own photos a 10% crop scores 19 bits, the same as the
+     *minimum* between two unrelated photos. Block-mean (`blockhash`) is far better — 16 vs a chance
+     median of 32 at the real crop ratio — but its distributions still overlap chance.
+   - **So: candidate-set-first, decide-by-margin** (§7). `src/meta/family.mjs` already nominates
+     ~100–200 same-camera candidates before the ceiling date, instead of 61 689 photos. Compare over
+     several crop offsets/widths, then inherit a date **only when the best candidate is decisively
+     ahead of the second best** — never on a threshold. No margin → the file stays in `ПРОЧЕЕ` with
+     its ceiling (invariant 3).
+   - Deliverable shape: one new dependency (`jpeg-js`); a block-mean hash (~20 lines of ours, or the
+     zero-dep `blockhash-core`); a new `pixel-original` evidence kind ranked beside `derived-original`
+     whose detail names the source file **and the margin it won by**; fixture cases with a planted
+     crop+original pair; guards break-verified as always.
+   - Step 1 of the plan is ✅ done (2026-07-27, `e55ae91`). **Step 3 (PRNU) stays unstarted and
+     unauthorised** — it answers "which camera", not "which shot".
 4. **Phase 5, what is left.**
    - ✅ **README refresh + a tagged release** — DONE 2026-07-28: `v0.1` «First KPOT», bilingual
      notes, `kpot-0.1.0.tgz` attached (88 KB after the packaging fix). The install command in the
@@ -504,6 +507,11 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
 5. **The first run on real data is the owner's call and needs a fresh `AUTH:`** — the archive grant
    in agent memory is READ-ONLY. Phase 5's acceptance says a *copy* of a real messy directory
    (owner's homework), never the original.
+5b. **Do NOT propose or perform a KAIF update** — the owner runs framework updates himself
+   («я сам веду обновления КАИф», 2026-07-28). A newer KAIF release existing is not a task, not a
+   backlog item and not a `/what-next` candidate. Related: `plans/01_kaif_16_update_report.md` is a
+   FINISHED report addressed to the KAIF framework's own agent, not open work — `/check-backlog`
+   should stop counting it as an open item.
 6. One owner question is waiting and does not block: idea 01's open forks (the inbox/top-up flow).
    The logo PNGs in the repo root are still undecided too.
 7. Decisions are all in `MASTER_PLAN.md` §Decision log (2026-07-24 and 2026-07-26 blocks) — re-read
