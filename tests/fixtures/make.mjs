@@ -21,7 +21,10 @@ import { pathToFileURL } from 'node:url';
 import process from 'node:process';
 
 /** Version stamp of the fixture catalog — bump when cases change so stale trees are detectable. */
-export const FIXTURE_VERSION = 3; // v3 (2026-07-27): +7 cases — the plans/02 editor-export classes
+export const FIXTURE_VERSION = 4; // v4 (2026-07-28): +6 cases — sidecars (researches/04): a THM
+                                  // beside its AVI twin, an orphan THM, an XMP that dates its
+                                  // photo, and an XMP that carries only a save date (dates nothing)
+                                  // v3 (2026-07-27): +7 cases — the plans/02 editor-export classes
                                   // (family geometry, XMP DerivedFrom original, honest ПРОЧЕЕ)
 
 /** Seconds between the QuickTime epoch (1904-01-01) and the Unix epoch (1970-01-01). */
@@ -206,6 +209,40 @@ export function makeOgg(uniq) {
   return Buffer.concat([Buffer.from('OggS\0\0\0\0', 'ascii'), Buffer.from('kpot-fixture:' + uniq)]);
 }
 
+/**
+ * Minimal AVI: the RIFF header with the `AVI ` form type — which is all `identify` reads, and all
+ * a date extractor CAN read: AVI is RIFF, not ISO-BMFF, so `mp4.mjs` finds no `moov` and yields
+ * nothing. That is exactly the real situation researches/04 §4 measured on 25 of the owner's
+ * videos, and it is what makes their THM twin the only date they have.
+ */
+export function makeAvi(uniq) {
+  const body = Buffer.from('kpot-fixture:' + uniq, 'ascii');
+  const head = Buffer.alloc(12);
+  head.write('RIFF', 0, 'ascii');
+  head.writeUInt32LE(4 + body.length, 4); // RIFF chunk size: form type + payload
+  head.write('AVI ', 8, 'ascii');
+  return Buffer.concat([head, body]);
+}
+
+/**
+ * An XMP sidecar file: a real xpacket-wrapped RDF document, shaped like the one observed in the
+ * archive (researches/04 §5 — `XMP Core 5.5.0`, properties as attributes on rdf:Description).
+ * `dateTimeOriginal` is a CAPTURE claim; `modifyDate` is a SAVE time that must date nothing.
+ */
+export function makeXmp({ dateTimeOriginal = null, modifyDate = null }) {
+  const props = (dateTimeOriginal ? ` exif:DateTimeOriginal="${dateTimeOriginal}"` : '')
+    + (modifyDate ? ` xmp:ModifyDate="${modifyDate}"` : '');
+  return Buffer.from(
+    '<?xpacket begin="" id="W5M0MpCehiHzreSzNTczkc9d"?>'
+    + '<x:xmpmeta xmlns:x="adobe:ns:meta/" x:xmptk="XMP Core 5.5.0">'
+    + '<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">'
+    + '<rdf:Description rdf:about=""'
+    + ' xmlns:exif="http://ns.adobe.com/exif/1.0/"'
+    + ' xmlns:xmp="http://ns.adobe.com/xap/1.0/"'
+    + props + '/>'
+    + '</rdf:RDF></x:xmpmeta><?xpacket end="w"?>', 'utf8');
+}
+
 const text = (s) => Buffer.from(s, 'utf8');
 
 // ---------------------------------------------------------------------------
@@ -277,6 +314,34 @@ export function catalog() {
     // — audio (voice note, WhatsApp-style dated name) → <year>/<season>/аудио/ per interview #001 —
     { path: 'голосовые/AUD-20150910-WA0003.ogg', body: makeOgg('aud1'),
       expected: { kind: 'audio', date: '2015-09-10 00:00:00', dateOnly: true, evidence: 'filename' } },
+    // — researches/04: a THM sidecar beside its AVI twin. The camera wrote the capture date into
+    //   the thumbnail; the AVI itself carries NO container date (RIFF, not ISO-BMFF) and its name
+    //   is a bare serial — so the sidecar is the video's only date. 25 real files are in this
+    //   shape, all of them stuck at "a year, no season" until this evidence exists.
+    { path: 'видео/MVI_0042.avi', body: makeAvi('avi1'),
+      expected: { kind: 'video', date: '2012-04-11 20:18:02', evidence: 'sidecar' } },
+    { path: 'видео/MVI_0042.THM', body: makeJpegEx({ dateTimeOriginal: '2012:04:11 20:18:02',
+        make: 'SONY', model: 'DSC-S3000', width: 160, height: 120, uniq: 'thm1' }),
+      expected: { kind: 'photo', date: '2012-04-11 20:18:02', evidence: 'exif' } },
+    // — an ORPHAN THM (9 of the archive's 34): the video it described is gone. It must pair with
+    //   nothing rather than attach itself to a neighbour — the extension is mixed-case on purpose,
+    //   since real ones arrive that way and pairing is case-insensitive.
+    { path: 'видео/MVI_9999.THM', body: makeJpegEx({ dateTimeOriginal: '2010:09:07 17:10:04',
+        make: 'Canon', model: 'Canon PowerShot A580', width: 160, height: 120, uniq: 'thm2' }),
+      expected: { kind: 'photo', date: '2010-09-07 17:10:04', evidence: 'exif' } },
+    // — an XMP sidecar in the full-name convention (`photo.jpg.xmp`, the one form observed), whose
+    //   exif:DateTimeOriginal dates a photo that has no metadata of its own.
+    { path: 'сканы/скан_без_даты.jpg', body: makeJpeg(null, 'xmp1'),
+      expected: { kind: 'photo', date: '2009-08-14 16:20:00', evidence: 'sidecar' } },
+    { path: 'сканы/скан_без_даты.jpg.xmp', body: makeXmp({ dateTimeOriginal: '2009-08-14T16:20:00+03:00' }),
+      expected: { kind: 'other', date: null, evidence: 'none' } },
+    // — an XMP carrying ONLY a save date: it must donate NOTHING (plans/02 §1.1 applied to
+    //   sidecars — a sidecar cannot tell a copied capture date from a save time), so its twin
+    //   stays honestly undated instead of being shelved into 2014.
+    { path: 'сканы/только_правка.jpg', body: makeJpeg(null, 'xmp2'),
+      expected: { kind: 'photo', date: null, evidence: 'none' } },
+    { path: 'сканы/только_правка.jpg.xmp', body: makeXmp({ modifyDate: '2014-11-20T20:15:00' }),
+      expected: { kind: 'other', date: null, evidence: 'none' } },
     // — plans/02 step 1: editor exports whose only date is the editor's SAVE date —
     // (a) the family case, modelled on the owner's real `Безимени-1.jpg`: three GT-I9100 shots,
     //     all 2013, native 3264×2448 — and a Photoshop crop (2280×2448, one native side kept)

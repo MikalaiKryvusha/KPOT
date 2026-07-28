@@ -222,6 +222,13 @@ test('ACCEPTANCE: every planted date recovered, every undatable honestly unknown
           assert.ok(v.disputed.some(d => d.reason === 'editor-save-date'), f.path);
           assert.ok(v.family?.noLaterThan, `the ceiling must reach the owner as a family sign: ${f.path}`);
           break;
+        case 'sidecar': // researches/04 — the date comes from a THM/XMP twin, not from the file
+          assert.equal(v.status, 'dated', f.path);
+          assert.equal(v.winner, 'sidecar', f.path);
+          assert.equal(v.date, exp.date, f.path);
+          assert.ok(a.evidence.find(e => e.kind === 'sidecar')?.detail,
+            `the report must name the sidecar the date came from: ${f.path}`);
+          break;
         case 'exif-implausible':
           assert.equal(v.status, 'unknown', `broken clock must not be trusted: ${f.path}`);
           assert.ok(v.disputed.some(d => d.reason === 'implausible-year'), f.path);

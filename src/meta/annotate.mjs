@@ -27,6 +27,7 @@ import { dirnameEvidence } from './dirname_date.mjs';
 import { detectMtimeSpikeDays, mtimeEvidence, resolveDate } from './resolve.mjs';
 import { cohortYearByDir, cohortEvidence } from './cohort.mjs';
 import { familyFacts, familyEvidence } from './family.mjs';
+import { pairSidecars, sidecarEvidence } from './sidecar.mjs';
 import { formatWall, makeEvidence } from './evidence.mjs';
 
 /** Kinds that get evidence + a verdict; junk/other are not dated (they are not sorted by date). */
@@ -36,7 +37,7 @@ const MEDIA_KINDS = new Set(['photo', 'video', 'audio']);
 export const DEFAULT_CONCURRENCY = 8;
 
 /** Collect every date-evidence claim for one asset; photos also gain `asset.facts`. */
-async function collectEvidence(root, asset) {
+async function collectEvidence(root, asset, sidecars = []) {
   const abs = join(root, ...asset.path.split('/'));
   const basename = asset.path.split('/').at(-1);
   const out = [];
@@ -49,6 +50,12 @@ async function collectEvidence(root, asset) {
   if (asset.kind === 'video') out.push(...(await mp4Evidence(abs)));
   out.push(...allNameEvidence(basename));
   out.push(...dirnameEvidence(asset.path));
+  // A THM/XMP twin's date (researches/04). It ranks below every real capture source, so it only
+  // ever fills a gap — which for the archive's 25 AVI files is the difference between a bare year
+  // and an exact timestamp, because AVI carries no container date at all.
+  for (const sc of sidecars) {
+    out.push(...(await sidecarEvidence(join(root, ...sc.split('/')), sc)));
+  }
   return out; // fs-mtime is appended by the caller, which knows the corpus-level spike days
 }
 
@@ -102,9 +109,12 @@ export async function annotateAssets(root, assets, { now = new Date(), concurren
   const media = assets.filter(a => MEDIA_KINDS.has(a.kind));
   // Copy-spike detection is corpus-level: one pass over all media mtimes before any per-file work.
   const spikeDays = detectMtimeSpikeDays(media.map(a => a.mtimeMs));
+  // Sidecar pairing needs the WHOLE asset list, not just media: an .xmp is a non-media file
+  // (`other`) and would be invisible to a media-only pass.
+  const sidecarsByMedia = pairSidecars(assets);
 
   const results = await mapLimit(media, concurrency, async (asset) => {
-    const evidence = await collectEvidence(root, asset);
+    const evidence = await collectEvidence(root, asset, sidecarsByMedia.get(asset.path));
     evidence.push(...mtimeEvidence(asset.mtimeMs, spikeDays));
     applyVerdict(asset, evidence, now);
   });
