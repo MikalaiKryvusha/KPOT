@@ -1,5 +1,11 @@
 // src/meta/pixels.mjs — finding a photo's ACTUAL original by its pixels (plans/02 §Шаг 2).
-// [NOT-TESTED]
+// [TESTED: 2026-07-28 · tests/meta_pixels.test.mjs (15 specs) + the phase-2/phase-3 acceptance
+// specs; every guard verified by breaking the code first (margin rule → 1 red, rival extension → 1
+// red, same-day rivals → 2 red, nomination filters → 1 red, --no-pixels → 1 red, decode failure → 1
+// red). Measured on the owner's real archive, read-only: 160 controlled trials — 62/80 accepted with
+// the right day when the original is present, 2/80 fabricated when it is absent (researches/06 §5);
+// full pipeline over the real broken class — 1 of 95 dated, and the 94 refusals verified as correct
+// rather than shy (§6a)]
 //
 // The problem: an editor export has no capture date of its own. Step 1 already refuses to date it
 // by the editor's save date, so 193 of the owner's real files sit in `ПРОЧЕЕ` knowing only a

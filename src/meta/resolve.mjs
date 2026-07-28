@@ -26,6 +26,18 @@
 
 import { EVIDENCE_RANK, formatWall, isPlausibleYear, isResetClockShape, makeEvidence } from './evidence.mjs';
 
+/**
+ * Kinds that carry an actual reading of a DEVICE CLOCK — the only claims a reset clock can appear
+ * in. This list is a guard against a trap the fixture caught: a year-only source (a `2009/` folder,
+ * a bare year in a name, a cohort) is STORED as 1 January 00:00, which is exactly the reset shape.
+ * Reading those as broken clocks refused perfectly good verdicts and — because the sort then moved
+ * the file — broke idempotence. A folder named `2009` is not a clock; it never says a time at all.
+ */
+const RESET_CLOCK_KINDS = new Set([
+  'exif-original', 'derived-original', 'pixel-original', 'exif-modify', 'sidecar',
+  'filename-timestamp',
+]);
+
 /** Kinds that can only ever narrow the date to a year(+season) — they yield 'partial' verdicts. */
 const PARTIAL_KINDS = new Set(['dirname', 'filename-year', 'family', 'dir-cohort']);
 
@@ -100,7 +112,8 @@ export function resolveDate(evidence, { now = new Date(), resetFloorYear = null 
     // is not enough to reject — a real New Year photograph looks identical — so the claim is only
     // distrusted when the archive itself proves the clock was wrong: its year is EARLIER than the
     // earliest year any trustworthy capture claim in this whole collection reports.
-    if (resetFloorYear !== null && ev.wall && isResetClockShape(ev.wall) && ev.wall.year < resetFloorYear) {
+    if (resetFloorYear !== null && ev.wall && !ev.dateOnly && RESET_CLOCK_KINDS.has(ev.kind)
+      && isResetClockShape(ev.wall) && ev.wall.year < resetFloorYear) {
       disputed.push({ kind: ev.kind, detail: ev.detail, reason: 'reset-camera-clock' });
       continue;
     }

@@ -80,31 +80,49 @@ const CAPTURE_KINDS = new Set([
   'filename-timestamp', 'sidecar',
 ]);
 
+/** A year counts as part of the collection's era once it holds this share of all capture claims… */
+export const FLOOR_MIN_SHARE = 0.001; // 0.1%
+/** …but never fewer than this many files, so a small tree still has a usable floor. */
+export const FLOOR_MIN_COUNT = 3;
+
 /**
  * The earliest year this archive can honestly claim to contain photographs from — the corpus-level
  * fact that turns "1 January just after midnight" from a suspicion into a finding (owner's decision,
  * 2026-07-28; see `resolve.mjs` rule 5).
  *
- * Two exclusions make it trustworthy: claims that themselves have the reset shape never set the
- * floor (otherwise one broken camera would license every other broken camera), and implausible years
- * are ignored (a 1979 EXIF is a defect, not the start of the collection).
+ * It is the earliest **populated** year, not the earliest claim, and that distinction is not
+ * theoretical: measured over the owner's whole archive (61 723 images, 47 247 with a capture date),
+ * the earliest claim is 2000 — held by exactly four files, two of which are the very broken-clock
+ * file this rule exists to catch. A floor built from the minimum would therefore have been set BY
+ * the defect and would have cleared it. Counting population instead gives 2005 (1 526 photographs),
+ * and the false 2000 date is refused while every real New Year photograph in the archive (2014-01-01
+ * 00:01, 2015-01-01 00:21 — 13 of them) is untouched.
+ *
+ * Two exclusions on top: claims that themselves have the reset shape never count (one broken camera
+ * must not license another), and implausible years are ignored (a 1979 EXIF is a defect, not the
+ * start of a collection).
  *
  * @param {object[][]} evidenceLists  every media file's evidence
  * @param {Date} now
- * @returns {number|null}  null when the corpus offers no trustworthy capture claim at all — and then
- *                         the rule never fires, because nothing has been proven
+ * @returns {number|null}  null when no year is populated enough to prove anything — and then the
+ *                         rule never fires, which is the honest answer for a tiny tree
  */
 export function corpusFloorYear(evidenceLists, now = new Date()) {
-  let floor = null;
+  const perYear = new Map();
+  let total = 0;
   for (const list of evidenceLists) {
     for (const ev of list) {
       if (!CAPTURE_KINDS.has(ev.kind) || !ev.wall) continue;
       if (isResetClockShape(ev.wall)) continue;
       if (!isPlausibleYear(ev.wall.year, now)) continue;
-      if (floor === null || ev.wall.year < floor) floor = ev.wall.year;
+      perYear.set(ev.wall.year, (perYear.get(ev.wall.year) ?? 0) + 1);
+      total += 1;
     }
   }
-  return floor;
+  if (total === 0) return null;
+  const needed = Math.max(FLOOR_MIN_COUNT, Math.ceil(total * FLOOR_MIN_SHARE));
+  const populated = [...perYear.entries()].filter(([, n]) => n >= needed).map(([y]) => y);
+  return populated.length > 0 ? Math.min(...populated) : null;
 }
 
 /** '/'-separated parent directory of a relative asset path. */

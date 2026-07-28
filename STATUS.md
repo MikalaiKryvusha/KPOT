@@ -278,6 +278,47 @@ the first use — it killed a design the plan had already committed to.
   between the best and second-best candidate**, never by a threshold. No margin → the file stays in
   `ПРОЧЕЕ` with its ceiling, exactly as today.
 
+### Session of 2026-07-28 (late 2) — plans/02 §Шаг 2: the original found BY ITS PIXELS
+The epic feature the previous session had researched is implemented, measured on real photographs,
+and the measurement changed the design three times before a line of it shipped. Commit `c6bfee6`;
+suite 171 → **191**.
+
+- **`src/meta/pixels.mjs`** — the only module in KPOT that decodes an image. It does NOT search the
+  archive: `family.mjs` nominates candidates (camera, geometry, ceiling), a 16×16 block-mean hash
+  ranks them, the finalists are verified at 32×32, and a date is inherited **only when the winner is
+  decisively ahead of the best candidate from another day**. New evidence kind `pixel-original`,
+  ranked just under `derived-original`. Second-ever runtime dependency: `jpeg-js` (BSD-3-Clause).
+- **Three corrections the measurement forced** (`researches/06`, read-only over the real archive):
+  an absolute threshold is unusable (with the original removed, a stranger beat the median true
+  pair); a coarse hash cannot tell a crop from a **look-alike** — the same scene shot on another day
+  — but resolution can (true pairs 4–89 of 1024, look-alikes 212+); and the original is **not** in
+  the same folder: 166 of the owner's 201 broken-class files sit in a folder with no dated photo at
+  all, so nomination now walks two levels outward.
+- **Calibration found a defect in our own code before it shipped:** with all five finalists from one
+  day there was no runner-up, "no rival" was read as "infinite margin", and a stranger was accepted.
+  Fixed, and the spec that guards it was itself rewritten after the first version proved unfalsifiable.
+- **Measured:** 160 controlled trials on four real folders — **62/80 accepted, all 62 with the right
+  day**; **2/80 fabricated** when the original is absent, both on one pair of photographs of the same
+  scene six months apart (a limit no pixel method removes — recorded, and the report always names the
+  source file so the owner can contradict it).
+- **The honest product number:** on the real subtree holding the broken class, **1 of 95** files got
+  a date — a perfect find (`S8305319 +.jpg` → `S8305319.jpg`, distance 30/1024, margin 284). The other
+  94 refusals are correct, not shy: their best candidates score 182–376 with margins 0–32, i.e. those
+  originals are not in the archive at all (the same conclusion the XMP chain reached in `researches/03`).
+- **Reset camera clocks — the owner's decision of 2026-07-28** («сброшенным часам камеры не доверять,
+  если это факт, что они сброшены»): a «1 января 00:25» date is refused **only when the collection
+  itself proves it wrong** — its year is below the earliest trustworthy capture year in the whole
+  archive. A real New Year photo of the same shape keeps its date; both cases are planted in the
+  fixture (v6) and guarded.
+- **Owner-facing language:** the plan gained a section «ДАТЫ, ВЗЯТЫЕ У ИСХОДНОГО СНИМКА» that names
+  the source file in plain words — the owner's «без жаргонизмов» requirement, applied where the tool
+  had been printing `pixel-original` at him.
+- **Owner's answers recorded** (chat, same session): idea 01 — inbox **inside** the library, default
+  name **`НОВОЕ`**, emptied inbox folders are deleted; idea 02 — a **local Web UI** plus an installer
+  that puts a desktop shortcut, full scope, planned epic → phases → operational plans, and the
+  audience is **inexperienced PC users**, so UI, installer and every string must be friendly,
+  foolproof and free of jargon. Both in the `MASTER_PLAN.md` decision log.
+
 ---
 
 ## Where we are now
@@ -387,13 +428,27 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
       `openRunJournal`. An unfinished run BLOCKS a new one and offers two ways out; `--resume`
       reuses the same run id, journal and BACKUP, so one rollback still restores the true original.
       9 specs; all three guards verified by breaking them.
+- [x] plans/02 step 2 — ✅ done 2026-07-28 (commit `c6bfee6`). `src/meta/pixels.mjs`: an editor
+      export's ACTUAL original found by comparing images — candidates from `family.mjs`, coarse 16×16
+      ranking, fine 32×32 verification of the finalists, and a date inherited only on a decisive
+      margin over the best candidate from another day. `jpeg-js` (BSD-3-Clause) is the second runtime
+      dependency; `--no-pixels` opts out. Design `researches/05` §7, calibration `researches/06`
+      (which corrected it three times, and caught a real defect in our own code before it shipped).
+      Fixture v6, 15 new specs + 5 for the reset-clock rule, all guards break-verified; suite 191.
+      **Measured: 62/80 accepted with the right day when the original exists, 2/80 fabricated when it
+      does not; on the real archive 1 of 95 — because the other originals are not there.**
+      Step 3 (PRNU) stays unstarted and unauthorised.
+- [x] Reset camera clocks — ✅ done 2026-07-28 (owner's decision). A «1 января 00:25» date is refused
+      only when the archive itself proves the clock wrong (its year is below the collection's earliest
+      trustworthy capture year); a genuine New Year photograph of the same shape is untouched. Both
+      cases planted in fixture v6; `tests/meta_reset_clock.test.mjs`; guards break-verified (10 and 4
+      specs red).
 - [x] Season mapping — ✅ done 2026-07-24. `src/plan/season.mjs` (`seasonForMonth`, canonical Russian
       dir names per interview #001 Q2), specs in `tests/season.test.mjs`. Suite 15/15.
 - [x] plans/02 step 1 — ✅ done 2026-07-27 (commit `e55ae91`). Editor save dates demoted to ceilings
       (`editor-save`), exact original lookup by XMP identity (`derived-original`), camera-family
       signs (`src/meta/family.mjs`). Fixture v3 (+7 cases), suite 156/156, guards break-verified,
-      real-data measurement: 201 broken-class files → 199 lose their false year. Steps 2–3 of the
-      plan are NOT autonomous: step 2 (pixels) waits for the owner's word.
+      real-data measurement: 201 broken-class files → 199 lose their false year.
 
 ---
 
@@ -416,28 +471,35 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
 - ✅ **Interview #002 ANSWERED 2026-07-26** (in chat) — the backup is a **manifest + hardlink
   snapshot** (answer Б). Recorded in the `MASTER_PLAN.md` decision log; Phase 4 is closed. The
   interview document keeps the measurements the decision rests on.
-- ✅ **Electron GUI ANSWERED 2026-07-26** (owner's own idea, in chat) — accepted as product
-  direction, scheduled **after Phase 5**. `ideas/02_electron_gui.md`; questions 2–4 (Electron vs a
-  local web UI, first-version scope, public vs personal) stay open until its turn comes.
+- ✅ **The interface — FULLY ANSWERED 2026-07-28** (`ideas/02_electron_gui.md`; question 1 was
+  answered 2026-07-26 with «после Фазы 5»). It is a **local Web UI**, not Electron and not Tauri,
+  **plus an installer that puts a desktop shortcut** which starts it and opens the browser. Full
+  scope (scan → plan → apply → rollback), planned **epic → phases → operational plans**. Audience:
+  the owner AND inexperienced PC users, so UI, installer and every printed string must be friendly,
+  foolproof and free of jargon and slang. Needs a `/revision` for an interface phase and an epic
+  document before any code.
 - ✅ **Russian device-folder names — ANSWERED 2026-07-26** by the owner's choice of the "unclear
   name" criterion: they are neither silently dropped as technical nor silently preserved, but put on
   the owner's table via the decisions file.
 - ✅ **Empty source folders — ANSWERED 2026-07-26** (in chat): KPOT may delete the folders its sort
   emptied, provided their paths are in the backup so a rollback recreates them. Implemented; see the
   decision log and `tests/empty_dirs.test.mjs`.
-- ❓ **Should a "1 January 00:00"-ish EXIF date be trusted?** The first real run put one file in
-  `2000/` on an EXIF `DateTimeOriginal` of `2000-01-01 00:25:13`. That is the classic reset-camera-
-  clock default, and the archive otherwise starts in 2007. Distrusting it is a policy decision about
-  the owner's photos, so it was surfaced rather than decided (`researches/03_first_real_run.md`).
-- ❓ **plans/02 step 1 results await the owner's glance** (2026-07-27): 199 of 201 real editor
-  exports lose their false years — most become honest `ПРОЧЕЕ` with a «снято не позже» ceiling.
-  If that ratio feels too blunt, step 2 (perceptual-hash search for the original — his «пиксели
-  не надо» stands until he says otherwise) is the designed next lever. Also: `KPOT_SAMPLE` was
-  deleted — a fresh sample copy is the owner's homework when he wants the supervised-run rehearsal.
-- ❓ **Idea 01 awaiting owner review** — `ideas/01_inbox_topup_flow.md`: inbox dir for raw dumps +
-  a desktop shortcut running an incremental **top-up flow** into the structured library (owner's
-  own request in chat 2026-07-24; forks to close: auto-apply vs stop-at-plan, inbox location,
-  emptied-folder policy, inbox default name). Touches Phases 3–5; does not block Phase 2 work.
+- ✅ **"1 January 00:25" EXIF dates — ANSWERED 2026-07-28** (in chat): «сброшенным часам камеры не
+  доверять, если это факт, что они сброшены». Implemented the same session with the owner's condition
+  AS the mechanism: such a date is refused only when the collection itself contradicts it (its year
+  is below the archive's earliest trustworthy capture year); a real New Year photograph of the same
+  shape is untouched. `src/meta/resolve.mjs` rule 5, `tests/meta_reset_clock.test.mjs`, fixture v6.
+- 🔎 **plans/02 is now COMPLETE through step 2, and the result is worth the owner's glance**
+  (2026-07-28): step 1 stripped 199 of 201 false years; step 2 then searched for those photos'
+  originals by their pixels and found **one** — because the others are not in the archive (their best
+  candidates are 182–376 apart of 1024, where a true pair is 4–89). So the 83 «фоты на альб» pictures
+  will stay in `ПРОЧЕЕ` with a ceiling, and that is the honest answer, not a gap to close. Step 3
+  (PRNU) remains unstarted and unauthorised — it names a camera, not a photograph.
+- ✅ **Idea 01 ANSWERED 2026-07-28** — `ideas/01_inbox_topup_flow.md`: the inbox lives **inside the
+  library root**, its default name is **`НОВОЕ`**, and a processed inbox folder is deleted once it is
+  empty and done. The fourth fork (how far one click goes unattended) dissolved into the UI decision:
+  the shortcut opens the Web UI, so the confirmation is a button. NOT yet implemented — it belongs
+  with the interface epic, after Phase 5.
 - ✅ **Logo source PNGs — SETTLED** (this entry was stale; corrected 2026-07-28). Both design
   sources and `KPOT.jpg` live in `assets/` and are tracked (commit `581ca6b`). Nothing is awaiting
   a decision here.

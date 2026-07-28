@@ -43,20 +43,42 @@ test('THE SAME SHAPE inside the archive’s own era is a New Year photo, and mus
   assert.deepEqual(v.disputed, []);
 });
 
+test('a YEAR-ONLY source is not a clock reading, and the rule must not touch it', () => {
+  // The trap this guards against was caught by the idempotence spec, not by reasoning: a year-only
+  // claim (a folder named «2009», a bare year in a name, a cohort) is STORED as 1 January 00:00 —
+  // the reset shape exactly. Refusing those threw away good verdicts and, because the file then
+  // moved, broke the "sorting a sorted tree moves nothing" invariant.
+  const dirname = makeEvidence('dirname', {
+    wall: { year: 2009, month: 1, day: 1 }, dateOnly: true, detail: '2009/Лето', season: 'Лето',
+  });
+  const v = resolveDate([dirname], { now: NOW, resetFloorYear: 2011 });
+  assert.equal(v.status, 'partial', 'a folder name is not a camera clock');
+  assert.equal(v.year, 2009);
+  assert.deepEqual(v.disputed, []);
+});
+
 test('with no floor known, nothing is proven and the date stands', () => {
   const v = resolveDate([exif(2000, 1, 1, 0, 25, 13)], { now: NOW, resetFloorYear: null });
   assert.equal(v.status, 'dated', 'suspicion alone may not refuse a date');
   assert.equal(v.date, '2000-01-01 00:25:13');
 });
 
-test('the floor is the earliest TRUSTWORTHY capture claim, and suspects cannot lower it', () => {
+test('the floor is the earliest POPULATED year — a couple of stray claims cannot set it', () => {
+  // Measured, and this is why the rule counts population instead of taking the minimum: over the
+  // owner's whole archive the earliest claim is the year 2000, held by four files — two of which are
+  // the broken-clock file itself. A minimum-based floor would have been set BY the defect and would
+  // then have cleared it. The earliest year with real photography in it is 2005 (1 526 files).
+  const many = (year, n) => Array.from({ length: n }, () => [exif(year, 6, 15, 12)]);
   const lists = [
-    [exif(2011, 3, 4, 9)],
-    [exif(2008, 12, 31, 9)],
-    [exif(2000, 1, 1, 0, 25, 13)],                    // a reset suspect: must not set the floor
+    ...many(2011, 5),
+    ...many(2013, 5),
+    [exif(2004, 5, 13, 12)],                          // one stray claim: not an era
+    [exif(2000, 1, 1, 0, 25, 13)],                    // a reset suspect: must not count at all
     [exif(1979, 1, 1, 0, 0, 3)],                      // implausible: not the start of a collection
     [makeEvidence('dir-cohort', { wall: { year: 1995, month: 1, day: 1 }, dateOnly: true })],
   ];
-  assert.equal(corpusFloorYear(lists, NOW), 2008, 'only real capture claims count');
+  assert.equal(corpusFloorYear(lists, NOW), 2011, 'only years the collection really lives in count');
   assert.equal(corpusFloorYear([], NOW), null, 'an archive with no capture claim proves nothing');
+  assert.equal(corpusFloorYear([[exif(2011, 3, 4, 9)]], NOW), null,
+    'one photograph is not an era — with nothing proven the rule must stay silent');
 });
