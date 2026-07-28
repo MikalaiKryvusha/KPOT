@@ -319,6 +319,28 @@ suite 171 → **191**.
   audience is **inexperienced PC users**, so UI, installer and every string must be friendly,
   foolproof and free of jargon. Both in the `MASTER_PLAN.md` decision log.
 
+### Session of 2026-07-28 (late 3) — a fresh sandbox and the supervised run Phase 5 was waiting for
+The owner authorised the agent to make its own sample: «создай себе новую копию-песочницу для тестов.
+Разрешаю. в `D:\work\ai_sandbox\`». Done, and the supervised run on it closes Phase 5's acceptance.
+
+- **`D:\work\ai_sandbox\KPOT_SANDBOX`** — **813 files / 943 MB**, four real folders copied out of the
+  archive (a phrase-named trip folder, a date-named folder, an `Instagram` dump of screenshots, and a
+  walk folder that happens to hold four editor exports). Outside the repo; `.gitignore` line added
+  BEFORE the folder existed. **Verified: the SOURCE is untouched** — 813/813 files identical in path,
+  size and mtime after the copy — and the copy matches file-for-file including mtimes.
+- **The whole product ran on it end to end:** `plan` (35 s) → `apply --dry-run` → `apply` → hash
+  census → rollback rehearsal. **813 moved, 0 failed, backup 813/813 hardlinks**, and the **SHA-256
+  multiset is identical before and after** — nothing lost, invented or altered. The rollback rehearsal
+  restores 813 files and recreates 5 folders. The sandbox is left SORTED so the owner can look at it:
+  `2010/Весна` · `2010/прочее` · `2014/Зима начало года` · `2020/Лето` · `2020/Осень` · `2020/прочее`
+  · `ПРОЧЕЕ/Instagram` · `ПРОЧЕЕ/_мусор`.
+  Undo: `node bin/kpot.mjs rollback run-20260728-201538-437c4d D:\work\ai_sandbox\KPOT_SANDBOX`
+- **The new pixel search proved itself on real data here: 4 of 4** editor exports found their true
+  originals — differences of **2 · 10 · 18 · 24** of 1024 with margins of 318–366 — and the plan names
+  each source file in plain Russian so the owner can check them by eye. (Contrast with the archive's
+  album folder, where 94 of 95 exports are refused because their originals do not exist — both
+  behaviours are correct, and that is the point of deciding by margin.)
+
 ---
 
 ## Where we are now
@@ -333,10 +355,11 @@ being guessed at.
 **KPOT may now write — and every guarantee `GOAL.md` demands before it does exists and is proven.**
 
 **Phase 2 has no cuts left**: THM/XMP sidecar evidence landed 2026-07-28, so every evidence tier
-`researches/02` predicted now exists in code.
-**What remains in Phase 5:** a supervised run on a fresh *copy* of a real directory (the previous
-sample is gone — the owner deleted `KPOT_SAMPLE` between sessions; a new one is the owner's
-homework). **README + the tagged release are DONE** (`v0.1`, 2026-07-28). Suite **171/171**.
+`researches/02` predicted now exists in code. **plans/02 is complete through step 2** — an edited
+photo's original is now found by its pixels when it exists.
+**Phase 5's acceptance is met** (2026-07-28): a fresh sandbox copy of four real folders was sorted
+under supervision — 813 files, 0 failures, the SHA-256 multiset unchanged, rollback rehearsed.
+**README + the tagged release are DONE** (`v0.1`, 2026-07-28). Suite **192/192**.
 
 | Phase | Status | What's there |
 |-------|--------|--------------|
@@ -345,7 +368,7 @@ homework). **README + the tagged release are DONE** (`v0.1`, 2026-07-28). Suite 
 | Phase 2 — scan & metadata | ✅ done (fully closed 2026-07-28) | acceptance spec green; `kpot scan` = assets + evidence + verdicts; the last deferred cut — THM/XMP sidecar evidence — is implemented and proven on real data |
 | Phase 3 — dedup & plan | ✅ done | `kpot plan` = SortPlan + owner-facing master plan; acceptance spec green (23 planted destinations + both ambiguities) |
 | Phase 4 — safety (backup / dry run / rollback) | ✅ done | interview #002 answered; `src/apply/` = backup + the single writer + rollback; all three acceptance criteria green; guards proven by breaking them |
-| Phase 5 — first real use & release | 🔶 in progress · ✅ released `v0.1` | ✅ scan cache · ✅ idempotent sorting (bug 01) · ✅ empty-folder cleanup · ✅ the `НА_РАЗБОР/` approval quarantine · ✅ progress output · ✅ resumability · ✅ plans/02 step 1 (editor exports dated honestly) · ✅ THM/XMP sidecar evidence (Phase 2's last cut, closed 2026-07-28) · 🔲 supervised run on a COPY of a real dir (the sample is gone — owner deleted it; needs a fresh one) · 🔲 README + `/release` |
+| Phase 5 — first real use & release | ✅ **done 2026-07-28** · released `v0.1` | ✅ scan cache · ✅ idempotent sorting (bug 01) · ✅ empty-folder cleanup · ✅ the `НА_РАЗБОР/` approval quarantine · ✅ progress output · ✅ resumability · ✅ plans/02 step 1 (editor exports dated honestly) · ✅ THM/XMP sidecar evidence (Phase 2's last cut, closed 2026-07-28) · ✅ plans/02 step 2 (the original found by its pixels) · ✅ the reset-camera-clock rule · ✅ supervised run on a fresh COPY of four real folders (`KPOT_SANDBOX`, 813 files, hashes identical, rollback rehearsed) · ✅ README + `/release` |
 
 Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
 
@@ -521,66 +544,61 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
 > A concrete checklist so the next session (empty context) can start immediately: which files, which
 > commands, what to verify first.
 
-1. Verify the environment: `node -v` (≥20), `npm test` (**must be 171/171**), `git status` (clean),
+1. Verify the environment: `node -v` (≥20), `npm test` (**must be 192/192**), `git status` (clean),
    `gh auth status` (MikalaiKryvusha). Owner-provided paths from this file are PAST observations —
-   re-check they still exist before planning around them (EXP-0011: `KPOT_SAMPLE` vanished).
+   re-check they still exist before planning around them (EXP-0011: a sample vanished once already).
 2. **Run the whole product once, end to end, before designing on top of it.** It all works now:
    ```
-   node tests/fixtures/make.mjs <tmp>          # fixture v4: 39 planted files + expected.json
+   node tests/fixtures/make.mjs <tmp>          # fixture v6: 47 planted files + expected.json
    node bin/kpot.mjs plan <tmp>                # the owner-facing master plan
    node bin/kpot.mjs apply --dry-run <tmp>     # full simulation, zero writes
    node bin/kpot.mjs apply <tmp>               # the real sort (backup first, always)
    node bin/kpot.mjs rollback <run-id> <tmp>   # everything back where it was
    ```
-   (Fresh temp dir each time — `%TEMP%` is cleaned between sessions. The run id is printed by
-   `apply`; run data lives in `<tmp>/.kpot-runs/`, which scans deliberately skip.)
-3. ⭐ **THE NEXT PIECE OF WORK — `plans/02` §Шаг 2, and it is ready to run.** Authorised by the owner
-   («Да, ищи оригинал по пикселям», 2026-07-28, reversing his earlier «пиксели не надо» for this step
-   only), fully autonomous, needs nothing from him.
-
-   **Read `researches/05_perceptual_hashing.md` FIRST — it supersedes the design written inside the
-   plan.** Do not implement what §Шаг 2 originally described; that design was refuted by measurement.
-   The settled position:
-   - **Feasible.** `jpeg-js` decodes the progressive (`SOF2`) editor exports — 25/25, 0 failures,
-     ≈76 ms/megapixel. Licence is **BSD-3-Clause** (the plan's "MIT" was wrong).
-   - **dHash is out.** On 40 of the owner's own photos a 10% crop scores 19 bits, the same as the
-     *minimum* between two unrelated photos. Block-mean (`blockhash`) is far better — 16 vs a chance
-     median of 32 at the real crop ratio — but its distributions still overlap chance.
-   - **So: candidate-set-first, decide-by-margin** (§7). `src/meta/family.mjs` already nominates
-     ~100–200 same-camera candidates before the ceiling date, instead of 61 689 photos. Compare over
-     several crop offsets/widths, then inherit a date **only when the best candidate is decisively
-     ahead of the second best** — never on a threshold. No margin → the file stays in `ПРОЧЕЕ` with
-     its ceiling (invariant 3).
-   - Deliverable shape: one new dependency (`jpeg-js`); a block-mean hash (~20 lines of ours, or the
-     zero-dep `blockhash-core`); a new `pixel-original` evidence kind ranked beside `derived-original`
-     whose detail names the source file **and the margin it won by**; fixture cases with a planted
-     crop+original pair; guards break-verified as always.
-   - Step 1 of the plan is ✅ done (2026-07-27, `e55ae91`). **Step 3 (PRNU) stays unstarted and
-     unauthorised** — it answers "which camera", not "which shot".
-4. **Phase 5, what is left.**
-   - ✅ **README refresh + a tagged release** — DONE 2026-07-28: `v0.1` «First KPOT», bilingual
-     notes, `kpot-0.1.0.tgz` attached (88 KB after the packaging fix). The install command in the
-     notes was verified by installing from the release URL, not assumed.
-   - 🔲 **A fresh supervised run needs a fresh sample:** `KPOT_SAMPLE` no longer exists — the owner
-     deleted it between sessions (his data, his call; do NOT recreate 13 GB of his photos without a
-     fresh word). Phase 5's acceptance still wants a supervised run on a *copy* of a real dir.
-   - ✅ THM/XMP sidecar evidence — DONE 2026-07-28 (`researches/04_sidecars.md`, commit `d26ebb5`).
-     It was listed here as "optional filler" and turned out to be the only date 25 real videos have.
-5. **The first run on real data is the owner's call and needs a fresh `AUTH:`** — the archive grant
-   in agent memory is READ-ONLY. Phase 5's acceptance says a *copy* of a real messy directory
-   (owner's homework), never the original.
+   There is also a REAL sandbox, left sorted for the owner to look at:
+   `D:\work\ai_sandbox\KPOT_SANDBOX` (813 files / 943 MB, four real folders; the owner authorised
+   the copy on 2026-07-28). Undo it with
+   `node bin/kpot.mjs rollback run-20260728-201538-437c4d D:\work\ai_sandbox\KPOT_SANDBOX`.
+   Do not delete it without his word, and never copy more of his photographs without a fresh one.
+3. ⭐ **THE NEXT PIECE OF WORK — the INTERFACE epic, and it is the owner's own priority now.**
+   He closed every fork on 2026-07-28: a **local Web UI** (not Electron, not Tauri) plus an
+   **installer that puts a desktop shortcut** which starts it and opens the browser; the **full**
+   cycle (scan → plan → apply → rollback); and the audience is **the owner AND inexperienced PC
+   users**, so «ОЧЕНЬ ЮЗЕР ФРЕНДЛИ, С ЗАЩИТАМИ ОТ ДУРАКА… БЕЗ ЖАРГОНИЗМОВ И СЛЕНГА».
+   He also named the order of work: **эпик → фазы → операционные планы**. So the sequence is:
+   - **(a)** a prior-art review in `researches/` — this is an epic feature by every threshold in
+     `AGENT_GUIDE` step 9a (new subsystem, a new promise to the owner, an installer). What to look
+     up: how local-first desktop tools ship a browser UI without a bundled runtime, what Windows
+     shortcut + installer approaches exist for a Node CLI, and above all the failure modes others
+     documented (port conflicts, a server left running, antivirus/SmartScreen on an unsigned
+     installer, the browser opening before the server is ready).
+   - **(b)** the epic document in `plans/`, then `/revision` to add an interface phase to
+     `MASTER_PLAN.md`, then per-phase operational plans. **Code comes last**, by his stated order.
+   - **(c)** the language rule is part of the deliverable, not a polish pass: every string the user
+     sees — UI, installer, README for users — plain, academic Russian without jargon. The core
+     already prints `dated 2012-06-15 (exif-original)` at him inside the plan; that line and its
+     relatives are a known debt to clear when the UI work reaches the reports.
+   - Idea 01 (the inbox + top-up flow) belongs to this epic: the owner answered its forks the same
+     day (inbox **inside** the library, default name **`НОВОЕ`**, emptied inbox folders deleted) and
+     the «ярлычок» he asked for IS the UI's shortcut.
+4. **Phase 5 is CLOSED** (2026-07-28): the supervised run on `KPOT_SANDBOX` sorted 813 real files
+   with 0 failures, an identical SHA-256 multiset, and a rehearsed rollback. Nothing is left in it.
+5. **Writing to the owner's REAL archive still needs a fresh `AUTH:`** — the standing grant is
+   READ-ONLY, and it is the archive, not a copy. Everything measured this session was read-only.
 5b. **Do NOT propose or perform a KAIF update** — the owner runs framework updates himself
    («я сам веду обновления КАИф», 2026-07-28). A newer KAIF release existing is not a task, not a
    backlog item and not a `/what-next` candidate. Related: `plans/01_kaif_16_update_report.md` is a
    FINISHED report addressed to the KAIF framework's own agent, not open work — `/check-backlog`
    should stop counting it as an open item.
-6. One owner question is waiting and does not block: idea 01's open forks (the inbox/top-up flow).
-   The logo PNGs in the repo root are still undecided too.
-7. Decisions are all in `MASTER_PLAN.md` §Decision log (2026-07-24 and 2026-07-26 blocks) — re-read
-   before designing; do not re-ask the owner what is already decided there.
-8. Two lessons from Phase 4 worth re-reading before writing any new guard: `EXPERIENCE.md` EXP-0008
-   (a guard that passes for the wrong reason) and EXP-0009 (invisible characters in generated
-   source). Both cost real time here.
+6. **No owner question is open.** Every fork raised so far has been answered: ideas 01 and 02, the
+   reset-clock policy, the pixel authorisation, the sandbox. What is waiting is his *review*, not a
+   decision: the sorted sandbox, and the plans/02 result (95 editor exports → 1 dated by pixels
+   because the other originals are not in the archive; in the sandbox, where they are, 4 of 4).
+7. Decisions are all in `MASTER_PLAN.md` §Decision log — re-read before designing; do not re-ask the
+   owner what is already settled there.
+8. Before writing any new guard, re-read `EXPERIENCE.md` EXP-0008 (a guard that passes for the wrong
+   reason — it happened again this session and the spec had to be rewritten), EXP-0009 (invisible
+   characters in generated source) and EXP-0015 (a corpus statistic set BY the anomaly it targets).
 
 ---
 

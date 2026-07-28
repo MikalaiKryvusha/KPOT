@@ -468,13 +468,17 @@ export function nominateCandidates(query, dirAssets, family = {}) {
 export function pixelEvidence(decision, originalAsset, { available = 0 } = {}) {
   const capture = capturedBy(originalAsset);
   if (!capture) return null;
-  const margin = Number.isFinite(decision.margin) ? `${decision.margin}` : 'no rival';
-  const capped = available > decision.compared ? ` of ${available}` : '';
+  // Owner-facing text (he asked for plain language, 2026-07-28): «no rival» is not a margin, it is
+  // the case where every candidate is from the SAME DAY — so whichever won, the date is the same.
+  const margin = Number.isFinite(decision.margin)
+    ? `отрыв от следующего ${decision.margin}`
+    : 'все остальные снимки того же дня, дата от этого не меняется';
+  const capped = available > decision.compared ? ` из ${available}` : '';
   return makeEvidence('pixel-original', {
     wall: capture.wall,
     dateOnly: capture.dateOnly,
     detail: `исходный снимок: '${originalAsset.path}' `
       + `(различие ${decision.best.distance} из ${FINE_BITS}, `
-      + `отрыв от следующего ${margin}, сравнивалось снимков: ${decision.compared}${capped})`,
+      + `${margin}, сравнивалось снимков: ${decision.compared}${capped})`,
   });
 }

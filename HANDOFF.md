@@ -5,12 +5,13 @@
 > working. It is a *snapshot*, not a second source of truth: where it summarises another document it
 > names it, and that document wins on any disagreement.
 >
-> **Written:** 2026-07-28, at release `v0.1`; refreshed the same day at the end of that session.
-> **Suite: 171/171 green.** If today is much later than that, re-read `STATUS.md` first — it is
+> **Written:** 2026-07-28, at release `v0.1`; refreshed twice the same day, last after the pixel
+> search and the supervised sandbox run.
+> **Suite: 192/192 green.** If today is much later than that, re-read `STATUS.md` first — it is
 > maintained continuously, this file is not.
 >
-> **Start here, then:** §6 is the next task and it is ready to run — its research is done, its design
-> is decided, and it needs nothing from the owner.
+> **Start here, then:** §6 is the next task. Unlike every previous handoff it is NOT ready to run:
+> the owner asked for эпик → фазы → операционные планы, so it starts with research and a plan.
 
 ---
 
@@ -43,11 +44,10 @@ tool has sorted a real archive sample. Everything below is verified, not claimed
 
 | | |
 |---|---|
-| Test suite | **171/171** green (`npm test`, `node --test`) |
-| Phases 0–4 | ✅ closed (foundation · research+skeleton · scan/dates · dedupe/plan · safety) |
-| Phase 5 | 🔶 in progress — release done; the full-archive supervised run is the owner's step |
+| Test suite | **192/192** green (`npm test`, `node --test`) |
+| Phases 0–5 | ✅ **all closed** (foundation · research+skeleton · scan/dates · dedupe/plan · safety · first real use) |
 | Open bugs | **none** (four closed, all found by real data — see `bugs/`) |
-| Runtime deps | exactly one: `exifreader` |
+| Runtime deps | two: `exifreader` and `jpeg-js` (BSD-3-Clause, added 2026-07-28 for the pixel search) |
 | Node | ≥ 20 (developed on 24, Windows 11) |
 
 The five commands, all live:
@@ -83,7 +83,7 @@ do not invent it. The correctness gate is `npm test`.
 ```
 bin/kpot.mjs   parses argv, dispatches a phase, composes the modules below
 src/scan/      identify.mjs (kind by MAGIC BYTES, not extension) · scan.mjs (walk + streamed sha256)
-src/meta/      the date pipeline — see below
+src/meta/      the date pipeline — see below (incl. pixels.mjs, the ONLY module that decodes an image)
 src/dedupe/    groups identical files by sha256; picks the keeper by an explainable total order
 src/plan/      season.mjs · bucket.mjs (one file -> its destination) · suspicious.mjs · plan.mjs (SortPlan + the Russian report)
 src/apply/     backup.mjs · apply.mjs (THE ONLY WRITER) · rollback.mjs · resume.mjs
@@ -102,15 +102,20 @@ tests/         node --test specs + fixtures/make.mjs (deterministic messy tree +
    disputed section.
 
 **The date pipeline** (`src/meta/`) is the heart. Evidence kinds in precedence order live in
-`evidence.mjs` — strongest first: `exif-original`, `derived-original`, `filename-timestamp`,
-`container-created`, `filename-epoch`, `exif-modify`, `sidecar`, `dirname`, `filename-year`,
-`family`, `dir-cohort`, `editor-save`, `fs-mtime`. `resolve.mjs` turns a list of claims into one
+`evidence.mjs` — strongest first: `exif-original`, `derived-original`, `pixel-original`,
+`filename-timestamp`, `container-created`, `filename-epoch`, `exif-modify`, `sidecar`, `dirname`,
+`filename-year`, `family`, `dir-cohort`, `editor-save`, `fs-mtime`. `resolve.mjs` turns a list of claims into one
 `DateVerdict`. Three honesty rules are baked in and must survive any refactor:
 
 - implausible years (broken camera clocks) never win — they go to `disputed`;
 - **`fs-mtime` never determines a date** (18 656 real files share one bulk-copy day);
 - **`editor-save` never determines a date** — a photo editor's save date is a "taken no later than"
-  ceiling, surfaced to the owner, never a verdict.
+  ceiling, surfaced to the owner, never a verdict;
+- **a date found by COMPARISON is decided by the margin, never by a threshold** (`pixel-original`):
+  the winner must be decisively ahead of the best candidate from another day, or the file stays
+  undated. Measured: a threshold would have invented dates (`researches/06` §3);
+- **a reset camera clock is refused only when the collection proves it** — a "1 January 00:25" claim
+  loses only if its year is below the archive's own populated floor, so real New Year photos survive.
 
 Full maps: `PROJECT_ARCHITECTURE_INTERNAL_MAP.md` (how the system thinks — read the **11 invariants**)
 and `PROJECT_STRUCTURE_EXTERNAL_MAP.md` (where things live).
@@ -133,58 +138,58 @@ likely to accidentally re-litigate:
 | `.thm` thumbnails | camera litter → quarantine; they still donate their date to their video twin |
 | Sidecars | donate only unambiguous CAPTURE properties, never save dates |
 
-## 6. The next piece of work, fully specified
+## 6. The next piece of work
 
-**`plans/02_lost_photo_family.md` §Шаг 2 — find a photo's actual original by pixels.**
+**The INTERFACE — a local Web UI, an installer, and the product's language.** It is the owner's own
+priority and he closed every fork on 2026-07-28 (`ideas/02_electron_gui.md`, and the decision log):
 
-Step 1 of that plan is done (editor save dates demoted to ceilings; XMP identity chain; camera-family
-signs). Step 2 was blocked by the owner's «пиксели не надо» and **he reversed that on 2026-07-28**:
-«Да, ищи оригинал по пикселям». It is authorised; step 3 (PRNU) is not.
+- **a local Web UI**, not Electron and not Tauri — «давай локальный Web UI - это сильно проще»;
+- **plus an installer** that puts a desktop shortcut which starts it and opens the browser, because
+  «юзером буду не только я - а и обычные ПК юзеры»;
+- the **full** cycle (scan → plan → apply → rollback), not a read-only viewer;
+- audience: the owner **and inexperienced PC users**, so — his capitals — «ОЧЕНЬ ЮЗЕР ФРЕНДЛИ, С
+  ЗАЩИТАМИ ОТ ДУРАКА, НАПИСАННЫЙ ПОПУЛЯРНЫМ ПРОСТЫМ ДЛЯ ПОНИМАНИЯ ЯЗЫКОМ, АКАДЕМИЧЕСКИМ, БЕЗ
+  ЖАРГОНИЗМОВ И СЛЕНГА».
 
-What it is: a perceptual hash (dHash/aHash over a downscaled copy) that finds the **actual original**
-of an edited export in the archive — even cropped, re-compressed and renamed — so the export can
-inherit the original's *real* `DateTimeOriginal` instead of an assumption. The plan already names the
-dependency (`jpeg-js`, MIT, pure JS, no native build) and the hard part (a crop shifts the frame, so
-compare over an overlapping region or via downscaled previews). Side benefit predicted by
-`researches/01`: it finds renamed and re-encoded copies that sha256 dedupe cannot see.
+**Do not start with code.** The owner also named the order: «для начала планируем эпиками. Потом
+эпики режем на фазы и по фазам пишем операционные планы». Combined with this repo's own canon
+(`AGENT_GUIDE` step 9a — this is an epic by every threshold: new subsystem, new promise, an
+installer), the sequence is:
 
-**The prior-art review is already written — [`researches/05_perceptual_hashing.md`](researches/05_perceptual_hashing.md).
-Read it before writing a line; it supersedes the design inside the plan itself.** Three things it
-settled, all measured on the owner's real archive rather than recalled:
+1. a **prior-art review** in `researches/` — how local-first tools ship a browser UI without a
+   bundled runtime, how a Node CLI gets a Windows shortcut and an installer, and above all the
+   failure modes others documented (port conflicts, a server left running, SmartScreen on an
+   unsigned installer, the browser opening before the server is ready);
+2. the **epic document** in `plans/`, then `/revision` to add an interface phase to `MASTER_PLAN.md`,
+   then per-phase operational plans;
+3. only then code — and the plain-language rule is part of the deliverable, not a polish pass.
 
-- **Feasibility: yes.** The broken class is saved as *progressive* JPEG (`SOF2`), which `jpeg-js`'s
-  README never claims to handle — measured 25/25 decoded, 0 failures, ≈76 ms/megapixel.
-- **The plan's algorithm was wrong.** dHash cannot survive a crop: on 40 of the owner's own photos a
-  mere 10% crop scores 19 bits, which is also the *minimum* distance between two unrelated photos.
-  `blockhash` (block-mean) is far better — 16 versus a chance median of 32 at the real crop ratio —
-  but the distributions still overlap, so a global threshold would invent wrong dates.
-- **So the design is candidate-set-first, decide-by-margin** (§7 of that document): step 1 already
-  knows the camera, sensor geometry and the ceiling date, which collapses the search from ~61 689
-  photos to ~100–200. Over a set that small, compare expensively (several crop offsets and widths)
-  and inherit a date **only when the best candidate is decisively ahead of the second best** — never
-  on a threshold. No margin → the file stays in `ПРОЧЕЕ` with its ceiling, as today.
+Technically it is cheaper than it sounds: every phase already emits a `--json` artifact and the
+reports are rendered FROM it, so the UI is a second renderer over the same SortPlan, and `node:http`
+keeps the near-zero-dependency policy. `ideas/01_inbox_topup_flow.md` folds into this epic — the
+owner answered its forks the same day (inbox **inside** the library, default name **`НОВОЕ`**,
+emptied inbox folders deleted) and the «ярлычок» he asked for IS this shortcut.
 
-Implementation shape it recommends: one new dependency (`jpeg-js`, **BSD-3-Clause** — the plan's
-"MIT" was wrong), a block-mean hash (~20 lines of our own, or the zero-dep `blockhash-core`),
-candidates nominated by the existing `src/meta/family.mjs`, and a new `pixel-original` evidence kind
-ranked beside `derived-original` whose detail names the source file *and the margin it won by*.
-
-This is fully autonomous work — it needs nothing from the owner.
-
-Other open, smaller items: `ideas/01_inbox_topup_flow.md` (an inbox + incremental top-up flow — forks
-still open) and `ideas/02_electron_gui.md` (accepted as direction, scheduled after Phase 5).
+**What was finished on 2026-07-28 and needs no further work:** `plans/02` step 2 — an edited photo's
+original found by comparing images (`src/meta/pixels.mjs`, designed by `researches/05` §7, calibrated
+in `researches/06`); the reset-camera-clock rule; and Phase 5's supervised run on a real sandbox.
+Step 3 of plans/02 (PRNU) stays unstarted and unauthorised — it names a camera, not a photograph.
 
 ## 7. What is waiting on the owner — never decide these alone
 
-- **A fresh sample copy of a real messy directory** for the Phase-5 supervised run. The previous one
-  (`KPOT_SAMPLE`) *he deleted between sessions* — do not recreate 13 GB of his personal photos
-  without a fresh word.
-- **The full-archive run** is his call and needs a fresh authorisation: the standing grant on his real
-  archive is **READ-ONLY** (path in agent memory, never in this public repo).
-- **Should a "1 January 00:00"-ish EXIF date be trusted?** One real file has `2000-01-01 00:25:13` —
-  the classic reset-camera-clock default, in an archive that otherwise starts in 2007. Policy about
-  *his* photos, so it was surfaced, not decided.
-- Idea 01's open forks; idea 02's scope questions.
+**Nothing is blocking.** Every fork raised so far has an answer (ideas 01 and 02, the reset-clock
+policy, the pixel authorisation, the sandbox). What is open is his *review*, not a decision:
+
+- **The sorted sandbox**: `D:\work\ai_sandbox\KPOT_SANDBOX` — 813 real files of his, sorted under
+  supervision and left that way for him to look at. He authorised the copy («создай себе новую
+  копию-песочницу для тестов. Разрешаю»). Do not delete it without his word, and do not copy more of
+  his photographs without a fresh one.
+  Undo: `node bin/kpot.mjs rollback run-20260728-201538-437c4d D:\work\ai_sandbox\KPOT_SANDBOX`
+- **The plans/02 result**: in the archive's album folder 94 of 95 editor exports stay undated because
+  their originals are not there; in the sandbox, where the originals exist, 4 of 4 were found. If he
+  expected more, the honest lever is not a looser threshold — it is that those originals are gone.
+- **Writing to the REAL archive** still needs a fresh `AUTH:`: the standing grant is READ-ONLY, and
+  everything measured so far has respected it.
 
 Rule of thumb the project runs on: *is it cheap to reverse?* If yes, decide it yourself and report.
 If it shapes brand / architecture / UX / the layout of his files for the long term — ask.

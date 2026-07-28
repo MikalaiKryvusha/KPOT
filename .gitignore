@@ -23,4 +23,6 @@ desktop.ini
 # It lives OUTSIDE this repo by design; this line exists so it can never arrive by accident.
 /KPOT_SAMPLE/
 KPOT_SAMPLE/
+/KPOT_SANDBOX/
+KPOT_SANDBOX/
 sample_report.json
