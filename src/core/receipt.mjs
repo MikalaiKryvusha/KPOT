@@ -1,6 +1,12 @@
 // src/core/receipt.mjs — the document KPOT leaves behind saying what it did to this folder.
-// [TESTED: 2026-07-29 · tests/receipt.test.mjs — written on a real sort, removed by an undo, the
-// file deleted when the last entry goes, parsed by run id rather than by prose; break-verified]
+// [TESTED: 2026-07-29 · tests/receipt.test.mjs — a rehearsal leaves nothing, a real sort writes it,
+// a run that moves nothing adds no line, the parser survives a total rewrite of the prose, a
+// damaged document fails safe, the scan never lists it. Six guards break-verified one at a time,
+// each turning red only its own spec. The apply→undo→gone round trip is guarded ELSEWHERE, by
+// tests/ui_undo.test.mjs (:238 for the write, :250 for the removal) — see the note in this spec
+// file before "tidying" that census. NOT independently falsifiable, and said out loud rather than
+// implied: the `moved > 0` half of the write condition, because no spec reaches `applyPlan` with a
+// plan whose every operation fails]
 //
 // THE OWNER'S RULE, 2026-07-29, verbatim: «KPOT должен оставлять документ-расписку. Его нет —
 // считаем, что беспорядок. Он есть — видим в нём историю сортировок.»

@@ -8,7 +8,7 @@
 > **Written:** 2026-07-28 at release `v0.1`; **refreshed 2026-07-29** after the interface epic
 > finished its last phase — both faces exist, the panel can undo a past run and shows the `НОВОЕ`
 > inbox, the product ships as a portable ZIP, and every owner-facing text has had its language pass.
-> **Suite: 286/286 green.** If today is much later than that, re-read `STATUS.md` first — it is
+> **Suite: 294/294 green.** If today is much later than that, re-read `STATUS.md` first — it is
 > maintained continuously, this file is not.
 >
 > **Start here, then:** §6 is the next task. **There are no open defects and no unfinished phases** —
@@ -46,7 +46,7 @@ tool has sorted a real archive sample. Everything below is verified, not claimed
 
 | | |
 |---|---|
-| Test suite | **286/286** green (`npm test`, `node --test`) |
+| Test suite | **294/294** green (`npm test`, `node --test`) |
 | Phases 0–5 | ✅ **all closed** (foundation · research+skeleton · scan/dates · dedupe/plan · safety · first real use) |
 | Phase 6 — the interface | ✅ **all six phases done** (`plans/03_interface_epic.md`). `kpot ui` opens a wizard on a messy folder and a control panel on a library (three re-launchable runs, guarded folder links, a run history with a working undo, the `НОВОЕ` inbox block, a desktop-shortcut offer); `npm run package` builds the **33.2 MB portable ZIP** that `npm run package:verify` proves runs on its own bundled runtime; and 6.6 put every owner-facing text through a reading pass |
 | Open bugs | **none** (six closed — see `bugs/`) |
@@ -69,7 +69,7 @@ node bin/kpot.mjs ui                       # the window: a local server + a page
 
 ```bash
 node -v                                    # must be >= 20
-npm test                                   # must be 286/286
+npm test                                   # must be 294/294
 git status                                 # must be clean; work on main, no feature branches
 
 # then run the whole product once, end to end, on a throwaway tree:

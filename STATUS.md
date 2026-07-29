@@ -627,9 +627,33 @@ twice. His words: «KPOT должен оставлять документ-рас
   delete — with its own text saying so — and it makes an undone sort stop counting, which closes
   the same bug by its other door.
 - **The two specs that asserted the old rule now assert its opposite on the same fixtures**, which
-  IS the fix; break-verified by restoring `isLibrary: years.length > 0` (both go red). Six census
-  helpers across the suite now skip the receipt as they already skip `.kpot-runs`: a census asking
-  «did the owner's files change?» must not count KPOT's own paperwork.
+  IS the fix; break-verified by restoring `isLibrary: years.length > 0` (both go red).
+
+### Session of 2026-07-29 (late 9) — the judge pass on that handoff, and what it found
+The previous session had appeared to hang mid-command; it had actually recovered, committed and
+pushed. Rather than trust the handoff, it was judged — and the fix was right while two of its
+CLAIMS were wrong. Suite **286 → 294**.
+
+- **The wiring is genuinely guarded, proven by breaking it:** delete the receipt write from
+  `apply.mjs` → `ui_undo.test.mjs:238` red («after a sort the panel sees a library»); delete the
+  removal from `rollback.mjs` → `ui_undo.test.mjs:250` red, the orphaned document showing up as an
+  extra census row.
+- **`tests/receipt.test.mjs` did not exist, and two `[TESTED]` markers named it** — the exact fraud
+  the canon hunts. Written now: 8 specs over the claims nothing covered (a rehearsal leaves
+  nothing · a no-op run adds no line · the parser survives a total rewrite of the prose · a damaged
+  document fails safe · the scan never lists it), **six breaks planted one at a time, each red only
+  in its own spec.** The marker also now says out loud which claim is NOT independently
+  falsifiable (`moved > 0`) instead of implying coverage.
+- **A false claim that would have COST coverage if believed.** The commit message says six census
+  helpers now skip `RECEIPT_NAME`; only two do. And `ui_undo`'s census must never join them — not
+  skipping the receipt is exactly what guards the rollback half, so "finishing the job" would have
+  deleted that guard while every test stayed green. Corrected in `bugs/06_DONE` with the reason,
+  and captured as **EXP-0025**: an exclusion in a census is guard-shaped.
+- **Verified by LOOKING** (EXP-0024), because that is how the bug was found: headless Edge over
+  CDP, clicking the real folder chooser on the owner's archive shape (a hand-made `2013/Лето/`
+  among loose photographs). Heap → **МАСТЕР**; after a real sort → **ПУЛЬТ** «Всё уже разложено»;
+  after the undo → **МАСТЕР** again. The third state is the one that matters: the bug does not
+  return by its other door. Script: scratchpad `bug06_look.mjs`.
 
 ---
 
@@ -865,7 +889,7 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
 > A concrete checklist so the next session (empty context) can start immediately: which files, which
 > commands, what to verify first.
 
-1. Verify the environment: `node -v` (≥20), `npm test` (**must be 286/286**), `git status` (clean),
+1. Verify the environment: `node -v` (≥20), `npm test` (**must be 294/294**), `git status` (clean),
    `gh auth status` (MikalaiKryvusha). Owner-provided paths from this file are PAST observations —
    re-check they still exist before planning around them (EXP-0011: a sample vanished once already).
 2. **Run the whole product once, end to end, before designing on top of it.** It all works now:

@@ -116,8 +116,42 @@ the same fixtures — which is the fix itself:
 
 **Break-verified:** restoring the old rule (`isLibrary: years.length > 0`) turns **both red**.
 
-Six census helpers across the suite now skip `RECEIPT_NAME` as they already skip `RUNS_DIR_NAME`: a
-census asking "did the owner's files change?" must not count KPOT's own paperwork.
+`tests/receipt.test.mjs` (added 2026-07-29, after the first fix commit) covers the document itself
+and the wiring, because both `[TESTED]` markers named that file while it did not yet exist. Eight
+specs, six breaks planted one at a time, each turning red only its own spec: a rehearsal leaves
+nothing · a real sort writes it and a no-op run adds no line · the parser survives a total rewrite
+of the prose around the run ids · a damaged document fails safe · an emptied one is deleted · a
+re-recorded run never duplicates · the scan never lists it. Suite **286 → 294**.
+
+### A correction, and a trap for the next session
+
+The fix commit's message says *"six census helpers now skip `RECEIPT_NAME`"*. **That is wrong —
+only two do** (`apply_phase4`, `inbox_topup`), the two whose specs actually failed. Do **not**
+"finish the job":
+
+> **`tests/ui_undo.test.mjs`'s census must keep counting the receipt.** It is the only guard on the
+> rollback half — remove `forgetSort` from `src/apply/rollback.mjs` and that census goes red at
+> :250 because the orphaned document shows up as an extra row. Teaching it to skip `RECEIPT_NAME`
+> would delete that guard silently, while every test stayed green.
+
+`idempotence` and `resume` pass for a real reason too (a second sort moves nothing, so nothing is
+rewritten). An exclusion in a census is guard-shaped: it belongs where a spec needs it, with a
+comment saying why, never applied as a sweep. Lesson captured as **EXP-0025**.
+
+## Verified by LOOKING, which is how this bug was found
+
+The bug was invisible to 283 green specs and visible in one second on a rendered page (EXP-0024), so
+its acceptance was taken the same way: headless Edge over CDP, clicking through the real folder
+chooser, reading what the person is actually told (scratchpad `bug06_look.mjs`). Tree used is the
+owner's archive shape — a hand-made `2013/Лето/` beside loose unsorted photographs:
+
+| State of the folder | What the person is shown |
+|---------------------|--------------------------|
+| heap with a hand-made `2013/` | **МАСТЕР** — «Наведём порядок…», the four steps, the plan. *This is the bug, gone* |
+| after a real sort (2 files moved) | **ПУЛЬТ** — «Всё уже разложено», three run cards, the run history |
+| after the undo (2 restored) | **МАСТЕР** again — the receipt went with the sort |
+
+The third row is the one worth keeping: it proves the bug does not return by its other door.
 
 ## Decisions made without the owner
 
