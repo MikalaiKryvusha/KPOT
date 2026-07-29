@@ -5,14 +5,15 @@
 > working. It is a *snapshot*, not a second source of truth: where it summarises another document it
 > names it, and that document wins on any disagreement.
 >
-> **Written:** 2026-07-28 at release `v0.1`; **refreshed 2026-07-29 (late)** after the interface
-> epic was designed and its first three phases — the shared layer, the server and the wizard — were
-> built and shipped.
-> **Suite: 256/256 green.** If today is much later than that, re-read `STATUS.md` first — it is
+> **Written:** 2026-07-28 at release `v0.1`; **refreshed 2026-07-29** after phase 6.3 closed — the
+> interface now has both faces (the first-flight wizard and the control panel), and the panel's last
+> piece, the undo button, is built and guarded.
+> **Suite: 266/266 green.** If today is much later than that, re-read `STATUS.md` first — it is
 > maintained continuously, this file is not.
 >
-> **Start here, then:** §6 is the next task — **the last piece of phase 6.3: the undo button on a
-> history row.** Everything it needs is built; §6 says how to design it and what already exists.
+> **Start here, then:** §6 is the next task — **phase 6.4, the `НОВОЕ` top-up.** It is designed AND
+> measured: `plans/08_novoe_topup.md` names four places the inbox misbehaves today, two of them
+> confirmed on a fixture and two of them refuted. §6 summarises it.
 
 ---
 
@@ -45,9 +46,9 @@ tool has sorted a real archive sample. Everything below is verified, not claimed
 
 | | |
 |---|---|
-| Test suite | **256/256** green (`npm test`, `node --test`) |
+| Test suite | **266/266** green (`npm test`, `node --test`) |
 | Phases 0–5 | ✅ **all closed** (foundation · research+skeleton · scan/dates · dedupe/plan · safety · first real use) |
-| Phase 6 — the interface | 🔧 under way. Epic: `plans/03_interface_epic.md`. **6.0 · 6.1 · 6.2 done** — `kpot ui` opens a working wizard. **6.3 is nearly done** — panel, folder reveal, library detection and the read-only run history are in; only the UNDO BUTTON is left |
+| Phase 6 — the interface | 🔧 under way. Epic: `plans/03_interface_epic.md`. **6.0 · 6.1 · 6.2 · 6.3 done** — `kpot ui` opens a wizard on a messy folder and a control panel on a library: three re-launchable runs, guarded folder links, and a run history with a working undo behind its own confirmation. **6.4 · 6.5 · 6.6 remain** |
 | Open bugs | **none** (four closed, all found by real data — see `bugs/`) |
 | Runtime deps | two: `exifreader` and `jpeg-js` (BSD-3-Clause, added 2026-07-28 for the pixel search) |
 | Node | ≥ 20 (developed on 24, Windows 11) |
@@ -67,7 +68,7 @@ node bin/kpot.mjs ui                       # the window: a local server + a page
 
 ```bash
 node -v                                    # must be >= 20
-npm test                                   # must be 256/256
+npm test                                   # must be 266/266
 git status                                 # must be clean; work on main, no feature branches
 
 # then run the whole product once, end to end, on a throwaway tree:
@@ -150,38 +151,43 @@ likely to accidentally re-litigate:
 
 ## 6. The next piece of work
 
-**Phase 6.3 — finish the CONTROL PANEL: the UNDO BUTTON on a history row.**
+**Phase 6.4 — the `НОВОЕ` top-up: one legal place for new material, and one button that files it.**
 
-Phases 6.0, 6.1 and 6.2 are shipped (2026-07-29), so the interface already runs: `kpot ui` starts a
-local server and opens a wizard that chooses a folder, builds a plan and sorts with one deliberate
-confirmation. What exists, and what you must CALL rather than re-implement:
+Phases 6.0–6.3 are shipped (2026-07-29), so the whole interface runs: `kpot ui` starts a local
+server, shows a wizard on a messy folder and a control panel on a library, and the panel can
+re-launch any run, open folders safely, and undo a past run behind its own confirmation. What exists,
+and what you must CALL rather than re-implement:
 
 - `src/app/phases.mjs` — the four phases as functions that return artifacts and **print nothing**,
   plus the three report renderers. Every face calls this. A second implementation is how a dry run
   and a real run start to drift apart;
 - `src/ui/server.mjs` — token, `Host` whitelist, port fallback, one instance, «Завершить работу»,
-  SSE progress. `src/ui/jobs.mjs` — ONE job at a time, and a real sort refused without an explicit
-  confirmation, checked on the SERVER so a mis-wired button cannot move a file;
+  SSE progress. `src/ui/jobs.mjs` — ONE job at a time, and anything that MOVES files (a sort, an
+  undo) refused without an explicit confirmation, checked on the SERVER so a mis-wired button cannot
+  move a file. `src/ui/undo.mjs` — the run must resolve by its REAL path into this library;
 - `src/ui/i18n.mjs` — every interface word, RU/EN. Nothing may be written into markup: a spec fails
-  on a Cyrillic character found in the page's HTML.
+  on a Cyrillic character found in the page's HTML. NOTE: `src/ui/page.mjs` is one big template
+  literal — a backtick in a comment there breaks the file (EXP-0020).
 
-**What is left is exactly one thing, and it was deliberately not rushed:** the undo button. The
-HISTORY is already there and read-only (`listRuns` in src/apply/resume.mjs, `GET /api/runs`, rendered
-on the panel), and every row already knows whether an undo is still possible — `undoable` means a
-real run, finished, with its backup on disk. What remains places the product's most destructive operation behind an
-HTTP endpoint. Design it with the same care the sort got: one deliberate confirmation naming the run,
-and the server refusing a rollback for a run that does not belong to the library it is pointed at.
+**Read `plans/08_novoe_topup.md` first.** Its point is that the top-up is NOT a new pipeline: the
+inbox lives inside the library root and the sort is already idempotent, so a normal run already
+picks `НОВОЕ` up. The phase is four places where that folder misbehaves — and the plan states which
+of them were CONFIRMED by running it on a fixture and which were REFUTED, so you neither fix a
+non-problem nor trust a hypothesis:
 
-**It is already DESIGNED — read `plans/07_undo_button.md` first.** It names the six rules the
-button must hold (only `undoable` rows get one; one confirmation naming the run and the numbers; the
-server does not trust the page; the run must belong to this library, checked by REAL path as in
-researches/08; one job at a time; a failure is a state, not an exception) and its acceptance criteria.
+- ✅ confirmed — the inbox is preserved as nesting, so files land in `<год>/<сезон>/НОВОЕ/…` and the
+  folder grows inside every season;
+- ✅ confirmed, and the dangerous one — the plan lists **`НОВОЕ` itself** among the folders to
+  delete, i.e. the owner's mailbox vanishes after the first top-up;
+- ❌ refuted — the inbox is not flagged for the owner's approval, even when its files scatter;
+- ❌ refuted — a duplicate in the inbox does not evict the library copy (a shelved file draws date
+  evidence from its own folder names), so the extra keeper criterion is defence on a tie, and its
+  spec must be built on a real tie or it will pass regardless.
 
-**Already built and working, so call it rather than rewrite it:** `src/ui/reveal.mjs` (checked folder
-opening), `libraryShape()` + `GET /api/library` (the question that chooses wizard vs panel), and the
-panel screen itself in `src/ui/page.mjs`, and `listRuns` for the history.
+After it: 6.5 (the portable package) — **and 6.5 may not be promised before its Mark-of-the-Web
+recon is measured on a REAL browser download** — then 6.6, the closing language pass.
 
-**The recon that gated 6.3 is DONE:** `researches/08_open_folder_and_path_safety.md`, measured on the
+**The recon behind the panel's «Открыть» is DONE:** `researches/08_open_folder_and_path_safety.md`, measured on the
 development machine. Read it before writing the «Открыть» control — it contains three facts you would
 otherwise get wrong. (a) `explorer.exe` **exits 1 even when it succeeds**, so its exit code is
 meaningless and the path must be checked BEFORE launching. (b) A **junction** created inside the
