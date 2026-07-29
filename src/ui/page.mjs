@@ -74,6 +74,13 @@ pre.report { background:#fff; border:1px solid var(--line); border-radius:.4rem;
 dialog { border:1px solid var(--line); border-radius:.6rem; padding:1.25rem; max-width:26rem }
 dialog::backdrop { background:rgba(0,0,0,.35) }
 .linkish { background:none; border:0; color:var(--accent); padding:0; text-decoration:underline }
+/* A history row: the plain account of what happened, and — only where it can be honoured — the
+   button that undoes it. The button is deliberately not the whole row: nobody undoes a sort by
+   clicking a line of text. */
+li.histrow { display:flex; align-items:center; gap:.5rem; padding:.35rem .75rem }
+li.histrow span { flex:1 }
+li.histrow button { width:auto; padding:.3rem .7rem; border:1px solid var(--line); border-radius:.4rem }
+.notice { color:var(--ok); margin:.5rem 0 0 }
 </style>
 </head><body>
 <div class="wrap">
@@ -109,6 +116,18 @@ dialog::backdrop { background:rgba(0,0,0,.35) }
   </div>
 </dialog>
 
+<!-- The undo has its OWN dialog rather than sharing the sort's with a mode flag. One dialog with two
+     meanings is one wiring mistake away from sorting when a person asked to undo, and this pair of
+     buttons is the last thing standing in front of the most destructive operation in the product. -->
+<dialog id="undo">
+  <h2 id="u-title"></h2>
+  <p id="u-body"></p>
+  <div class="row"><span class="spacer"></span>
+    <button id="u-cancel"></button>
+    <button class="primary" id="u-go"></button>
+  </div>
+</dialog>
+
 <script type="module">
 const STRINGS = ${JSON.stringify(STRINGS)};
 const token = new URLSearchParams(location.search).get('token') ?? '';
@@ -117,7 +136,7 @@ let lang = localStorage.getItem('kpot-lang') ?? '${DEFAULT_LANG}';
 // library. The owner's rule: «Пока библиотека не собрана, человека ведут по шагам. Как только
 // собрана, мастер уступает место пульту.»
 let step = 1, folder = null, plan = null, applyResult = null, error = null, busyLabel = null,
-    pct = 0, showFull = false, panel = null;
+    pct = 0, showFull = false, panel = null, notice = null, undoing = null;
 
 const t = (k, ...a) => (STRINGS[lang][k] ?? k).replace(/%(\\d)/g, (_, i) => a[i - 1] ?? '');
 const el = (id) => document.getElementById(id);
@@ -129,7 +148,11 @@ async function api(path, opts = {}) {
     ...opts,
     headers: { 'content-type': 'application/json', ...(opts.headers ?? {}) },
   });
-  if (!res.ok && res.status !== 409) throw new Error('HTTP ' + res.status);
+  // 409 (busy / needs a confirmation) and 403 (refused: outside the library, nothing to undo) are
+  // ANSWERS, not transport failures — they carry a body written for the person. Throwing on them
+  // would swallow the explanation and leave the screen silent, which is what happened to the
+  // «Открыть» refusal until this was noticed on 2026-07-29.
+  if (!res.ok && res.status !== 409 && res.status !== 403) throw new Error('HTTP ' + res.status);
   return res.json();
 }
 
@@ -179,9 +202,11 @@ function viewChoose() {
 
 // ── step 2: looking ──────────────────────────────────────────────────────────
 function viewLook() {
+  // The same waiting screen serves every long job, so it says which one is running: «Изучаю вашу
+  // папку» while an undo is under way would be a lie about what is happening to the person's files.
   return \`
-    <h2>\${t('lookTitle')}</h2>
-    <p class="help">\${t('lookHelp')}</p>
+    <h2>\${undoing ? t('undoWorking') : t('lookTitle')}</h2>
+    <p class="help">\${undoing ? '' : t('lookHelp')}</p>
     <div class="bar"><i style="width:\${pct}%"></i></div>
     <p class="path">\${escapeHtml(busyLabel ?? '')}</p>
     <p class="help">\${t('closeSafe')}</p>
@@ -252,15 +277,18 @@ function viewPanel() {
     + '<div class="row"><button data-reveal=".">' + t('panelOpen') + '</button>'
     + '<span class="spacer"></span>'
     + '<button data-rechoose="1">' + t('panelBackToWizard') + '</button></div>'
+    + (notice ? '<p class="notice">' + escapeHtml(notice) + '</p>' : '')
     + (error ? '<p class="err">' + t('failed') + ': ' + escapeHtml(error) + '</p>' : '');
 }
 
 /**
- * Past runs, newest first. There is deliberately NO undo button here yet: listing what happened is
- * safe, and performing an undo is the most destructive thing this program can do — it gets its own
- * design, with the same deliberate confirmation the sort has. What each row already says honestly is
- * whether an undo is still POSSIBLE, so the button, when it arrives, cannot promise what it cannot
- * keep.
+ * Past runs, newest first — and «Вернуть как было» on the ones where that promise can be kept.
+ *
+ * The button appears ONLY on a row the server marked undoable — a real run, finished, with its
+ * backup still on disk. A rehearsal moved nothing and a lost backup is lost, so a button on either
+ * would promise something the product cannot deliver — worse than no button at all (plans/07 §3.1).
+ * The gate is not left to this page either: the server checks the same thing again before it starts
+ * anything, because a page is not a place to enforce a safety rule.
  */
 function historyRows() {
   const runs = panel?.runs ?? [];
@@ -271,8 +299,12 @@ function historyRows() {
       ? t('panelHistoryDry')
       : t('panelHistoryMoved') + ' ' + r.moved + ' — '
         + (r.undoable ? t('panelHistoryUndoable') : t('panelHistoryNotUndoable'));
-    return '<li><button disabled style="opacity:1;cursor:default">' + escapeHtml(when)
-      + ' — ' + escapeHtml(what) + '</button></li>';
+    const button = r.undoable
+      ? '<button data-undo="' + escapeAttr(r.runId) + '" data-moved="' + escapeAttr(r.moved)
+        + '" data-when="' + escapeAttr(when) + '">' + t('undoAction') + '</button>'
+      : '';
+    return '<li class="histrow"><span>' + escapeHtml(when) + ' — ' + escapeHtml(what) + '</span>'
+      + button + '</li>';
   }).join('') + '</ul>';
 }
 
@@ -329,6 +361,7 @@ document.addEventListener('click', async (ev) => {
   if (b.dataset.retry) { error = null; return startPlan(); }
   if (b.dataset.sort) return askToSort();
   if (b.dataset.panelRun) return panelRun(b.dataset.panelRun);
+  if (b.dataset.undo) return askToUndo(b.dataset.undo, b.dataset.moved, b.dataset.when);
   if (b.dataset.reveal) return reveal(b.dataset.reveal);
   if (b.dataset.rechoose) { panel = null; folder = null; step = 1; render(); return browse(null); }
   if (b.id === 'lang') { lang = lang === 'ru' ? 'en' : 'ru'; localStorage.setItem('kpot-lang', lang); return render(); }
@@ -353,6 +386,39 @@ function askToSort() {
   el('c-go').textContent = t('confirmGo');
   el('confirm').showModal();
 }
+/**
+ * The undo's own confirmation: it names the RUN and the number of files, exactly as the owner chose
+ * that form of friction for the sort (interview #003 Q4 = А) — and it belongs here even more than
+ * there, because this is the one button that can take a finished library apart.
+ */
+function askToUndo(runId, moved, when) {
+  undoing = { runId, moved, when };
+  el('u-title').textContent = t('undoTitle');
+  el('u-body').textContent = t('undoBody', moved, when);
+  el('u-cancel').textContent = t('confirmCancel');
+  el('u-go').textContent = t('undoGo');
+  el('undo').showModal();
+}
+
+el('u-cancel').addEventListener('click', () => { undoing = null; el('undo').close(); });
+el('u-go').addEventListener('click', async () => {
+  el('undo').close();
+  const run = undoing;
+  step = 2; pct = 0; error = null; notice = null; render();
+  const r = await api('/api/undo', { method: 'POST',
+    body: JSON.stringify({ runId: run.runId, root: folder, confirmed: true }) });
+  if (!r.ok) {
+    // A refusal from the server is rendered from OUR dictionary, keyed on its reason, so the
+    // sentence switches language like every other word. The server's own Russian text is the
+    // fallback for a reason this page does not know about.
+    undoing = null;
+    const key = { 'not-found': 'undoRefusedNotFound', 'outside-library': 'undoRefusedOutside',
+      'not-undoable': 'undoRefusedNotUndoable' }[r.reason];
+    error = key ? t(key) : (r.message ?? '');
+    step = 0; render();
+  }
+});
+
 el('c-cancel').addEventListener('click', () => el('confirm').close());
 el('c-go').addEventListener('click', async () => {
   el('confirm').close();
@@ -373,7 +439,18 @@ events.addEventListener('progress', (e) => {
 });
 events.addEventListener('job-finished', async (e) => {
   const job = JSON.parse(e.data);
-  if (job.state === 'failed') { error = job.error; step = 2; return render(); }
+  if (job.state === 'failed') { undoing = null; error = job.error; step = 2; return render(); }
+  if (job.kind === 'rollback') {
+    // The tree just changed underneath the panel: the years are different and the history has a new
+    // row. Re-reading is not a nicety — a screen still showing yesterday's picture after the most
+    // destructive operation in the product is how a person undoes the same run twice.
+    undoing = null;
+    notice = t('undoDone');
+    panel = await api('/api/library?root=' + encodeURIComponent(folder));
+    panel.runs = (await api('/api/runs?root=' + encodeURIComponent(folder))).runs;
+    step = 0;
+    return render();
+  }
   if (job.kind === 'plan') {
     plan = await api('/api/plan-report');
     step = 3;

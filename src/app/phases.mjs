@@ -59,6 +59,15 @@ export { renderPlan, renderApplyReport, renderRollbackReport };
  */
 export { isInside, samePath } from '../core/paths.mjs';
 
+/**
+ * The name of KPOT's own bookkeeping directory, re-exported for the same reason.
+ *
+ * A face needs it to say WHERE a run lives — the undo button in the control panel has to resolve
+ * `<root>/.kpot-runs/<run-id>` before it may trust a run id that arrived over HTTP — and hard-coding
+ * the string in a second place is how two spellings of one folder eventually appear.
+ */
+export { RUNS_DIR_NAME } from '../core/paths.mjs';
+
 /** The runs an archive remembers — the control panel's history. Read-only; it performs nothing. */
 export { listRuns };
 

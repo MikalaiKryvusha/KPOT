@@ -1,5 +1,6 @@
-// src/ui/jobs.mjs — how the interface runs a phase (6.2a, plans/06).
-// [NOT-TESTED]
+// src/ui/jobs.mjs — how the interface runs a phase (6.2a, plans/06; the undo added 6.3, plans/07).
+// [TESTED: 2026-07-29 · tests/ui_jobs.test.mjs (7 specs) + tests/ui_undo.test.mjs (the undo's
+// confirmation, its refusal without a named run, and one-job-at-a-time), guards break-verified]
 //
 // A phase takes minutes on a real archive, and a browser cannot wait for it. So the interface does
 // not "call a function and render the answer": it STARTS A JOB, watches it, and reads the result
@@ -15,7 +16,7 @@
 // RULE 1 is untouched: nothing here writes a user file. It calls `src/app/phases.mjs`, which calls
 // `src/apply/`, which stays the single writer.
 
-import { scanArchive, planArchive, applyArchive } from '../app/phases.mjs';
+import { scanArchive, planArchive, applyArchive, rollbackArchive } from '../app/phases.mjs';
 
 /** The states a job passes through. `failed` is a RESULT, not a crash — the server keeps serving. */
 export const JOB_STATE = {
@@ -24,12 +25,16 @@ export const JOB_STATE = {
   FAILED: 'failed',
 };
 
-/** The three things a person can start from the interface. `rollback` belongs to the panel (6.3). */
+/** The four things a person can start from the interface. */
 export const JOB_KIND = {
-  SCAN: 'scan',     // «разведка» — look at the folder, decide nothing
-  PLAN: 'plan',     // «план» — what would move where
-  APPLY: 'apply',   // «сортировка» — the only one that moves anything
+  SCAN: 'scan',           // «разведка» — look at the folder, decide nothing
+  PLAN: 'plan',           // «план» — what would move where
+  APPLY: 'apply',         // «сортировка» — moves files into the library
+  ROLLBACK: 'rollback',   // «вернуть как было» — moves them all back (plans/07)
 };
+
+/** The kinds that MOVE a person's files, and may therefore never start unconfirmed. */
+const MOVES_FILES = new Set([JOB_KIND.APPLY, JOB_KIND.ROLLBACK]);
 
 /**
  * Create the job runner.
@@ -47,6 +52,9 @@ export function createJobRunner({ onEvent = () => {}, progressFor = () => null }
 
   const snapshot = (job) => job && ({
     id: job.id, kind: job.kind, root: job.root, state: job.state,
+    // Which run an undo was for. A browser that reconnects mid-undo needs to know WHICH one it is
+    // watching, and the finished event is how the panel learns to re-read its history.
+    runId: job.runId ?? null,
     startedAt: job.startedAt, finishedAt: job.finishedAt ?? null,
     error: job.error ?? null, result: job.result ?? null,
   });
@@ -62,11 +70,12 @@ export function createJobRunner({ onEvent = () => {}, progressFor = () => null }
      *
      * @param {string} kind one of JOB_KIND
      * @param {string} root the archive directory
-     * @param {{confirmed?: boolean, dryRun?: boolean, startedAtMs?: number}} [opts]
-     *        `confirmed` is REQUIRED for a real sort — see below.
+     * @param {{confirmed?: boolean, dryRun?: boolean, startedAtMs?: number, runId?: string}} [opts]
+     *        `confirmed` is REQUIRED for a real sort and for an undo — see below.
+     *        `runId` is REQUIRED for an undo: it names the run being reversed.
      * @returns {{ok: true, job: object} | {ok: false, reason: string, message: string}}
      */
-    start(kind, root, { confirmed = false, dryRun = false, startedAtMs = 0 } = {}) {
+    start(kind, root, { confirmed = false, dryRun = false, startedAtMs = 0, runId = null } = {}) {
       if (!Object.values(JOB_KIND).includes(kind)) {
         return { ok: false, reason: 'unknown-kind', message: 'неизвестное действие' };
       }
@@ -79,13 +88,24 @@ export function createJobRunner({ onEvent = () => {}, progressFor = () => null }
       // The owner chose ONE deliberate confirmation with the numbers before the sort (interview
       // #003 Q4 = А). The server does not trust the page to have asked: without an explicit
       // confirmation the request is refused here, so a mis-wired button cannot move a single file.
-      if (kind === JOB_KIND.APPLY && !dryRun && !confirmed) {
+      //
+      // An undo obeys the SAME rule, in the same place, for a stronger reason: it is the most
+      // destructive operation this product has, and it is now one HTTP request away (plans/07 §3.3).
+      if (MOVES_FILES.has(kind) && !dryRun && !confirmed) {
         return { ok: false, reason: 'needs-confirmation',
-          message: 'Сортировка начнётся только после вашего подтверждения.' };
+          message: kind === JOB_KIND.ROLLBACK
+            ? 'Возврат файлов начнётся только после вашего подтверждения.'
+            : 'Сортировка начнётся только после вашего подтверждения.' };
+      }
+      // An undo without a run named is not an undo — «вернуть всё подряд» is deliberately not a
+      // thing this product offers (plans/07 §5).
+      if (kind === JOB_KIND.ROLLBACK && (typeof runId !== 'string' || runId === '')) {
+        return { ok: false, reason: 'no-run',
+          message: 'Не указано, какой именно прогон возвращать.' };
       }
 
       const job = {
-        id: `job-${++seq}`, kind, root, state: JOB_STATE.RUNNING,
+        id: `job-${++seq}`, kind, root, runId, state: JOB_STATE.RUNNING,
         startedAt: startedAtMs, finishedAt: null, error: null, result: null,
       };
       current = job;
@@ -93,7 +113,7 @@ export function createJobRunner({ onEvent = () => {}, progressFor = () => null }
 
       // Deliberately NOT awaited: the caller is an HTTP handler that must answer immediately, and
       // the run has to outlive both that response and the browser tab that asked for it.
-      runPhase(kind, root, { dryRun, progress: progressFor() })
+      runPhase(kind, root, { dryRun, runId, progress: progressFor() })
         .then((result) => {
           job.state = JOB_STATE.DONE;
           job.result = result;
@@ -115,8 +135,9 @@ export function createJobRunner({ onEvent = () => {}, progressFor = () => null }
 }
 
 /** Dispatch to the app layer. The only place that knows which phase means which function. */
-function runPhase(kind, root, { dryRun, progress }) {
+function runPhase(kind, root, { dryRun, runId, progress }) {
   if (kind === JOB_KIND.SCAN) return scanArchive(root, { progress });
   if (kind === JOB_KIND.PLAN) return planArchive(root, { progress });
+  if (kind === JOB_KIND.ROLLBACK) return rollbackArchive(runId, root);
   return applyArchive(root, { dryRun, progress });
 }

@@ -98,6 +98,18 @@ export const STRINGS = Object.freeze({
     panelHistoryUndoable: 'можно вернуть как было',
     panelHistoryNotUndoable: 'вернуть уже нельзя',
 
+    // «Вернуть как было» — the second deliberate confirmation, and the one that names the run
+    undoAction: 'Вернуть как было',
+    undoTitle: 'Вернуть файлы на прежние места?',
+    undoBody: 'Верну %1 файлов туда, где они лежали до прогона %2. Запасная копия того прогона '
+      + 'останется на месте.',
+    undoGo: 'Да, вернуть',
+    undoWorking: 'Возвращаю файлы на прежние места',
+    undoDone: 'Готово: файлы вернулись туда, где лежали раньше.',
+    undoRefusedNotFound: 'Такого прогона здесь нет. Обновите страницу — список мог устареть.',
+    undoRefusedOutside: 'Этот прогон относится к другой папке — вернуть его отсюда нельзя.',
+    undoRefusedNotUndoable: 'Этот прогон вернуть уже нельзя: у него не осталось запасной копии.',
+
     // Shared
     back: 'Назад',
     next: 'Дальше',
@@ -181,6 +193,17 @@ export const STRINGS = Object.freeze({
     panelHistoryMoved: 'files moved:',
     panelHistoryUndoable: 'can be put back',
     panelHistoryNotUndoable: 'can no longer be put back',
+
+    undoAction: 'Put it back',
+    undoTitle: 'Put the files back where they were?',
+    undoBody: 'I will return %1 files to where they lay before the run of %2. That run’s backup '
+      + 'copy stays where it is.',
+    undoGo: 'Yes, put it back',
+    undoWorking: 'Putting the files back where they were',
+    undoDone: 'Done: the files are back where they were before.',
+    undoRefusedNotFound: 'There is no such run here. Refresh the page — the list may be out of date.',
+    undoRefusedOutside: 'That run belongs to a different folder — it cannot be undone from here.',
+    undoRefusedNotUndoable: 'This run can no longer be put back: its backup copy is gone.',
 
     back: 'Back',
     next: 'Next',

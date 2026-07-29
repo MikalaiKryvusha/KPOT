@@ -35,6 +35,7 @@ import { createJobRunner } from './jobs.mjs';
 import { listFolders, libraryShape } from './folders.mjs';
 import { renderPage } from './page.mjs';
 import { revealFolder, REVEAL_REFUSED } from './reveal.mjs';
+import { checkUndoable, UNDO_REFUSED } from './undo.mjs';
 import { renderPlan, listRuns } from '../app/phases.mjs';
 
 /**
@@ -288,9 +289,44 @@ export async function startServer({ port = DEFAULT_PORT, token = randomBytes(24)
       return;
     }
 
-    // The run history the panel shows. READ-ONLY: listing what happened is safe, and performing an
-    // undo over HTTP is the most destructive thing this product can do — it gets its own design,
-    // with the same deliberate confirmation the sort has, rather than being tacked on here.
+    // «Вернуть как было» — the most destructive thing this product can do, and therefore the most
+    // carefully guarded door in it (plans/07). Three checks stand in front of the undo itself, in
+    // this order, and each refuses BEFORE anything is read or moved:
+    //   1. does this run belong to the library the server is pointed at, by its REAL path
+    //      (`src/ui/undo.mjs`, the rule researches/08 measured) — and can it be honoured at all;
+    //   2. did the person confirm, deliberately, with the run and the numbers in front of them
+    //      (enforced in `src/ui/jobs.mjs`, not here — one place decides whether work may start);
+    //   3. is nothing else running (the same one-job-at-a-time rule the sort obeys).
+    if (url.pathname === '/api/undo' && req.method === 'POST') {
+      readJsonBody(req).then(async (body) => {
+        const allowed = await checkUndoable(body?.runId, body?.root);
+        if (!allowed.ok) {
+          res.writeHead(403, { 'content-type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify({
+            ok: false,
+            reason: allowed.reason,
+            // A Russian fallback for any caller that does not carry the dictionary; the page itself
+            // renders these from `i18n.mjs`, so the sentence a person reads switches with the
+            // language like every other word in the interface.
+            message: allowed.reason === UNDO_REFUSED.NOT_UNDOABLE
+              ? 'Этот прогон вернуть уже нельзя.'
+              : allowed.reason === UNDO_REFUSED.OUTSIDE
+                ? 'Этот прогон относится к другой папке — вернуть его отсюда нельзя.'
+                : 'Такого прогона здесь нет.',
+          }));
+          return;
+        }
+        const started = jobs.start('rollback', body?.root, {
+          runId: allowed.runId, confirmed: body?.confirmed === true, startedAtMs: Date.now(),
+        });
+        res.writeHead(started.ok ? 202 : 409, { 'content-type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify(started));
+      }).catch(() => deny(res, 400, 'не удалось прочитать запрос'));
+      return;
+    }
+
+    // The run history the panel shows. READ-ONLY: listing what happened is safe. The undo itself
+    // lives at /api/undo above, behind its own confirmation.
     if (url.pathname === '/api/runs') {
       listRuns(url.searchParams.get('root') ?? '').then((runs) => {
         res.writeHead(200, { 'content-type': 'application/json; charset=utf-8' });
