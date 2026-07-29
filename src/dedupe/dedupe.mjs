@@ -15,6 +15,8 @@
 // choose the same keeper, on any machine, in any filesystem-enumeration order. Every criterion is
 // explainable in one phrase, because the plan has to tell the owner WHY this copy was the one kept.
 
+import { INBOX_DIR } from '../core/paths.mjs';
+
 /** Verdict strength, lower = better keeper. A copy that knows its own date beats one that doesn't. */
 const STATUS_RANK = { dated: 0, partial: 1, unknown: 2 };
 
@@ -44,6 +46,15 @@ export function looksLikeACopy(path) {
 const depth = (p) => p.split('/').length - 1;
 
 /**
+ * Is this copy still sitting in the inbox — i.e. has it not been filed yet?
+ *
+ * `INBOX_DIR` comes from `src/core/paths.mjs` rather than from the layout module next door, because
+ * dedupe and plan are SIBLINGS and RULE 2 forbids one reaching into the other; a fact two layers
+ * need moves down (the same reason `RUNS_DIR_NAME` lives there).
+ */
+const inInbox = (p) => p.split('/')[0] === INBOX_DIR;
+
+/**
  * The ordered keeper criteria. Each returns a comparable number (lower wins) and carries the
  * phrase the plan prints when THIS criterion is the one that decided the group.
  */
@@ -51,6 +62,23 @@ const CRITERIA = [
   { reason: 'у него самая надёжная дата', score: (a) => STATUS_RANK[a.verdict?.status] ?? STATUS_RANK.unknown },
   { reason: 'его дата установлена, а не предположена', score: (a) => (a.verdict?.assumed ? 1 : 0) },
   { reason: 'его имя не помечено как копия', score: (a) => (looksLikeACopy(a.path) ? 1 : 0) },
+  // The copy already standing in the library outranks the one still in the inbox (phase 6.4). This
+  // sits ABOVE depth deliberately, because depth is what gets it wrong: `НОВОЕ/photo.jpg` is one
+  // level deep and `2014/Весна/photo.jpg` is two, so without this line the newly-dropped copy wins.
+  //
+  // Measured before the rule was written, on a fixture library plus an inbox holding a byte-identical
+  // copy of an already-shelved photograph: the keeper came out as `НОВОЕ/копия_…`, «он лежит ближе
+  // всех к верху дерева папок», and the settled file `2008/Зима конец года/семейный архив/…` was
+  // planned OUT of the library into `ПРОЧЕЕ/_дубликаты/`. A top-up must add what is new and disturb
+  // nothing that is already filed; that is the phase's first acceptance criterion.
+  //
+  // Note which files this actually decides. When the copies carry their own capture date the date
+  // criteria TIE and this line is what settles the group; when they do not, a shelved file draws
+  // year/season evidence from the folders above it that an inbox file cannot, so the date criterion
+  // has already settled it and this line never fires. `plans/08` measured the second case and
+  // concluded from it that the criterion was mere tie-breaking — the first case shows otherwise.
+  { reason: 'он уже разложен в библиотеке, а второй только что попал в папку «НОВОЕ»',
+    score: (a) => (inInbox(a.path) ? 1 : 0) },
   { reason: 'он лежит ближе всех к верху дерева папок', score: (a) => depth(a.path) },
   { reason: 'первый по порядку пути — всё остальное у них одинаково', score: null }, // final total tie-break
 ];

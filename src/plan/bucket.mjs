@@ -23,6 +23,7 @@
 // Determinism: this module is pure — same asset in, same segments out, on every machine. It reads
 // no clock and no filesystem (AGENT_GUIDE → canonical order).
 
+import { INBOX_DIR } from '../core/paths.mjs';
 import { SEASONS, seasonForMonth } from './season.mjs';
 
 /** Top-level bucket for everything undatable, plus its two quarantine areas. */
@@ -92,7 +93,8 @@ const TECHNICAL_DIR_NAMES = new Set([
 const DEVICE_DUMP_RE = /^\d{3}[A-Za-z][A-Za-z0-9_-]{0,9}$/;
 
 /**
- * KPOT's OWN layout directories — the shelves this module itself creates.
+ * KPOT's OWN layout directories — the shelves this module itself creates, plus the one transit
+ * folder the owner fills (the inbox).
  *
  * They must be structural, exactly like a year directory: a file already living in
  * `2014/Зима начало года/` must not have that season folder re-added as if the owner had named it,
@@ -102,11 +104,24 @@ const DEVICE_DUMP_RE = /^\d{3}[A-Za-z][A-Za-z0-9_-]{0,9}$/;
  * `isDateStructureDir` simply could not see the two long winter names, because stripping the token
  * «зима» from «Зима начало года» leaves «начало года» behind.
  *
+ * `INBOX_DIR` belongs to the same class for the same reason, and phase 6.4 measured what happens
+ * without it: three files dropped into `НОВОЕ/` were planned into `2014/Зима начало года/НОВОЕ/…`,
+ * `2018/Весна/НОВОЕ/…` and `2020/Лето/НОВОЕ/…`, i.e. the mailbox would be rebuilt inside every
+ * season it ever fed. A transit folder names a MOMENT, not a subject — it says "this arrived
+ * recently", which stops being true the second the file is shelved. The owner's own subfolders
+ * inside it (`НОВОЕ/с телефона/`) are untouched by this and survive as nesting, exactly as they
+ * would anywhere else in the tree.
+ *
+ * A second consequence falls out and is worth naming, because a later reader might otherwise think
+ * it accidental: `findSuspiciousDirs` skips technical segments, so the inbox can no longer be
+ * proposed for the `НА_РАЗБОР/` quarantine. It was already immune (its name is meaningful, which
+ * is the criterion), but immunity by structure beats immunity by vocabulary.
+ *
  * Derived from the constants above rather than retyped, so this set cannot drift from the layout it
  * describes: rename a bucket and this follows automatically (bug 01).
  */
 const OWN_LAYOUT_DIRS = new Set(
-  [...Object.values(SEASONS), YEAR_OTHER, GLOBAL_OTHER, JUNK_DIR, DUPES_DIR, REVIEW_DIR]
+  [...Object.values(SEASONS), YEAR_OTHER, GLOBAL_OTHER, JUNK_DIR, DUPES_DIR, REVIEW_DIR, INBOX_DIR]
     .map((d) => d.toLowerCase()),
 );
 

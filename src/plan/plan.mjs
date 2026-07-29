@@ -16,7 +16,7 @@
 // enumeration order. Two plans of the same tree are byte-identical apart from `meta.plannedAt`,
 // which is deliberately isolated in `meta` so Phase 4 can compare the actionable parts directly.
 
-import { samePath } from '../core/paths.mjs';
+import { samePath, normalizeForCompare, INBOX_DIR } from '../core/paths.mjs';
 import { groupDuplicates } from '../dedupe/dedupe.mjs';
 import { planBucket, isTechnicalDir, stripReviewPrefix, REVIEW_DIR, EVIDENCE_IN_WORDS } from './bucket.mjs';
 import { findSuspiciousDirs, heldBy } from './suspicious.mjs';
@@ -209,8 +209,14 @@ export function buildPlan(scan, { now = new Date(), decisions = new Map() } = {}
   //
   // Consequence, deliberate: the owner's own capitalisation stays (invariant 6, "the user's names
   // survive"). KPOT does not rename his folder to match its own spelling.
-  const actionable = operations.filter((o) => !samePath(o.from, o.to));
-  const alreadyInPlace = operations.length - actionable.length;
+  // Kept, not merely counted (bug 05): a file that is ALREADY home is invisible to both populations
+  // `emptiedDirs` reasons about — it is not an actionable move and it is not in `stay` — so without
+  // this list its folder is reported as one that will be left empty. On a first sort the population
+  // is empty and the defect cannot appear; from the second run onward it is most of the library.
+  const actionable = [];
+  const inPlace = [];
+  for (const o of operations) (samePath(o.from, o.to) ? inPlace : actionable).push(o);
+  const alreadyInPlace = inPlace.length;
 
   // Canonical order: by destination, then by source. The owner reads the plan grouped by where
   // things land; `apply` gets a stable, reproducible sequence.
@@ -223,7 +229,7 @@ export function buildPlan(scan, { now = new Date(), decisions = new Map() } = {}
 
   // Folders the sort would leave empty. Recorded here so the owner sees the deletions in advance —
   // the condition attached to the owner's permission to delete them at all.
-  const emptied = emptiedDirs(scan.dirs ?? [], actionable, stay);
+  const emptied = emptiedDirs(scan.dirs ?? [], actionable, stay, inPlace);
 
   return {
     planVersion: PLAN_VERSION,
@@ -255,6 +261,8 @@ export function buildPlan(scan, { now = new Date(), decisions = new Map() } = {}
 
 /**
  * Which of the tree's directories will be left empty by these moves?
+ * [TESTED: 2026-07-29 · tests/empty_dirs.test.mjs — bug 05: a sorted library yields an EMPTY list,
+ * and a top-up names only the folders the top-up itself drained; both break-verified]
  *
  * The owner allowed KPOT to delete them (2026-07-26) on one condition — that they are recorded so a
  * rollback can put them back. This function is the "shown to you first" half of that: the list goes
@@ -264,23 +272,49 @@ export function buildPlan(scan, { now = new Date(), decisions = new Map() } = {}
  * A directory that RECEIVES a file is never empty, which is what keeps a folder that is both a
  * source and a target (the owner's own `2013/`) safely off the list.
  *
+ * THREE populations keep a directory alive, and missing any one of them turns this list into a
+ * threat to delete folders that are full (bug 05):
+ *   · a file that stays where it is (non-media);
+ *   · a file that MOVES INTO the directory;
+ *   · a file that is ALREADY in it and needs no operation at all — the population that does not
+ *     exist on a first sort and is most of the library on every run after it.
+ *
+ * Membership is decided with the normalized comparison key, never raw string equality: the owner
+ * capitalises his own season folders (`Зима Конец Года`), and on Windows that is the SAME directory
+ * KPOT spells `Зима конец года`. Comparing the two as strings is exactly bug 03, one level up —
+ * a survivor recorded under one spelling would not match the folder listed under the other, and the
+ * folder would be announced for deletion while full.
+ *
  * @param {string[]} dirs         every directory in the tree, relative, '/'-separated
  * @param {object[]} operations   the actionable moves
  * @param {object[]} stay         files that are not moving at all
+ * @param {object[]} inPlace      moves dropped as no-ops: the file is already at its destination
  * @returns {string[]} deepest-first — the order they must be removed in
  */
-function emptiedDirs(dirs, operations, stay) {
-  const survivors = new Set();   // directories that still hold something afterwards
+function emptiedDirs(dirs, operations, stay, inPlace = []) {
+  const survivors = new Set();   // comparison keys of directories that still hold something
   const keep = (relPath) => {
     const parts = relPath.split('/');
-    for (let i = parts.length - 1; i >= 1; i--) survivors.add(parts.slice(0, i).join('/'));
+    for (let i = parts.length - 1; i >= 1; i--) {
+      survivors.add(normalizeForCompare(parts.slice(0, i).join('/')));
+    }
   };
   for (const s of stay) keep(s.path);          // a file that stays keeps its folder alive
   for (const op of operations) keep(op.to);    // a destination folder is occupied by definition
+  // Its ORIGINAL path, not its target: `from` is how the folder is actually spelled on disk, and
+  // that is what the directory listing being filtered below contains.
+  for (const op of inPlace) keep(op.from);     // already home — nothing is leaving this folder
 
   // Anything not kept alive is emptied. Deepest first, so a child is removed before its parent.
   return dirs
-    .filter((d) => !survivors.has(d))
+    .filter((d) => !survivors.has(normalizeForCompare(d)))
+    // …except the INBOX itself. Emptying it is what SUCCESS looks like, not what makes it disposable
+    // (phase 6.4, and measured before the rule existed: the plan listed «НОВОЕ» among the folders to
+    // delete, so the owner's mailbox would have vanished after the very first top-up and he would
+    // have had to know to recreate it by hand). Its own subfolders are ordinary emptied folders and
+    // are removed exactly as before — the owner's decision of 2026-07-28 asked for precisely that:
+    // «разобранные папки инбокса удалять — если они пусты и разобраны».
+    .filter((d) => !samePath(d, INBOX_DIR))
     .sort((a, b) => b.split('/').length - a.split('/').length || (a < b ? 1 : -1));
 }
 

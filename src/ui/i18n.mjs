@@ -98,6 +98,20 @@ export const STRINGS = Object.freeze({
     panelHistoryUndoable: 'можно вернуть как было',
     panelHistoryNotUndoable: 'вернуть уже нельзя',
 
+    // The `НОВОЕ` inbox — one legal place for new material, so the tidy-up does not decay (idea 01)
+    inboxTitle: 'Папка «НОВОЕ»',
+    inboxHelp: 'Складывайте сюда всё новое — снимки с телефона, с камеры, от родных. Нажмёте '
+      + 'кнопку, и они разойдутся по годам вместе с остальными.',
+    inboxWaiting: 'Сейчас здесь ждёт файлов:',
+    inboxEmpty: 'Сейчас здесь пусто.',
+    inboxSort: 'Разложить то, что здесь лежит',
+    inboxMissing: 'Такой папки у вас пока нет. Могу её создать — она будет лежать прямо в вашей '
+      + 'библиотеке, и в неё можно будет складывать всё новое.',
+    inboxCreate: 'Создать папку «НОВОЕ»',
+    inboxCreated: 'Папка «НОВОЕ» создана. Складывайте в неё новые снимки.',
+    inboxFailed: 'Папку создать не удалось. Проверьте, что выбрана та самая папка с вашей '
+      + 'библиотекой, и попробуйте ещё раз.',
+
     // «Вернуть как было» — the second deliberate confirmation, and the one that names the run
     undoAction: 'Вернуть как было',
     undoTitle: 'Вернуть файлы на прежние места?',
@@ -193,6 +207,19 @@ export const STRINGS = Object.freeze({
     panelHistoryMoved: 'files moved:',
     panelHistoryUndoable: 'can be put back',
     panelHistoryNotUndoable: 'can no longer be put back',
+
+    inboxTitle: 'The «НОВОЕ» folder',
+    inboxHelp: 'Put anything new in here — pictures from your phone, from a camera, from family. '
+      + 'Press the button and they join the rest, arranged by year.',
+    inboxWaiting: 'Files waiting here:',
+    inboxEmpty: 'Nothing is waiting here.',
+    inboxSort: 'Arrange what is in here',
+    inboxMissing: 'You do not have this folder yet. I can make it — it will sit inside your '
+      + 'library, ready for anything new.',
+    inboxCreate: 'Create the «НОВОЕ» folder',
+    inboxCreated: 'The «НОВОЕ» folder is ready. Put new pictures into it.',
+    inboxFailed: 'The folder could not be created. Check that you chose the folder holding your '
+      + 'library, and try again.',
 
     undoAction: 'Put it back',
     undoTitle: 'Put the files back where they were?',

@@ -269,6 +269,7 @@ function viewPanel() {
     + '</div>'
     + '<h2 style="font-size:1.05rem">' + t('panelAttention') + '</h2>'
     + '<p class="help">' + (attention > 0 ? attention : t('panelAttentionNone')) + '</p>'
+    + inboxBlock()
     + '<h2 style="font-size:1.05rem">' + t('panelYears') + '</h2>'
     + (years.length ? '<ul class="folders">' + yearRows + '</ul>'
                     : '<p class="help">' + t('panelNoYears') + '</p>')
@@ -279,6 +280,41 @@ function viewPanel() {
     + '<button data-rechoose="1">' + t('panelBackToWizard') + '</button></div>'
     + (notice ? '<p class="notice">' + escapeHtml(notice) + '</p>' : '')
     + (error ? '<p class="err">' + t('failed') + ': ' + escapeHtml(error) + '</p>' : '');
+}
+
+/**
+ * The inbox block: one legal place for new material, and the button that files it (phase 6.4).
+ *
+ * Nothing new hides behind that button. It starts the SAME sort as the panel's third card, through
+ * the same confirmation the server enforces — the inbox lives inside the library root and the sort
+ * is idempotent, so filing it is an ordinary run. It exists as a second entry point because this is
+ * where a person is looking when they have just dropped photographs in: an action belongs next to
+ * the thing it acts on.
+ *
+ * The folder's NAME comes from the server, never from a literal here. Two reasons: a Russian word
+ * baked into this file could never become English, which a spec checks; and one spelling of the
+ * inbox in the whole product is what keeps the page and the planner talking about the same folder.
+ */
+function inboxBlock() {
+  const box = panel?.inbox;
+  if (!box) return '';
+  const head = '<h2 style="font-size:1.05rem">' + t('inboxTitle') + '</h2>'
+    + '<p class="help">' + t('inboxHelp') + '</p>';
+  // A folder that does not exist yet is a different state from an empty one, and gets a different
+  // sentence: an offer to make it, rather than a count of nothing.
+  if (!box.exists) {
+    return head + '<p class="help">' + t('inboxMissing') + '</p>'
+      + '<div class="row"><button data-inbox-create="1">' + t('inboxCreate') + '</button></div>';
+  }
+  const count = box.files > 0
+    ? '<p class="help">' + t('inboxWaiting') + ' ' + box.files + '</p>'
+    : '<p class="help">' + t('inboxEmpty') + '</p>';
+  return head + count
+    + '<div class="row">'
+    + '<button data-reveal="' + escapeAttr(box.name) + '">' + t('panelOpen') + '</button>'
+    + '<span class="spacer"></span>'
+    + '<button class="primary" data-panel-run="apply"' + (box.files > 0 ? '' : ' disabled') + '>'
+    + t('inboxSort') + '</button></div>';
 }
 
 /**
@@ -314,13 +350,45 @@ function historyRows() {
  * about the filesystem, and the answer decides which face the person ever sees.
  */
 async function enter() {
-  panel = await api('/api/library?root=' + encodeURIComponent(folder));
-  if (panel.isLibrary) {
-    panel.runs = (await api('/api/runs?root=' + encodeURIComponent(folder))).runs;
-    step = 0;
-    return render();
-  }
+  await loadPanel();
+  if (panel.isLibrary) { step = 0; return render(); }
   return startPlan();
+}
+
+/**
+ * Everything the panel knows about the library, re-read from the server in ONE place.
+ *
+ * It is one function rather than three copies because it is called after every event that changes
+ * the tree — a sort, an undo, the creation of the inbox — and a panel still showing the previous
+ * picture after the most destructive operation in the product is how a person undoes the same run
+ * twice. Three copies is three chances for one of them to forget the newest thing it should re-read.
+ */
+async function loadPanel() {
+  const shape = await api('/api/library?root=' + encodeURIComponent(folder));
+  shape.runs = (await api('/api/runs?root=' + encodeURIComponent(folder))).runs;
+  shape.inbox = await api('/api/inbox?root=' + encodeURIComponent(folder));
+  panel = shape;
+  return shape;
+}
+
+/**
+ * Make the inbox, because someone pressed the button that offered to.
+ *
+ * The failure branch is here on purpose: the transport helper above throws on a 400, and a thrown
+ * promise inside a click handler is invisible — a screen where nothing happens looks exactly like a
+ * screen where nothing went wrong. That is not hypothetical, it is what silently swallowed the
+ * «Открыть» refusal until 2026-07-29.
+ */
+async function createInbox() {
+  error = null; notice = null;
+  try {
+    const box = await api('/api/inbox', { method: 'POST', body: JSON.stringify({ root: folder }) });
+    if (panel) panel.inbox = box;
+    notice = t('inboxCreated');
+  } catch {
+    error = t('inboxFailed');
+  }
+  render();
 }
 
 async function panelRun(kind) {
@@ -361,6 +429,7 @@ document.addEventListener('click', async (ev) => {
   if (b.dataset.retry) { error = null; return startPlan(); }
   if (b.dataset.sort) return askToSort();
   if (b.dataset.panelRun) return panelRun(b.dataset.panelRun);
+  if (b.dataset.inboxCreate) return createInbox();
   if (b.dataset.undo) return askToUndo(b.dataset.undo, b.dataset.moved, b.dataset.when);
   if (b.dataset.reveal) return reveal(b.dataset.reveal);
   if (b.dataset.rechoose) { panel = null; folder = null; step = 1; render(); return browse(null); }
@@ -446,8 +515,7 @@ events.addEventListener('job-finished', async (e) => {
     // destructive operation in the product is how a person undoes the same run twice.
     undoing = null;
     notice = t('undoDone');
-    panel = await api('/api/library?root=' + encodeURIComponent(folder));
-    panel.runs = (await api('/api/runs?root=' + encodeURIComponent(folder))).runs;
+    await loadPanel();
     step = 0;
     return render();
   }
@@ -457,10 +525,10 @@ events.addEventListener('job-finished', async (e) => {
   } else if (job.kind === 'apply') {
     applyResult = { result: job.result };
     // A sort started FROM the panel returns to the panel — the wizard's «Готово» screen is the end
-    // of a first flight, not of every routine top-up. The year list is re-read because it changed.
+    // of a first flight, not of every routine top-up. Everything on it is re-read, because a
+    // top-up changes all of it at once: the years, the history, and what is left in the inbox.
     if (panel?.isLibrary) {
-      panel = await api('/api/library?root=' + encodeURIComponent(folder));
-      panel.runs = (await api('/api/runs?root=' + encodeURIComponent(folder))).runs;
+      await loadPanel();
       step = 0;
     } else {
       step = 4;

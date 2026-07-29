@@ -72,6 +72,20 @@ export { RUNS_DIR_NAME } from '../core/paths.mjs';
 export { listRuns };
 
 /**
+ * The `НОВОЕ` inbox: what is waiting in it, and the one call that creates it (phase 6.4).
+ *
+ * Re-exported for the same reason as everything above — a face may not reach below this layer, and
+ * the panel has to be able to say «в папке НОВОЕ ждут 12 файлов» and to offer to make the folder for
+ * someone who has never made one. Note what is NOT here: there is no top-up phase. Sorting the inbox
+ * IS `applyArchive`, because the inbox is inside the root and the sort is idempotent — a second
+ * pipeline beside `apply` is precisely how a dry run and a real run start to drift.
+ */
+export { inboxState, createInbox } from '../core/inbox.mjs';
+
+/** The inbox's name, so a face can spell it the one way the whole product spells it. */
+export { INBOX_DIR } from '../core/paths.mjs';
+
+/**
  * The outcomes of `applyArchive`. The apply phase has four genuinely different endings and the CLI
  * used to distinguish them by which message it printed — which meant a second caller had to
  * re-derive them from prose. Naming them makes each ending a value both faces can branch on.

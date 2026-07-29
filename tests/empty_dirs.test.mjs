@@ -20,6 +20,7 @@ import { join } from 'node:path';
 import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
 
+import { makeJpeg } from './fixtures/make.mjs';
 import { scanTree } from '../src/scan/scan.mjs';
 import { annotateAssets } from '../src/meta/annotate.mjs';
 import { buildPlan, renderPlan } from '../src/plan/plan.mjs';
@@ -168,6 +169,63 @@ test('rollback restores the tree\'s directory SET, not just its files', async ()
     assert.deepEqual(missing, [], `rollback did not restore: ${missing.join(', ')}`);
     assert.deepEqual(extra, [], `rollback left folders behind: ${extra.join(', ')}`);
   } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+// ─── bug 05: the list must not name folders that are full ────────────────────────────────────────
+// Note why the six specs above all missed this. Every one of them starts from an UNSORTED fixture,
+// where the population that triggers the defect — media that is ALREADY at its destination — does
+// not exist yet. The defect therefore cannot appear on a first sort and is most of the library on
+// every run after it, which is the shape the owner lives in from now on (phase 6.4, the top-up).
+test('A SORTED LIBRARY HAS NO FOLDERS WAITING TO BE DELETED — bug 05', async () => {
+  const root = await fixture();
+  try {
+    const { scan, plan } = await planFor(root);
+    await applyPlan(root, plan, scan, { runId: 'run-settled' });
+
+    // Plan the tree KPOT itself just produced. Nothing moves — and nothing empties either.
+    const second = await planFor(root);
+    assert.deepEqual(second.plan.operations, [], 'the sort must be idempotent, or this proves nothing');
+    assert.deepEqual(second.plan.emptied, [],
+      'a settled library announced for deletion is the loudest possible false alarm in the one '
+      + 'document the owner reads before authorising anything');
+    assert.equal(second.plan.counts.emptiedDirs, 0);
+
+    // The report is where the damage would land, so assert on the report too.
+    assert.equal(renderPlan(second.plan).includes('ПАПКИ, КОТОРЫЕ ОПУСТЕЮТ'), false);
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+// The sharper half of bug 05, and the reason it is a defect rather than a cosmetic error: a
+// rehearsal skips the readdir/rmdir chain and therefore removes every folder the PLAN names, while
+// the real run removes only the ones that truly emptied. A wrong list makes the two disagree — and
+// GOAL.md §в promises the owner that they do not. Measured before the fix on this very shape:
+// the rehearsal reported 48 folders removed where the real run removed 1.
+test('THE REHEARSAL AND THE REAL RUN REMOVE THE SAME FOLDERS — GOAL.md §в', async () => {
+  const dryRoot = await fixture();
+  const realRoot = await fixture();
+  try {
+    // Both trees are sorted first, so the already-in-place population exists — this comparison is
+    // meaningless on a first sort, where the two agree even with the defect present.
+    for (const root of [dryRoot, realRoot]) {
+      const first = await planFor(root);
+      await applyPlan(root, first.plan, first.scan, { runId: 'run-settle' });
+      // One new photograph arrives, the way a top-up begins.
+      await mkdir(join(root, 'НОВОЕ'), { recursive: true });
+      await writeFile(join(root, 'НОВОЕ', 'новое.jpg'), makeJpeg('2018:04:02 11:30:00', 902));
+    }
+
+    const dry = await planFor(dryRoot);
+    const dryRun = await applyPlan(dryRoot, dry.plan, dry.scan, { dryRun: true, runId: 'run-dry' });
+    const real = await planFor(realRoot);
+    const realRun = await applyPlan(realRoot, real.plan, real.scan, { runId: 'run-real' });
+
+    assert.equal(dryRun.moved, realRun.moved, 'the two runs must move the same number of files');
+    assert.deepEqual([...dryRun.dirsRemoved].sort(), [...realRun.dirsRemoved].sort(),
+      'a rehearsal that promises deletions the real run will not perform is not a rehearsal');
+  } finally {
+    await rm(dryRoot, { recursive: true, force: true });
+    await rm(realRoot, { recursive: true, force: true });
+  }
 });
 
 test('a dry run deletes no folder, but still reports which ones would go', async () => {

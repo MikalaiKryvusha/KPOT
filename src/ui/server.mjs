@@ -36,7 +36,7 @@ import { listFolders, libraryShape } from './folders.mjs';
 import { renderPage } from './page.mjs';
 import { revealFolder, REVEAL_REFUSED } from './reveal.mjs';
 import { checkUndoable, UNDO_REFUSED } from './undo.mjs';
-import { renderPlan, listRuns } from '../app/phases.mjs';
+import { renderPlan, listRuns, inboxState, createInbox } from '../app/phases.mjs';
 
 /**
  * The port we ask for first. Arbitrary on purpose, and chosen the way Syncthing chose 8384: high
@@ -332,6 +332,28 @@ export async function startServer({ port = DEFAULT_PORT, token = randomBytes(24)
         res.writeHead(200, { 'content-type': 'application/json; charset=utf-8' });
         res.end(JSON.stringify({ runs }));
       }).catch(() => deny(res, 400, 'не удалось прочитать историю'));
+      return;
+    }
+
+    // The `НОВОЕ` inbox (phase 6.4): what is waiting in it, and — only on an explicit POST — its
+    // creation. GET is a plain read. POST makes ONE empty directory and nothing else; it is the only
+    // write in this whole file, it touches no file of the owner's, and it happens because a person
+    // pressed a button, never because the panel was opened. There is deliberately no "sort the
+    // inbox" route: that is `/api/run` with kind `apply`, the same sort with the same confirmation.
+    if (url.pathname === '/api/inbox') {
+      const root = req.method === 'POST' ? null : url.searchParams.get('root') ?? '';
+      const answer = (state) => {
+        res.writeHead(200, { 'content-type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify(state));
+      };
+      if (req.method !== 'POST') {
+        inboxState(root).then(answer).catch(() => deny(res, 400, 'не удалось прочитать папку'));
+        return;
+      }
+      readJsonBody(req)
+        .then((body) => createInbox(body?.root ?? ''))
+        .then(answer)
+        .catch(() => deny(res, 400, 'не удалось создать папку «НОВОЕ»'));
       return;
     }
 

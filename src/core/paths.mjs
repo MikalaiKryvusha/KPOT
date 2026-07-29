@@ -37,6 +37,27 @@ export const MAX_PATH = 260;
 export const RUNS_DIR_NAME = '.kpot-runs';
 
 /**
+ * The INBOX: the one legal place inside a finished library where the owner drops new material, and
+ * the folder the «доливка» empties back into the library (idea 01, phase 6.4). [NOT-TESTED]
+ *
+ * The name is the owner's own choice, 2026-07-28: «4) НОВОЕ» — with the inbox living INSIDE the
+ * library root, not beside it. That single decision is why the top-up needs no second pipeline: the
+ * inbox is part of the tree a normal run already walks, and sorting is already idempotent, so a
+ * plain `apply` picks it up and leaves everything else alone.
+ *
+ * It lives HERE, in the bottom layer, for the same reason `RUNS_DIR_NAME` does — two modules across
+ * a layering boundary need one fact, and RULE 2 forbids them reaching sideways for it.
+ * `src/plan/bucket.mjs` needs it to treat the inbox as STRUCTURE (a transit folder must not be
+ * rebuilt inside every season), and `src/dedupe/dedupe.mjs` needs it to know that a copy still
+ * sitting in the inbox must never outrank the one already shelved in the library.
+ *
+ * NOT excluded from the scan, deliberately, and the idea document's implementation column guessed
+ * otherwise before anyone measured: files in the inbox are precisely the ones that must reach the
+ * plan. The folder is transit, not private.
+ */
+export const INBOX_DIR = 'НОВОЕ';
+
+/**
  * Strip an extended-length prefix, restoring the plain form:
  * `\\?\C:\x` → `C:\x` and `\\?\UNC\server\share\x` → `\\server\share\x`.
  * Paths without the prefix pass through unchanged.
