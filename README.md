@@ -60,7 +60,38 @@ Every ambiguous case (conflicting dates, suspicious duplicates) is documented an
 pre-sort master plan — never resolved silently. Moves are filesystem *renames*, not copy+delete —
 sorting half a terabyte takes minutes, not hours.
 
-### Install
+### If you don't use a terminal — the window version
+
+KPOT has a normal interface. You point it at a folder and it walks you through, one screen at a
+time; nothing on the way asks you to type a command.
+
+**It shows you one of two screens, and it knows which by reading its own note.** Sorted this folder
+before? KPOT left a small readable file in it — `KPOT — что здесь сделано.txt` — listing what it
+did and how to undo it. That file is the *only* thing that makes a folder "already sorted" in
+KPOT's eyes:
+
+- **no note → the guide.** Four steps: choose the folder · KPOT looks at it · it shows you the plan
+  in numbers · you press one button, and only then does anything move.
+- **note present → the dashboard.** Re-run any of the three passes (look · plan · sort), see what
+  needs your decision, open folders in Explorer, top up the library from the `НОВОЕ` folder, and
+  undo any past run from the history.
+
+You may delete that note — it says so in its own text. Nothing happens to your photographs; KPOT
+just offers to start from the beginning again. Undo a sort and the note goes with it, because it
+lists only the sorts that are *still in effect*.
+
+**What Windows may show you the first time.** Windows can see that a file arrived from the internet
+and may open a window called **«Открыть файл — предупреждение системы безопасности»** ("Open File —
+Security Warning"). This is normal and means exactly one thing: the file was downloaded rather than
+made on your computer. Press **«Запустить» (Run)**. The package contains no unknown program — our
+own text files plus the official `node.exe`, signed by the OpenJS Foundation. KPOT needs no
+internet and sends none of your photographs anywhere.
+
+> **Where to get it.** The portable package (Windows, ~33 MB, no installer, no admin rights — unzip
+> and double-click `KPOT.cmd`) is built from source today with `npm run package`; a ready-made ZIP
+> ships with the next release. Release `v0.1` predates it and contains the command-line tool only.
+
+### Install (command line)
 
 Node.js ≥ 20, nothing else — no build step, no native modules, two runtime dependencies.
 
@@ -68,6 +99,7 @@ Node.js ≥ 20, nothing else — no build step, no native modules, two runtime d
 # from the release
 npm i -g https://github.com/MikalaiKryvusha/KPOT/releases/download/v0.1/kpot-0.1.0.tgz
 kpot --help
+kpot ui                 # the same window interface, from a checkout or an install
 
 # or from source
 git clone https://github.com/MikalaiKryvusha/KPOT.git && cd KPOT && npm i
@@ -213,7 +245,39 @@ KPOT **не переместит ни одного файла**, пока не �
 пред-сортировочном мастер-плане — ничего не решается молча. Перемещения — это *переименования* в
 файловой системе, а не копирование с удалением: сортировка полутерабайта занимает минуты, а не часы.
 
-### Установка
+### Если вы не работаете с командной строкой — версия с окном
+
+У KPOT есть обычный интерфейс. Вы указываете папку, а программа ведёт вас по шагам, по одному
+экрану за раз; нигде по дороге не нужно набирать команды.
+
+**Программа показывает один из двух экранов и понимает, какой именно, по своей же записке.** Если
+эту папку уже разбирали, KPOT оставил в ней небольшой читаемый файл — `KPOT — что здесь
+сделано.txt` — со списком того, что он сделал и как это вернуть назад. Только этот файл и делает
+папку «уже разобранной» в глазах программы:
+
+- **записки нет → мастер.** Четыре шага: выбрать папку · программа её изучает · показывает план в
+  цифрах · вы нажимаете одну кнопку, и только после этого что-то сдвигается с места.
+- **записка есть → пульт управления.** Заново запустить любой из трёх прогонов (осмотр · план ·
+  сортировка), посмотреть, что ждёт вашего решения, открыть папки в проводнике, разложить новое из
+  папки `НОВОЕ` и вернуть назад любой прошлый прогон из истории.
+
+Записку можно удалить — об этом написано в ней самой. С фотографиями ничего не случится, программа
+просто предложит начать разбор сначала. Если отменить сортировку, записка исчезнет вместе с ней:
+в ней перечислены только те сортировки, которые *действуют сейчас*.
+
+**Что может показать Windows при первом запуске.** Windows видит, что файл пришёл из интернета, и
+может показать окно **«Открыть файл — предупреждение системы безопасности»**. Это нормально и
+означает ровно одно: файл скачан, а не создан на вашем компьютере. Нажмите **«Запустить»**. Внутри
+пакета нет ни одной чужой или неизвестной программы — только наши текстовые файлы и официальный
+`node.exe`, подписанный OpenJS Foundation. Программе не нужен интернет, и она никуда не отправляет
+ни одной вашей фотографии.
+
+> **Где взять.** Портативный пакет (Windows, ~33 МБ, без установщика и без прав администратора —
+> распаковать и дважды щёлкнуть по `KPOT.cmd`) сейчас собирается из исходников командой
+> `npm run package`; готовый ZIP появится со следующим релизом. Релиз `v0.1` вышел раньше него и
+> содержит только версию для командной строки.
+
+### Установка (командная строка)
 
 Нужен только Node.js ≥ 20 — ни сборки, ни нативных модулей, две зависимости времени выполнения.
 
@@ -221,6 +285,7 @@ KPOT **не переместит ни одного файла**, пока не �
 # из релиза
 npm i -g https://github.com/MikalaiKryvusha/KPOT/releases/download/v0.1/kpot-0.1.0.tgz
 kpot --help
+kpot ui                 # тот же интерфейс с окном — из установки или из исходников
 
 # или из исходников
 git clone https://github.com/MikalaiKryvusha/KPOT.git && cd KPOT && npm i
