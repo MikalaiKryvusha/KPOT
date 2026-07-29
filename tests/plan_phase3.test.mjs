@@ -120,7 +120,10 @@ test('a better-dated copy outranks a shallower undated one', () => {
     { path: 'deep/nested/b.jpg', verdict: { status: 'dated' } },
   ]);
   assert.equal(keeper.path, 'deep/nested/b.jpg');
-  assert.match(reason, /date evidence/);
+  // The phrase is what the OWNER reads in the plan, so it is Russian since 2026-07-29 (his hard
+  // requirement of 2026-07-28: no jargon, and nothing addressed to him in English). What this spec
+  // guards is unchanged: that the DATE criterion, not depth, is the one that decided the group.
+  assert.match(reason, /надёжная дата/);
 });
 
 // ---------------------------------------------------------------- the plan, against ground truth

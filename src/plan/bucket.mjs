@@ -159,6 +159,59 @@ export function isAlreadyQuarantined(relPath) {
 }
 
 /** Year/month of a 'dated' verdict. Wall-clock when we have it; otherwise the instant read as UTC. */
+/**
+ * How KPOT names each kind of evidence TO A PERSON. [NOT-TESTED]
+ *
+ * The owner made plain language a hard requirement on 2026-07-28 («БЕЗ ЖАРГОНИЗМОВ И СЛЕНГА»), and
+ * the plan's move lines were the last place still printing internal vocabulary at him — literally
+ * `dated 2012-06-15 10:11:12 (exif-original)`, in English, in the section he reads most.
+ *
+ * The rule for writing these: say WHERE the date came from, in words a person who has never opened
+ * a terminal can check. Never the kind's internal name, never «EXIF», never «метаданные».
+ */
+export const EVIDENCE_IN_WORDS = Object.freeze({
+  'exif-original':      'дату записала сама камера в момент съёмки',
+  'derived-original':   'дата взята у исходного снимка, на который ссылается этот файл',
+  'pixel-original':     'дата взята у исходного снимка, найденного по самому изображению',
+  'filename-timestamp': 'дата записана в имени файла',
+  'container-created':  'дата записана внутри самого видео',
+  'filename-epoch':     'дата записана в имени файла',
+  'exif-modify':        'дата взята из отметки об изменении внутри файла',
+  'sidecar':            'дата взята из служебного файла-спутника, лежащего рядом',
+  'dirname':            'дата взята из названия папки',
+  'filename-year':      'год указан в имени файла',
+  'family':             'год определён по снимкам той же камеры по соседству',
+  'dir-cohort':         'год определён по соседним снимкам в той же папке',
+  'editor-save':        'дата взята из отметки о сохранении в фоторедакторе',
+  'fs-mtime':           'дата взята из отметки файловой системы',
+});
+
+const MONTHS_GENITIVE = Object.freeze(['января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
+  'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря']);
+
+/**
+ * A date the way a person writes one: «15 июня 2012, 10:11». [NOT-TESTED]
+ * Takes the verdict's wall-clock string when there is one, and otherwise reads the UTC instant as
+ * UTC — the same deterministic choice `yearMonthOf` makes, and for the same reason.
+ * A midnight time is dropped rather than printed as «00:00», which reads as a claim about the hour.
+ */
+function dateInWords(verdict) {
+  const { year, month } = yearMonthOf(verdict);
+  let day, hh, mm;
+  if (verdict.date) {
+    day = Number(verdict.date.slice(8, 10));
+    hh = verdict.date.slice(11, 13);
+    mm = verdict.date.slice(14, 16);
+  } else {
+    const d = new Date(verdict.instant);
+    day = d.getUTCDate();
+    hh = String(d.getUTCHours()).padStart(2, '0');
+    mm = String(d.getUTCMinutes()).padStart(2, '0');
+  }
+  const dayPart = `${day} ${MONTHS_GENITIVE[month - 1]} ${year}`;
+  return (hh === '00' && mm === '00') ? dayPart : `${dayPart}, ${hh}:${mm}`;
+}
+
 function yearMonthOf(verdict) {
   if (verdict.date) {
     // 'YYYY-MM-DD HH:MM:SS' — local wall clock exactly as the camera/filename wrote it
@@ -209,15 +262,15 @@ export function planBucket(asset, { isDuplicateCopy = false } = {}) {
 
   if (isDuplicateCopy) {
     return { action: 'move', segments: [GLOBAL_OTHER, DUPES_DIR], name: flatName,
-      reason: 'an exact copy of a file kept elsewhere in the library', disputed };
+      reason: 'точно такой же файл уже лежит в библиотеке — это его копия', disputed };
   }
   if (asset.kind === 'junk') {
     return { action: 'move', segments: [GLOBAL_OTHER, JUNK_DIR], name: flatName,
-      reason: 'system junk — quarantined, never deleted', disputed };
+      reason: 'служебный файл программы, а не ваш снимок — отложен в сторону, не удалён', disputed };
   }
   if (asset.kind === 'other') {
     return { action: 'stay', segments: [], name,
-      reason: 'not a media file — left exactly where the owner put it', disputed };
+      reason: 'не фотография, не видео и не звук — оставлен ровно там, где лежал', disputed };
   }
 
   const verdict = asset.verdict ?? { status: 'unknown' };
@@ -226,7 +279,7 @@ export function planBucket(asset, { isDuplicateCopy = false } = {}) {
 
   if (verdict.status === 'unknown') {
     return { action: 'move', segments: [GLOBAL_OTHER, ...tail], name,
-      reason: 'no usable date evidence — the global «прочее» bucket', disputed };
+      reason: 'дату установить не удалось — честно откладываем в общее «ПРОЧЕЕ»', disputed };
   }
 
   // An assumed year (dir-cohort, or the camera-family inference of plans/02) is a flagged GUESS:
@@ -234,11 +287,11 @@ export function planBucket(asset, { isDuplicateCopy = false } = {}) {
   // always sees it (decision log 2026-07-24; plans/02 §1.3).
   if (verdict.assumed) {
     const via = verdict.winner === 'family'
-      ? `same-camera neighbours in its directory`
-      : `confidently-dated neighbours in the same directory`;
-    disputed.push({ issue: 'assumed-year', detail: `year ${verdict.year} inferred from ${via}` });
+      ? `по снимкам той же камеры рядом`
+      : `по соседним снимкам с надёжными датами`;
+    disputed.push({ issue: 'assumed-year', detail: `${verdict.year}, ${via}` });
     return { action: 'move', segments: [String(verdict.year), YEAR_OTHER, ...tail], name,
-      reason: `assumed year ${verdict.year} (from ${via}) — season not claimed`, disputed };
+      reason: `год ${verdict.year} — это предположение (${via}); пору года не устанавливаем`, disputed };
   }
 
   if (verdict.status === 'partial') {
@@ -249,10 +302,10 @@ export function planBucket(asset, { isDuplicateCopy = false } = {}) {
     }
     if (seasonDir) {
       return { action: 'move', segments: [String(verdict.year), seasonDir, ...tail], name,
-        reason: `year and season taken from the owner's own directory name`, disputed };
+        reason: `год и пора года взяты из названия вашей папки`, disputed };
     }
     return { action: 'move', segments: [String(verdict.year), YEAR_OTHER, ...tail], name,
-      reason: `year ${verdict.year} is certain, the season is not`, disputed };
+      reason: `год ${verdict.year} известен точно, а пора года — нет`, disputed };
   }
 
   // status === 'dated'
@@ -263,5 +316,5 @@ export function planBucket(asset, { isDuplicateCopy = false } = {}) {
         + 'original timezone is unknown, so the neighbouring season is possible' });
   }
   return { action: 'move', segments: [String(year), seasonForMonth(month), ...tail], name,
-    reason: `dated ${verdict.date ?? new Date(verdict.instant).toISOString()} (${verdict.winner})`, disputed };
+    reason: `снято ${dateInWords(verdict)} — ${EVIDENCE_IN_WORDS[verdict.winner] ?? verdict.winner}`, disputed };
 }

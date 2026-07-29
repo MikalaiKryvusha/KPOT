@@ -48,11 +48,11 @@ const depth = (p) => p.split('/').length - 1;
  * phrase the plan prints when THIS criterion is the one that decided the group.
  */
 const CRITERIA = [
-  { reason: 'has the strongest date evidence', score: (a) => STATUS_RANK[a.verdict?.status] ?? STATUS_RANK.unknown },
-  { reason: 'its date is established, not assumed', score: (a) => (a.verdict?.assumed ? 1 : 0) },
-  { reason: 'its name is not marked as a copy', score: (a) => (looksLikeACopy(a.path) ? 1 : 0) },
-  { reason: 'it lies closest to the top of the tree', score: (a) => depth(a.path) },
-  { reason: 'first in path order (all other things equal)', score: null }, // final total tie-break
+  { reason: 'у него самая надёжная дата', score: (a) => STATUS_RANK[a.verdict?.status] ?? STATUS_RANK.unknown },
+  { reason: 'его дата установлена, а не предположена', score: (a) => (a.verdict?.assumed ? 1 : 0) },
+  { reason: 'его имя не помечено как копия', score: (a) => (looksLikeACopy(a.path) ? 1 : 0) },
+  { reason: 'он лежит ближе всех к верху дерева папок', score: (a) => depth(a.path) },
+  { reason: 'первый по порядку пути — всё остальное у них одинаково', score: null }, // final total tie-break
 ];
 
 /**
@@ -78,7 +78,7 @@ export function chooseKeeper(members) {
   // Honesty: if criteria left a tie, path order is what ACTUALLY picked the keeper — say so
   // instead of crediting the last criterion that merely narrowed the field.
   if (pool.length > 1) decisive.push(CRITERIA.at(-1).reason);
-  reason = decisive.length > 0 ? decisive.join('; then ') : CRITERIA.at(-1).reason;
+  reason = decisive.length > 0 ? decisive.join('; далее — ') : CRITERIA.at(-1).reason;
   return { keeper: pool[0], reason };
 }
 

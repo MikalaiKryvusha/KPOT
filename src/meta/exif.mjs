@@ -111,7 +111,7 @@ export function exifExtract(buffer) {
     if (editor && !original) {
       // plans/02 §1.1 — the unambiguous local signature of the broken class: an editor wrote the
       // file AND there is no capture date. The save date is a ceiling, not a capture claim.
-      out.push(makeEvidence('editor-save', { wall: modify, detail: `save date written by ${software}` }));
+      out.push(makeEvidence('editor-save', { wall: modify, detail: software }));
     } else {
       out.push(makeEvidence('exif-modify', { wall: modify, detail: 'DateTime' }));
     }

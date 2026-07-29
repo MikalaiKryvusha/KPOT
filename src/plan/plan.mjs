@@ -18,7 +18,7 @@
 
 import { samePath } from '../core/paths.mjs';
 import { groupDuplicates } from '../dedupe/dedupe.mjs';
-import { planBucket, isTechnicalDir, stripReviewPrefix, REVIEW_DIR } from './bucket.mjs';
+import { planBucket, isTechnicalDir, stripReviewPrefix, REVIEW_DIR, EVIDENCE_IN_WORDS } from './bucket.mjs';
 import { findSuspiciousDirs, heldBy } from './suspicious.mjs';
 
 export const PLAN_VERSION = 1;
@@ -151,7 +151,12 @@ export function buildPlan(scan, { now = new Date(), decisions = new Map() } = {}
       disputed.push({
         path: asset.path,
         issue: d.reason,
-        detail: `evidence «${d.kind}»${d.detail ? ` (${d.detail})` : ''} was rejected`,
+        // The issue label already says the date was refused, so the detail only has to name
+        // WHICH date. The evidence's own `detail` is an internal tag ('DateTimeOriginal', 'mvhd',
+        // 'epoch-stem') and is deliberately NOT printed — it belongs to the machine artifact.
+        detail: d.kind === 'editor-save' && d.detail
+          ? `программа: ${d.detail}`
+          : (EVIDENCE_IN_WORDS[d.kind] ?? d.kind),
       });
     }
     // plans/02 §1.3 — an editor export left without a capture date carries its FAMILY SIGNS into
@@ -326,6 +331,26 @@ function resolveCollisions(operations) {
  * @param {object} plan  from buildPlan
  * @returns {string}
  */
+/**
+ * A disputed case's machine key → what it MEANS, in plain Russian. [NOT-TESTED]
+ *
+ * The keys stay exactly as they are in the artifact — tests and the coming web interface branch on
+ * them, and a machine key is the right thing for a machine. This map exists because the owner reads
+ * the RENDERED report, and until 2026-07-29 the section literally headed «требуют вашего взгляда»
+ * addressed him in code (`implausible-year: evidence «exif-original» … was rejected`). His
+ * requirement of 2026-07-28 was categorical: no jargon, no slang.
+ */
+const ISSUE_IN_WORDS = Object.freeze({
+  'implausible-year': 'год выглядит невозможным — скорее всего, в камере сбились часы',
+  'reset-camera-clock': 'часы камеры были сброшены, дата ненастоящая',
+  'editor-save-date': 'это дата обработки в редакторе, а не дата съёмки',
+  'conflicts-with-winner': 'разные источники называют разные даты',
+  'assumed-year': 'год не записан нигде — он выведен по соседям',
+  'ambiguous-season': 'по названию папки нельзя понять, какая это пора года',
+  'timezone-boundary': 'дата у самой границы двух пор года, а часовой пояс неизвестен',
+  'editor-export-no-capture-date': 'обработанный снимок без даты съёмки — вот что о нём известно',
+});
+
 export function renderPlan(plan) {
   const L = [];
   const c = plan.counts;
@@ -411,7 +436,7 @@ export function renderPlan(plan) {
     L.push('-'.repeat(60));
     for (const d of plan.disputed) {
       L.push(`  ${d.path}`);
-      L.push(`    ${d.issue}: ${d.detail}`);
+      L.push(`    ${ISSUE_IN_WORDS[d.issue] ?? d.issue}: ${d.detail}`);
     }
     L.push('');
   }
