@@ -754,9 +754,13 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
    written 2026-07-29**. It already did the reading: the top-up is NOT a new pipeline (the inbox is
    inside the root and the sort is idempotent, so a normal run already picks it up), and the work is
    **four places where `НОВОЕ` would misbehave**, each checked against the code rather than recalled
-   — the technical-dirs list, the suspicious-folder rule, the duplicate keeper's `depth` criterion
-   (which today lets a newcomer in `НОВОЕ` evict the copy already shelved in the library), and the
-   emptied-folder cleanup, which must never remove the inbox itself. Nothing about it needs a recon.
+   — and then **measured on a fixture, which refuted two of the four**. Confirmed: files from the
+   inbox land in `<год>/<сезон>/НОВОЕ/…`, so the folder would grow inside every season; and the plan
+   lists **`НОВОЕ` itself among the folders to delete**, i.e. the owner's mailbox disappears after
+   the first top-up. Refuted: the inbox is NOT flagged for approval even when its files scatter over
+   three years, and a duplicate in `НОВОЕ` does NOT evict the library copy — a file shelved under
+   `<год>/<сезон>/` draws date evidence from its folders that a file in `НОВОЕ/` cannot, so the date
+   criterion decides long before the depth one. Nothing about it needs a recon.
    After it, 6.5 — and **6.5 may not be promised before its Mark-of-the-Web recon is measured on a
    REAL browser download.**
 
