@@ -118,9 +118,21 @@ These hold at all times. Breaking one is a bug even if the run completes and the
     is the owner's or a program's, the folder is set aside whole and the owner is asked — never taken
     apart on the more likely reading. *(2026-07-26; the same principle as invariant 3, applied to
     structure instead of dates.)*
-11. **Sorting is idempotent.** Sorting an already-sorted tree moves nothing: KPOT recognizes its own
-    output as structure. Violating this does not merely waste work — it nests folders one level deeper
-    per run and demotes correctly-shelved files (`bugs/01_DONE_sort_not_idempotent.md`).
+11. **Sorting is idempotent — and idempotence is a property of the WHOLE artifact, not of its move
+    list.** Sorting an already-sorted tree moves nothing: KPOT recognizes its own output as structure.
+    Violating this does not merely waste work — it nests folders one level deeper per run and demotes
+    correctly-shelved files (`bugs/01_DONE_sort_not_idempotent.md`).
+    *Sharpened 2026-07-29 by `bugs/05_DONE`:* the guard written for bug 01 asked `f(f(x)) == f(x)?` of
+    `plan.operations` and of nothing else, so `plan.emptied` was free to be wrong on every run after
+    the first — and it was, in `v0.1`: a settled library was announced as **48 folders about to be
+    deleted at 0 operations**. Ask the question of every field the artifact carries. The defect also
+    broke invariant 2 from an unexpected direction: the rehearsal skips the re-read that protects the
+    real run, so a wrong list made the two disagree (48 folders removed vs 1) even though the executor
+    was correct. **A wrong artifact is a bug even when the executor is careful enough to survive it** —
+    the owner reads the artifact, and that is what the product sells.
+    Note the shape of the blind spot, because it generalises: the population that triggered it — files
+    ALREADY at their destination — does not exist on a first run, so no spec that starts from a clean
+    fixture can ever see it. Second-run defects need second-run fixtures.
 
 ## Key decisions embedded in the architecture
 

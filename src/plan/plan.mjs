@@ -282,8 +282,14 @@ export function buildPlan(scan, { now = new Date(), decisions = new Map() } = {}
  * Membership is decided with the normalized comparison key, never raw string equality: the owner
  * capitalises his own season folders (`Зима Конец Года`), and on Windows that is the SAME directory
  * KPOT spells `Зима конец года`. Comparing the two as strings is exactly bug 03, one level up —
- * a survivor recorded under one spelling would not match the folder listed under the other, and the
- * folder would be announced for deletion while full.
+ * a survivor recorded under one spelling would not match the folder listed under the other.
+ *
+ * HONEST LIMIT, stated rather than implied: that last part is defence in depth and **no spec
+ * currently falsifies it**. Every case it would catch is already covered by another survivor entry
+ * (a file already home is kept under its ON-DISK spelling, and a folder receiving a file is re-read
+ * by `apply` before removal anyway), so reverting to `===` leaves the suite green. It is here
+ * because `AGENT_GUIDE` §Code style mandates the helper for exactly this comparison, not because a
+ * guard proved it necessary — and a guard that has never gone red proves nothing (EXP-0008).
  *
  * @param {string[]} dirs         every directory in the tree, relative, '/'-separated
  * @param {object[]} operations   the actionable moves

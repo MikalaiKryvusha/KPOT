@@ -5,15 +5,15 @@
 > working. It is a *snapshot*, not a second source of truth: where it summarises another document it
 > names it, and that document wins on any disagreement.
 >
-> **Written:** 2026-07-28 at release `v0.1`; **refreshed 2026-07-29** after phase 6.3 closed — the
-> interface now has both faces (the first-flight wizard and the control panel), and the panel's last
-> piece, the undo button, is built and guarded.
-> **Suite: 266/266 green.** If today is much later than that, re-read `STATUS.md` first — it is
+> **Written:** 2026-07-28 at release `v0.1`; **refreshed 2026-07-29** after phase 6.4 closed — the
+> interface now has both faces (the first-flight wizard and the control panel), the panel can undo a
+> past run, and the `НОВОЕ` inbox has its block on it.
+> **Suite: 278/278 green.** If today is much later than that, re-read `STATUS.md` first — it is
 > maintained continuously, this file is not.
 >
-> **Start here, then:** §6 is the next task — **phase 6.4, the `НОВОЕ` top-up.** It is designed AND
-> measured: `plans/08_novoe_topup.md` names four places the inbox misbehaves today, two of them
-> confirmed on a fixture and two of them refuted. §6 summarises it.
+> **Start here, then:** §6 is the next task — **phase 6.5, the portable package**, and it is GATED:
+> the Mark-of-the-Web on a real browser download must be measured before the package may promise a
+> silent first launch. §6 says what is already settled and what the recon must go and look at.
 
 ---
 
@@ -46,10 +46,10 @@ tool has sorted a real archive sample. Everything below is verified, not claimed
 
 | | |
 |---|---|
-| Test suite | **266/266** green (`npm test`, `node --test`) |
+| Test suite | **278/278** green (`npm test`, `node --test`) |
 | Phases 0–5 | ✅ **all closed** (foundation · research+skeleton · scan/dates · dedupe/plan · safety · first real use) |
-| Phase 6 — the interface | 🔧 under way. Epic: `plans/03_interface_epic.md`. **6.0 · 6.1 · 6.2 · 6.3 done** — `kpot ui` opens a wizard on a messy folder and a control panel on a library: three re-launchable runs, guarded folder links, and a run history with a working undo behind its own confirmation. **6.4 · 6.5 · 6.6 remain** |
-| Open bugs | **none** (four closed, all found by real data — see `bugs/`) |
+| Phase 6 — the interface | 🔧 under way. Epic: `plans/03_interface_epic.md`. **6.0 · 6.1 · 6.2 · 6.3 · 6.4 done** — `kpot ui` opens a wizard on a messy folder and a control panel on a library: three re-launchable runs, guarded folder links, a run history with a working undo behind its own confirmation, and the `НОВОЕ` inbox block. **6.5 · 6.6 remain** |
+| Open bugs | **none** (five closed — four found by real data, one by a probe run for another reason; see `bugs/`) |
 | Runtime deps | two: `exifreader` and `jpeg-js` (BSD-3-Clause, added 2026-07-28 for the pixel search) |
 | Node | ≥ 20 (developed on 24, Windows 11) |
 
@@ -97,7 +97,7 @@ src/meta/      the date pipeline — see below (incl. pixels.mjs, the ONLY modul
 src/dedupe/    groups identical files by sha256; picks the keeper by an explainable total order
 src/plan/      season.mjs · bucket.mjs (one file -> its destination) · suspicious.mjs · plan.mjs (SortPlan + the Russian report)
 src/apply/     backup.mjs · apply.mjs (THE ONLY WRITER) · rollback.mjs · resume.mjs
-src/core/      paths · journal · pool · progress · scan_cache · decisions   (the bottom layer)
+src/core/      paths · journal · pool · progress · scan_cache · decisions · inbox   (the bottom layer)
 tests/         node --test specs + fixtures/make.mjs (deterministic messy tree + ground truth)
 ```
 
@@ -151,11 +151,12 @@ likely to accidentally re-litigate:
 
 ## 6. The next piece of work
 
-**Phase 6.4 — the `НОВОЕ` top-up: one legal place for new material, and one button that files it.**
+**Phase 6.5 — the portable package: «скачал — распаковал — готово».**
 
-Phases 6.0–6.3 are shipped (2026-07-29), so the whole interface runs: `kpot ui` starts a local
+Phases 6.0–6.4 are shipped (2026-07-29), so the whole interface runs: `kpot ui` starts a local
 server, shows a wizard on a messy folder and a control panel on a library, and the panel can
-re-launch any run, open folders safely, and undo a past run behind its own confirmation. What exists,
+re-launch any run, open folders safely, undo a past run behind its own confirmation, and show the
+`НОВОЕ` inbox with a button that files it. What exists,
 and what you must CALL rather than re-implement:
 
 - `src/app/phases.mjs` — the four phases as functions that return artifacts and **print nothing**,
@@ -169,23 +170,31 @@ and what you must CALL rather than re-implement:
   on a Cyrillic character found in the page's HTML. NOTE: `src/ui/page.mjs` is one big template
   literal — a backtick in a comment there breaks the file (EXP-0020).
 
-**Read `plans/08_novoe_topup.md` first.** Its point is that the top-up is NOT a new pipeline: the
-inbox lives inside the library root and the sort is already idempotent, so a normal run already
-picks `НОВОЕ` up. The phase is four places where that folder misbehaves — and the plan states which
-of them were CONFIRMED by running it on a fixture and which were REFUTED, so you neither fix a
-non-problem nor trust a hypothesis:
+**Read `plans/03_interface_epic.md` §6.5 first, and note that this phase is GATED.** The package
+carries Node's OWN Authenticode-signed binary (measured on the development machine: Valid, OpenJS
+Foundation, 87.4 MB → 32.7 MB zipped) plus our `.mjs`, so KPOT introduces **no unsigned executable
+at all** and SmartScreen's unknown-publisher prompt has nothing to fire on. The single-exe (SEA)
+route would re-create exactly that problem, because injecting code invalidates the signature.
 
-- ✅ confirmed — the inbox is preserved as nesting, so files land in `<год>/<сезон>/НОВОЕ/…` and the
-  folder grows inside every season;
-- ✅ confirmed, and the dangerous one — the plan lists **`НОВОЕ` itself** among the folders to
-  delete, i.e. the owner's mailbox vanishes after the first top-up;
-- ❌ refuted — the inbox is not flagged for the owner's approval, even when its files scatter;
-- ❌ refuted — a duplicate in the inbox does not evict the library copy (a shelved file draws date
-  evidence from its own folder names), so the extra keeper criterion is defence on a tie, and its
-  spec must be built on a real tie or it will pass regardless.
+**What is NOT yet measured, and may not be promised until it is** (canon step 9b): files unzipped
+from a genuinely DOWNLOADED archive inherit the Mark-of-the-Web, and the Attachment Manager may warn
+once on a `.cmd` launcher, while a locally-created shortcut carries no such mark. Download it with a
+real browser and look at what actually happens — do not reason about it from here.
 
-After it: 6.5 (the portable package) — **and 6.5 may not be promised before its Mark-of-the-Web
-recon is measured on a REAL browser download** — then 6.6, the closing language pass.
+**Phase 6.4 is done** (`plans/08_DONE_novoe_topup.md`), and two of its findings are worth carrying
+forward because both are about how this project verifies things:
+
+- the plan document had itself REFUTED the duplicate-keeper problem — on an UNDATED file, where a
+  shelved copy wins on the date criterion. With a file carrying its own EXIF date the date criteria
+  tie and **depth** hands the library's place to the freshly-dropped copy. A measurement is only as
+  general as the case it ran on, and a refutation is the direction that stops further checking;
+- the same probe found `bugs/05_DONE`: the plan announced FULL folders as about to be deleted (48 at
+  0 operations on a sorted library), which also made the **rehearsal disagree with the real run**
+  (48 folders vs 1) — `GOAL.md` §в. Shipped in `v0.1`, invisible because every existing spec started
+  from an unsorted fixture. Nothing was ever at risk of being lost; the damage was to the report the
+  owner reads.
+
+After 6.5: 6.6, the closing language pass.
 
 **The recon behind the panel's «Открыть» is DONE:** `researches/08_open_folder_and_path_safety.md`, measured on the
 development machine. Read it before writing the «Открыть» control — it contains three facts you would
@@ -267,6 +276,16 @@ These are distilled from `EXPERIENCE.md` (grep it by tag before a task — it is
 7. **A backlog item's own description is a hypothesis about value**, written by a session that had not
    looked. Measure what the product currently does to the affected files *before* writing the fix —
    that before-number sets the priority and later proves the result.
+8. **Ask the idempotence question of EVERY field of an artifact, not just the headline one**
+   (EXP-0022, `bugs/05`). `tests/idempotence.test.mjs` asked `f(f(x)) == f(x)?` of the plan's
+   `operations` and of nothing else, so its `emptied` list was free to be wrong on every run after
+   the first — and it was, for three days, in `v0.1`. Related and just as costly: a defect whose
+   triggering population only exists on the SECOND run is invisible to every spec that starts from
+   a clean fixture, which all six of the relevant ones did.
+9. **A measurement is only as general as the case it ran on, and a refutation closes the question**
+   (EXP-0021). `plans/08` correctly measured, correctly refuted a hypothesis — on the one file class
+   where the answer inverts — and wrote the refutation down as settled. Before believing one, ask
+   which property of the sample produced it and whether that property is typical.
 
 ## 9. Working rules (the short version)
 

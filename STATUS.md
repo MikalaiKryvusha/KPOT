@@ -503,6 +503,42 @@ item, and it landed. Commit `c3dac29`; suite 256 → **266**.
   every status but 409 as a transport failure, so the 403 refusal from `/api/reveal` never reached
   the screen — the «Открыть» refusal has been silent since it shipped. 403 is an answer now.
 
+### Session of 2026-07-29 (late 5) — phase 6.4 closed: the `НОВОЕ` top-up, and a defect it uncovered
+The top-up is built exactly as `plans/08` argued it should be — by removing four misbehaviours, not
+by adding a pipeline. Measuring it first (EXP-0012) paid twice: it corrected the plan's own
+conclusion, and it found a bug that had shipped in `v0.1`. Commit `abac68a`; suite 266 → **278**.
+
+- **The four places, all closed** (`plans/08_DONE_novoe_topup.md`): `НОВОЕ` is now STRUCTURE like
+  KPOT's own shelves, so files land in `<год>/<сезон>/<имя>` instead of growing a `НОВОЕ/` inside
+  every season — while the owner's own subfolders inside it (`НОВОЕ/с телефона/`) still survive as
+  nesting; the inbox is never listed for deletion, though its emptied SUBfolders still are; a
+  shelved copy now outranks an inbox copy when the keeper is chosen; and the inbox can no longer be
+  proposed for `НА_РАЗБОР/` — now by structure rather than only by vocabulary.
+- **The plan's own refutation was refuted, by measurement** (`plans/08` §3a). It had tested the
+  duplicate case with an UNDATED file, where the library copy wins on the date criterion, and
+  concluded the new keeper criterion was mere tie-breaking. With a file carrying its own EXIF date
+  the date criteria TIE and **depth decides** — so the freshly-dropped copy became the keeper and
+  the settled `2008/Зима конец года/семейный архив/…` was planned OUT of the library into
+  `ПРОЧЕЕ/_дубликаты/`. The criterion is a fix, not a defence, and its spec is built on a dated
+  pair so that it can actually fail (EXP-0021).
+- **`bugs/05_DONE` — the plan announced FULL folders as about to be deleted**, and it had shipped in
+  `v0.1`. On an already-sorted library the plan listed **48 folders** «ОПУСТЕЮТ И БУДУТ УДАЛЕНЫ» at
+  **0 operations**, and — the sharper half — the **rehearsal reported 48 folders removed where the
+  real run removed 1**, i.e. `GOAL.md` §в broken. Cause: `emptiedDirs` knew two populations that
+  keep a folder alive and not the third, media ALREADY at its destination, which does not exist on
+  a first sort and is most of the library on every run after it. **No file was ever at risk** — the
+  `readdir` + `rmdir` chain in `apply` held. After the fix: 0 folders, and 1 vs 1 (EXP-0022).
+- **The panel gained the inbox block** between «Требует внимания» and «По годам»: how much is
+  waiting, «Открыть», the same sort behind the same server-side confirmation, and — when the folder
+  does not exist — an offer to create it. `src/core/inbox.mjs` + `GET/POST /api/inbox`; creation
+  refuses to invent a missing root, the trap phase 6.0 measured. The panel's three copies of
+  "re-read everything" became one `loadPanel()`.
+- **Every guard verified by breaking the code first** — 3 / 1 / 2 / 4 / 1 / 1 specs red across the
+  six breaks — and the two that are NOT independently falsifiable say so out loud instead of
+  implying coverage (the `НА_РАЗБОР` criterion, which now holds for two independent reasons, and the
+  path-normalisation hardening). Plus a live smoke against a REAL server walking the same calls the
+  page walks, because an endpoint spec proves the server answered, not that anyone saw it (EXP-0019).
+
 ---
 
 ## Where we are now
@@ -521,7 +557,11 @@ being guessed at.
 photo's original is now found by its pixels when it exists.
 **Phase 5's acceptance is met** (2026-07-28): a fresh sandbox copy of four real folders was sorted
 under supervision — 813 files, 0 failures, the SHA-256 multiset unchanged, rollback rehearsed.
-**README + the tagged release are DONE** (`v0.1`, 2026-07-28). Suite **192/192**.
+**README + the tagged release are DONE** (`v0.1`, 2026-07-28).
+
+**Phase 6 — the interface — is through 6.4** (2026-07-29): `kpot ui` opens a wizard on a messy
+folder and a control panel on a library, with three re-launchable runs, guarded folder links, a run
+history with a working undo, and the `НОВОЕ` inbox block. **6.5 and 6.6 remain.** Suite **278/278**.
 
 | Phase | Status | What's there |
 |-------|--------|--------------|
@@ -546,10 +586,10 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
 |---|------|-------------------|-----------|
 | ✅ | ~~6.0 shared layer · 6.1 server · 6.2 wizard · the jargon debt~~ | **all four done 2026-07-29** — see the session record above | — |
 | ✅ | ~~6.3 — the control panel, incl. the undo button~~ | **done 2026-07-29** (`plans/07_DONE`, commit `c3dac29`) — three re-launchable runs, guarded folder links, history with an undo on every row that can honour one | — |
-| 1 | **Фаза 6.4 — the `НОВОЕ` top-up** (idea 01) | Without it the tidy-up decays: in a year the archive needs another big sort. Small, because every mechanism it needs already exists — the inbox lives INSIDE the library root, is named `НОВОЕ`, and an emptied inbox folder is deleted by the rule already approved for emptied folders | **unblocked** — 6.3 is closed |
-| 2 | **Фаза 6.5 — the portable package** | This is what makes the product reachable by anyone but us | **a recon first**: the Mark-of-the-Web on a REAL browser download is unverified and must not be promised before it is measured |
-| 3 | **Фаза 6.6 — the closing language pass** | Now genuinely a gate rather than a workload: the big debt was paid on 2026-07-29 and the wizard's words were written to the rule from the start | 6.4–6.5 |
-| 4 | **A user-facing README for the interface** | The moment someone other than the owner runs `kpot ui`, the current README does not tell them how | 6.5 |
+| ✅ | ~~6.4 — the `НОВОЕ` top-up~~ | **done 2026-07-29** (`plans/08_DONE`, commit `abac68a`) — four misbehaviours removed rather than a pipeline added; it also caught `bugs/05_DONE`, a false deletion warning shipped in `v0.1` | — |
+| 1 | **Фаза 6.5 — the portable package** | This is what makes the product reachable by anyone but us | **a recon first**: the Mark-of-the-Web on a REAL browser download is unverified and must not be promised before it is measured |
+| 2 | **Фаза 6.6 — the closing language pass** | Now genuinely a gate rather than a workload: the big debt was paid on 2026-07-29 and the wizard's words were written to the rule from the start | 6.5 |
+| 3 | **A user-facing README for the interface** | The moment someone other than the owner runs `kpot ui`, the current README does not tell them how | 6.5 |
 
 **Explicitly NOT on this list, and why** — so a future session does not resurrect them:
 - **`plans/02` step 3 (PRNU)** — unstarted and **unauthorised**. It identifies a camera, not a
@@ -729,7 +769,7 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
 > A concrete checklist so the next session (empty context) can start immediately: which files, which
 > commands, what to verify first.
 
-1. Verify the environment: `node -v` (≥20), `npm test` (**must be 266/266**), `git status` (clean),
+1. Verify the environment: `node -v` (≥20), `npm test` (**must be 278/278**), `git status` (clean),
    `gh auth status` (MikalaiKryvusha). Owner-provided paths from this file are PAST observations —
    re-check they still exist before planning around them (EXP-0011: a sample vanished once already).
 2. **Run the whole product once, end to end, before designing on top of it.** It all works now:
@@ -745,24 +785,30 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
    the copy on 2026-07-28). Undo it with
    `node bin/kpot.mjs rollback run-20260728-201538-437c4d D:\work\ai_sandbox\KPOT_SANDBOX`.
    Do not delete it without his word, and never copy more of his photographs without a fresh one.
-3. ⭐ **THE NEXT PIECE OF WORK — phase 6.4, the `НОВОЕ` top-up (idea 01).** The whole interface up to
-   6.3 is shipped: `kpot ui` opens a **wizard** on a messy folder and a **control panel** on a
-   library, with three re-launchable runs, a guarded «Открыть», a run history and a **working undo
-   button** on every row that can honour one. Read `ideas/01_inbox_topup_flow.md` first — the owner
-   answered its three forks on 2026-07-28 (inbox INSIDE the library root · named `НОВОЕ` · an
-   emptied inbox folder is deleted) — and then **`plans/08_novoe_topup.md`, the operational plan,
-   written 2026-07-29**. It already did the reading: the top-up is NOT a new pipeline (the inbox is
-   inside the root and the sort is idempotent, so a normal run already picks it up), and the work is
-   **four places where `НОВОЕ` would misbehave**, each checked against the code rather than recalled
-   — and then **measured on a fixture, which refuted two of the four**. Confirmed: files from the
-   inbox land in `<год>/<сезон>/НОВОЕ/…`, so the folder would grow inside every season; and the plan
-   lists **`НОВОЕ` itself among the folders to delete**, i.e. the owner's mailbox disappears after
-   the first top-up. Refuted: the inbox is NOT flagged for approval even when its files scatter over
-   three years, and a duplicate in `НОВОЕ` does NOT evict the library copy — a file shelved under
-   `<год>/<сезон>/` draws date evidence from its folders that a file in `НОВОЕ/` cannot, so the date
-   criterion decides long before the depth one. Nothing about it needs a recon.
-   After it, 6.5 — and **6.5 may not be promised before its Mark-of-the-Web recon is measured on a
-   REAL browser download.**
+3. ⭐ **THE NEXT PIECE OF WORK — phase 6.5, the portable package.** The whole interface through 6.4
+   is shipped: `kpot ui` opens a **wizard** on a messy folder and a **control panel** on a library,
+   with three re-launchable runs, a guarded «Открыть», a run history with a **working undo button**,
+   and the **`НОВОЕ` inbox block** (what is waiting · «Открыть» · the same sort behind the same
+   confirmation · an offer to create the folder). Read `plans/03_interface_epic.md` §6.5.
+
+   **6.5 IS GATED, and the gate is not optional** (canon step 9b): the Mark-of-the-Web on a REAL
+   browser download is unverified and **may not be promised before it is measured**. What the epic
+   already settled, so nobody re-derives it: the package carries Node's OWN Authenticode-signed
+   binary (measured: Valid, OpenJS Foundation, 87.4 MB → **32.7 MB zipped**) plus our `.mjs`, so we
+   introduce **no unsigned executable at all** and SmartScreen's unknown-publisher prompt has
+   nothing to fire on. The single-exe (SEA) route would re-create exactly that problem, since
+   injecting code invalidates the signature. What the recon must actually measure: files unzipped
+   from a genuinely downloaded archive inherit the Mark-of-the-Web, and the Attachment Manager may
+   warn once on a `.cmd` launcher — while a locally-created shortcut carries no such mark. Download
+   it in a real browser and look; do not reason about it.
+
+   **Phase 6.4 is CLOSED** (2026-07-29, commit `abac68a`, `plans/08_DONE_novoe_topup.md`). Two
+   things from it a next session should not have to rediscover: the plan document's own refutation
+   of the duplicate-keeper problem was **itself refuted by measurement** (it had used an undated
+   file; with a dated one the date criteria tie and depth hands the library's place to the
+   freshly-dropped copy — `plans/08` §3a, EXP-0021); and the same probe found `bugs/05_DONE`, a
+   false deletion warning that had shipped in `v0.1` and made the **rehearsal disagree with the real
+   run** (48 folders vs 1). Both are fixed and guarded.
 
    **The recon that gated it is DONE** — `researches/08_open_folder_and_path_safety.md`, measured on
    this machine 2026-07-29. Its three findings, so nobody re-derives them:
@@ -864,6 +910,14 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
 
 **None open.** Closed so far:
 
+- ✅ `bugs/05_DONE_emptied_dirs_false_positive.md` (2026-07-29) — the plan announced folders that
+  are FULL as about to be deleted: on a sorted library, **48 folders** at **0 operations**, and the
+  rehearsal reported 48 removed where the real run removed 1 (`GOAL.md` §в broken). Shipped in
+  `v0.1`; found while measuring the inbox for phase 6.4, by following a number that did not match
+  the mental model. `emptiedDirs` knew two populations that keep a folder alive and not the third —
+  media ALREADY at its destination, which does not exist on a first sort and is most of the library
+  afterwards. No file was ever at risk: the `readdir` + `rmdir` chain in `apply` held. Two guards,
+  break-verified; after the fix 0 folders and 1 vs 1.
 - ✅ `bugs/03_DONE_case_insensitive_noop.md` (2026-07-26) — found by the **dry run** during the first
   supervised sort. The owner capitalises his season folders (`Зима Конец Года`); on Windows that is
   the SAME directory as KPOT's canonical `Зима конец года`, so 15 files already home were planned to

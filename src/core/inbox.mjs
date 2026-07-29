@@ -1,6 +1,7 @@
 // src/core/inbox.mjs — the `НОВОЕ` folder as something the interface can look at and offer to create.
-// [TESTED: 2026-07-29 · tests/inbox.test.mjs — counting, the missing folder, the refusal to invent a
-// root, and idempotent creation; the root guard verified by breaking it first]
+// [TESTED: 2026-07-29 · tests/inbox_topup.test.mjs — counting at depth, the missing folder told
+// apart from an empty one, the refusal to invent a root, and idempotent creation; the recursion and
+// the root guard each verified by breaking them first (1 spec red each)]
 //
 // Phase 6.4 (plans/08), from idea 01 as the owner answered it on 2026-07-28: the inbox lives INSIDE
 // the library root and is called `НОВОЕ`. Everything about SORTING it is already built — the folder

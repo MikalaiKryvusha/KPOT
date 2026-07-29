@@ -1,6 +1,8 @@
 // src/dedupe/dedupe.mjs — exact-duplicate grouping and keeper selection.
 // [TESTED: 2026-07-26 · tests/plan_phase3.test.mjs — copy-name conventions, keeper totality across
-// every permutation, fixture dup group (3 copies → 1 keeper); suite 73/73]
+// every permutation, fixture dup group (3 copies → 1 keeper); suite 73/73 ·
+// 2026-07-29 · tests/inbox_topup.test.mjs — the inbox criterion on a REAL tie of evidence, verified
+// by removing it (4 specs go red)]
 //
 // GOAL.md: «Могут быть дубликаты одних и тех же идентичных кадров но под разными названиями в разных
 // директориях» — the tool must find them. Identity is CONTENT, never name: the scan phase already

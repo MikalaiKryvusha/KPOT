@@ -2,7 +2,9 @@
 // [TESTED: 2026-07-26 · tests/plan_phase3.test.mjs — technical-vs-custom dirs, date-structure dirs,
 // the ambiguous «зима» case, and all 23 planted destinations against the fixture ground truth ·
 // tests/idempotence.test.mjs — KPOT's own shelves are structure, quarantine names do not stack, and
-// a second plan on a sorted tree is empty (bug 01; each fix verified by reverting it)]
+// a second plan on a sorted tree is empty (bug 01; each fix verified by reverting it) ·
+// 2026-07-29 · tests/inbox_topup.test.mjs — the inbox is structure too, verified by removing it
+// from OWN_LAYOUT_DIRS (2 specs go red)]
 //
 // This is the owner's desired layout (GOAL.md §«Желаемый формат на выходе») made executable. Every
 // rule here is an owner decision from `MASTER_PLAN.md` §Decision log — none of it is this module's

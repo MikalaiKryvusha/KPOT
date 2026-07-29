@@ -1,6 +1,6 @@
 # Bug 05 — the plan announces the whole library as «папки, которые опустеют и будут удалены»
 
-**Status:** 🔧 OPEN (found 2026-07-29)
+**Status:** ✅ DONE (found and fixed 2026-07-29, commit `abac68a`)
 **Version/build:** `main` @ release `v0.1` — **shipped**, present since empty-folder removal landed
 2026-07-26 · **When/context:** found while measuring the inbox for phase 6.4 (`plans/08`), by reading
 the output of a probe run for another reason (the EXP-0010 pattern again — a number that did not
@@ -90,21 +90,56 @@ exists for, and the scenario the owner will live in from now on.
 
 ## The fix
 
-`emptiedDirs()` must be given the third population. `buildPlan` already computes it — the operations
-dropped by the `samePath` filter — so the fix is to keep those paths instead of discarding them and
-to `keep()` each one: a file that is already home keeps its folder alive for exactly the same reason
-a file that stays does.
+`emptiedDirs()` was given the third population. `buildPlan` already computed it — the operations
+dropped by the `samePath` filter — so instead of only counting them they are kept as a list and each
+one's ORIGINAL path is `keep()`-ed: a file that is already home keeps its folder alive for exactly
+the same reason a file that stays does. `op.from`, not `op.to`, because `from` is how the folder is
+actually spelled on disk and that is what the directory listing being filtered contains.
+
+**After the fix, re-measured on the same shapes:**
+
+| | before | after |
+|---|---|---|
+| folders a sorted library announces for deletion (at 0 operations) | 48 | **0** |
+| rehearsal vs real run, folders removed, on a top-up | 48 vs 1 | **1 vs 1** |
+
+A second change rode along and is deliberately marked as NOT guarded: directory membership is now
+compared with `normalizeForCompare` rather than raw string equality, because `AGENT_GUIDE` §Code
+style mandates the helper for exactly this comparison and bug 03 was the same mistake one level
+down. No spec falsifies it — every case it would catch is already covered by another survivor entry
+— and that is written into the code comment instead of being implied by its presence.
 
 ## Guard
 
-`tests/empty_dirs.test.mjs` — a sorted tree yields an EMPTY `emptied` list, and a top-up into a
-library names only the folders the top-up itself drained. Both must be verified by breaking the fix
-first. Note the shape of the existing coverage and why it missed this: every empty-folder spec so
-far starts from an UNSORTED fixture, where the population that triggers the bug does not exist.
+`tests/empty_dirs.test.mjs`, two new specs, both verified by breaking the fix first:
+
+- *A SORTED LIBRARY HAS NO FOLDERS WAITING TO BE DELETED* — plans the tree KPOT itself produced and
+  asserts `operations`, `emptied` and `counts.emptiedDirs` are all empty, plus the absence of the
+  section in the rendered report;
+- *THE REHEARSAL AND THE REAL RUN REMOVE THE SAME FOLDERS* — two identical trees, both sorted first
+  so the triggering population exists, then one rehearsed and one run for real; `dirsRemoved` must
+  match. This is the `GOAL.md` §в promise as an assertion.
+
+**Break-verification:** disabling the one added line turns **3 specs red** (the two above, plus the
+phase-6.4 idempotence criterion). Note the shape of the pre-existing coverage and why six specs
+missed this: every one of them starts from an UNSORTED fixture, where the population that triggers
+the bug does not exist.
 
 ## Decisions made without the owner
 
-*(filled in when the bug is closed)*
+1. **Fixed inside phase 6.4 rather than deferred to its own session.** It was found while measuring
+   the inbox, it lives in the very function the phase had to change (`emptiedDirs`), and leaving a
+   known false deletion-warning in place while adding a feature that depends on that same list would
+   have been the worse trade. The commit names both halves so the history stays separable.
+2. **The report keeps its wording.** The heading «ПАПКИ, КОТОРЫЕ ОПУСТЕЮТ И БУДУТ УДАЛЕНЫ» and its
+   explanatory lines are unchanged — the text was never wrong, the list was. Rewriting owner-facing
+   wording to soften a defect instead of fixing the defect is how a report stops being trusted.
+3. **The path-normalisation hardening was kept despite having no guard**, and labelled as such in
+   the code. The alternative — removing it to avoid an unfalsifiable line — would leave a comparison
+   the project's own code style forbids.
+4. **No behaviour of `apply` was touched.** The readdir + rmdir chain is what kept this from ever
+   costing a file, and it was verified as holding rather than adjusted. A defect in an artifact is
+   fixed in the artifact.
 
 ## Links
 
