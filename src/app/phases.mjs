@@ -52,6 +52,18 @@ import { loadDecisions, saveDecisions } from '../core/decisions.mjs';
  */
 export { renderPlan, renderApplyReport, renderRollbackReport };
 
+/**
+ * Windows-aware path comparison, re-exported for the same reason as the renderers above.
+ *
+ * A face needs to ask "is this path inside that one?" — the control panel does, before showing a
+ * folder — and `src/core/paths.mjs` is the bottom layer, which a face may not reach into. Note what
+ * these are and are not: they compare TEXT (after normalisation), which is right for paths the
+ * product produced itself and **insufficient as a security boundary** for a path that arrived from
+ * outside. `researches/08` measured a junction defeating exactly this check; `src/ui/reveal.mjs`
+ * resolves the real path first and only then compares.
+ */
+export { isInside, samePath } from '../core/paths.mjs';
+
 export const APPLY_OUTCOME = {
   /** An earlier run stopped half-way. Only the owner may choose between resuming and rolling back. */
   BLOCKED_BY_UNFINISHED: 'blocked-by-unfinished',

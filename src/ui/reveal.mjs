@@ -22,7 +22,7 @@
 
 import { realpath } from 'node:fs/promises';
 import { spawn } from 'node:child_process';
-import { isInside, samePath } from '../core/paths.mjs';
+import { isInside, samePath } from '../app/phases.mjs';
 
 /** Why a request to show a folder was refused. The face turns these into a sentence. */
 export const REVEAL_REFUSED = {
