@@ -387,6 +387,33 @@ Both were done, and all ten forks are now closed.
 - README refreshed in both languages: 192 tests, two supervised real runs, the pixel search and the
   reset-clock rule described for users, and "still ahead" now points at the interface.
 
+### Session of 2026-07-29 (late) — the epic document: the interface cut into six phases
+The owner's order is эпик → фазы → операционные планы, and every input the epic needed was closed
+the same day. Commit `93f538a`; no product code by design.
+
+- **`plans/03_interface_epic.md`** — the epic: what "done" means for the whole thing (a person who
+  has never opened a terminal downloads, unzips, double-clicks and gets a sorted library), the
+  owner's decisions quoted verbatim, what we deliberately do NOT build, the architecture, the
+  six-phase cut with an acceptance criterion each, the documented failure modes from `researches/07`
+  mapped to the phase that answers them, and — separately — what is NOT verified yet.
+- **Reading the code changed the first phase.** The phase composition lives as PRIVATE functions
+  inside `bin/kpot.mjs` (`scanAndAnnotate` line 251, `planWithDecisions` line 267), entangled with
+  console printing and exit codes. A server cannot call them. Left as is, the UI becomes a **second
+  implementation** of the product — which is precisely how a dry run and a real run start to
+  diverge. So the epic opens with **6.0, a boring extraction into `src/app/`** guarded by
+  byte-exact golden snapshots of today's CLI reports, not with a screen.
+- **The cut:** 6.0 shared layer · 6.1 server (127.0.0.1 · token · `Host` whitelist · port fallback ·
+  browser after `listening` · single instance · «Завершить работу» · SSE progress) · 6.2 the
+  first-flight wizard (the RU/EN dictionary starts here, at the first string) · 6.3 the control
+  panel (three run cards · folder decisions answered in the UI over the existing
+  `src/core/decisions.mjs` · «Открыть» links · run history with rollback) · 6.4 the `НОВОЕ` top-up
+  (idea 01) · 6.5 the portable package · 6.6 the closing language pass, which also clears the
+  standing jargon debt in the plan report.
+- **Two recon gates recorded rather than assumed:** the Mark-of-the-Web on a REAL browser download
+  is unverified, so 6.5 may not be promised before it is measured; and opening a folder in Explorer
+  from the local server is an external-program launch whose path must be proven to be inside the
+  library root — its own recon before 6.3.
+
 ---
 
 ## Where we are now
@@ -606,11 +633,14 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
    the copy on 2026-07-28). Undo it with
    `node bin/kpot.mjs rollback run-20260728-201538-437c4d D:\work\ai_sandbox\KPOT_SANDBOX`.
    Do not delete it without his word, and never copy more of his photographs without a fresh one.
-3. ⭐ **THE NEXT PIECE OF WORK — the interface epic. Everything it needs from the owner is DONE;
-   what remains is writing, in his order: эпик → фазы → операционные планы, and only then code.**
+3. ⭐ **THE NEXT PIECE OF WORK — `/revision` of `MASTER_PLAN.md` to add Phase 6 «Интерфейс», then
+   the operational plan for phase 6.0, then its code.** The epic document is WRITTEN
+   (`plans/03_interface_epic.md`, 2026-07-29) — do not re-design it, and do not start at a screen:
+   its §5 explains, from the code, why the first phase is an extraction and not a UI.
 
-   Read first, both finished this session: `researches/07_local_ui_and_delivery.md` (the prior-art
-   review — the failure-modes section is the one that shapes the design) and
+   Read first: **`plans/03_interface_epic.md`** (the epic — the six-phase cut, the acceptance
+   criterion of each, the two recon gates), then `researches/07_local_ui_and_delivery.md` (the
+   prior-art review — the failure-modes section is the one that shapes the design) and
    `interviews/interview_003_interface.md` (all ten answers, verbatim). The clickable mock-up of the
    agreed design is `interviews/interview_003_designs.html` — open it in a browser, first tab.
 
@@ -642,7 +672,8 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
 
    **A debt to clear while doing it:** the plan report still prints `dated 2012-06-15 (exif-original)`
    at the owner. He made plain language a hard requirement on 2026-07-28; the «даты, взятые у
-   исходного снимка» section was already rewritten, the move lines were not.
+   исходного снимка» section was already rewritten, the move lines were not. Scheduled in the epic
+   as phase 6.6, but any earlier chance to fix it is a chance taken.
 
 4. **Phase 5 is CLOSED** (2026-07-28): the supervised run on `KPOT_SANDBOX` sorted 813 real files
    with 0 failures, an identical SHA-256 multiset, and a rehearsed rollback. Nothing is left in it.
