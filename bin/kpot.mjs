@@ -3,8 +3,10 @@
 // [TESTED: 2026-07-24 · tests/cli.test.mjs — 8 specs incl. a real child-process spawn and a real
 // scan run; suite 48/48 green + CLI smoke on a generated fixture tree (exit 0, kinds correct)]
 //
-// Parses argv (node:util parseArgs), validates input, and dispatches to a phase. All four phases
-// are implemented; the contract below is stable and mirrored in tests/cli.test.mjs:
+// Parses argv (node:util parseArgs), validates input, dispatches to a phase in `src/app/phases.mjs`,
+// and PRINTS. Since 2026-07-29 (phase 6.0) that is all it does: the composition of the pipeline
+// lives in the app layer, so the local web interface can call exactly the same code instead of
+// growing a second copy of the product. This file is a FACE; it decides wording and exit codes.
 //
 //   kpot scan <dir>              build the scan map of a tree           (✅ Phase 2 — implemented)
 //   kpot plan <dir>              emit the pre-sort master plan          (✅ Phase 3 — implemented)
@@ -19,15 +21,11 @@ import { readFile, stat } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 import process from 'node:process';
 import { resolve } from 'node:path';
-import { scanTree } from '../src/scan/scan.mjs';
-import { annotateAssets } from '../src/meta/annotate.mjs';
-import { buildPlan, renderPlan } from '../src/plan/plan.mjs';
-import { applyPlan, renderApplyReport } from '../src/apply/apply.mjs';
-import { rollbackRun, renderRollbackReport } from '../src/apply/rollback.mjs';
-import { findUnfinishedRuns, renderUnfinishedWarning } from '../src/apply/resume.mjs';
-import { RUNS_DIR_NAME } from '../src/core/paths.mjs';
-import { loadScanCache, saveScanCache, rekeyScanCache } from '../src/core/scan_cache.mjs';
-import { loadDecisions, saveDecisions } from '../src/core/decisions.mjs';
+import { scanArchive, planArchive, applyArchive, rollbackArchive, APPLY_OUTCOME } from '../src/app/phases.mjs';
+import { renderPlan } from '../src/plan/plan.mjs';
+import { renderApplyReport } from '../src/apply/apply.mjs';
+import { renderRollbackReport } from '../src/apply/rollback.mjs';
+import { renderUnfinishedWarning } from '../src/apply/resume.mjs';
 import { createProgress } from '../src/core/progress.mjs';
 
 export const EXIT_OK = 0;
@@ -169,121 +167,39 @@ export async function run(argv, { out = console.log, err = console.error } = {})
 }
 
 /**
- * The apply phase — the only command that moves files, and only after a backup exists.
- * `--dry-run` runs the identical code path with inert filesystem effects (GOAL.md §в).
- * Re-plans the tree immediately before executing, on purpose: applying a plan built minutes or days
- * ago against a tree that has changed since is exactly how a sorter destroys data.
+ * The scan phase: machine-readable JSON on stdout, a human one-liner on stderr — so
+ * `kpot scan dir > map.json` just works. Read-only over the tree (RULE 1). Per-file errors are
+ * inside the JSON and do not fail the run; only a scan-level failure exits non-zero.
  */
-async function runApply(dir, { out, err, dryRun, allowNoSnapshot, json, cache, pixels, progress, resume }) {
-  const root = resolve(dir);
-  let result;
+async function runScan(dir, { out, err, cache, pixels, progress }) {
+  let scan, verdicts;
   try {
-    // An interrupted run is a fork only the owner may take. Starting a fresh run over a half-sorted
-    // tree would take a NEW backup of that half-sorted state, and the way back to the original
-    // would be gone — so KPOT stops and offers exactly two ways out. A dry run is exempt: it
-    // rehearses without writing, so it cannot make the situation worse.
-    const unfinished = dryRun ? [] : await findUnfinishedRuns(root);
-    if (unfinished.length > 0 && !resume) {
-      err(renderUnfinishedWarning(root, unfinished));
-      return EXIT_ERROR;
-    }
-    if (resume && unfinished.length === 0) {
-      err('kpot apply --resume: незавершённых прогонов нет — продолжать нечего.');
-      return EXIT_ERROR;
-    }
-
-    const { result: scan } = await scanAndAnnotate(root, { cache, pixels, progress });
-    const { plan, decisionsPath } = await planWithDecisions(root, scan);
-    const resumeId = resume ? unfinished.at(-1).runId : null;
-    // Folders awaiting a decision are announced BEFORE the run, not after: the owner asked to be
-    // consulted, and a run that quietly leaves files behind is not a consultation.
-    if (plan.counts.awaitingDecision > 0) {
-      err(`kpot apply: ${plan.counts.awaitingDecision} папок ждут вашего решения — их файлы НЕ тронуты.`);
-      err(`             Ответьте в файле и запустите снова: ${decisionsPath}`);
-    }
-    if (plan.operations.length === 0) {
-      err('kpot apply: nothing to move — the tree already matches the plan.');
-      return EXIT_OK;
-    }
-    result = await applyPlan(root, plan, scan, { dryRun, allowNoSnapshot, progress, resume: resumeId });
-    // The run just renamed files the cache still indexes by their OLD paths. Carrying each entry
-    // across is provably safe (a rename cannot change content) and is what stops the NEXT run from
-    // re-hashing the whole archive for a tree whose bytes did not change.
-    if (cache && !dryRun && result.moved > 0) {
-      const moves = plan.operations.filter((o) => !result.errors.some((e) => e.path === o.from));
-      await rekeyScanCache(root, moves);
-    }
+    ({ scan, verdicts } = await scanArchive(dir, { cache, pixels, progress }));
   } catch (e) {
-    err(`kpot apply: ${e.message}`);
+    err(`kpot scan: ${e.message}`);
     return EXIT_ERROR;
   }
-  out(json ? JSON.stringify(result, null, 2) : renderApplyReport(result));
-  const mode = (dryRun ? ' --dry-run' : '') + (result.resumed ? ' --resume' : '');
-  err(`kpot apply${mode}: ${result.moved} moved · ${result.failed} failed`
-    + ` · backup ${result.backup.snapshot} (${result.backup.linked}/${result.backup.files} linked)`
-    + (dryRun ? ' · NOTHING MOVED (dry run)' : ` · rollback: kpot rollback ${result.runId} ${root}`));
-  return result.failed > 0 ? EXIT_ERROR : EXIT_OK;
-}
-
-/** The rollback phase — replay a run's journal backwards and put every file back. */
-async function runRollback(runId, dir, { out, err, dryRun }) {
-  const root = resolve(dir);
-  let result;
-  try {
-    result = await rollbackRun(resolve(root, RUNS_DIR_NAME, runId), { dryRun });
-  } catch (e) {
-    err(`kpot rollback: ${e.message}`);
-    return EXIT_ERROR;
-  }
-  out(renderRollbackReport(result));
-  err(`kpot rollback${dryRun ? ' --dry-run' : ''}: ${result.restored} restored · ${result.failed} failed`);
-  return result.failed > 0 ? EXIT_ERROR : EXIT_OK;
-}
-
-/**
- * scan + annotate, shared by the scan, plan and apply phases.
- *
- * Never touches a USER file (RULE 1). It does read and refresh KPOT's own scan cache under
- * `.kpot-runs/`, which is what makes a repeated run on the real archive take seconds instead of
- * re-hashing 551 GB (`researches/02` §4) — the plan→apply pair alone pays that cost twice without it.
- * `--no-cache` opts out entirely.
- */
-async function scanAndAnnotate(dir, { cache = true, pixels = true, progress = null } = {}) {
-  const loaded = cache ? await loadScanCache(dir) : { entries: null };
-  const result = await scanTree(dir, { cache: loaded.entries, progress });
-  progress?.start('Определяю даты', result.assets.length);
-  const verdicts = await annotateAssets(result.root, result.assets, { pixels, progress });
-  result.errors.push(...verdicts.errors);
-  progress?.done(null);
-  if (cache) await saveScanCache(dir, result.assets);
-  return { result, verdicts };
-}
-
-/**
- * Build the plan with the owner's folder decisions applied, then refresh the decisions file so any
- * newly-found folder appears in it and previous answers are preserved. The file's path is put in the
- * plan's meta, because the report has to tell the owner where to go and answer.
- */
-async function planWithDecisions(dir, scan) {
-  const { decisions, unreadable, path } = await loadDecisions(dir);
-  const plan = buildPlan(scan, { decisions });
-  plan.meta.decisionsPath = path;
-  await saveDecisions(dir, plan.suspicious ?? [], decisions);
-  return { plan, unreadable, decisionsPath: path };
+  out(JSON.stringify(scan, null, 2));
+  const byKind = {};
+  for (const a of scan.assets) byKind[a.kind] = (byKind[a.kind] ?? 0) + 1;
+  const kinds = Object.entries(byKind).map(([k, n]) => `${k} ${n}`).join(' · ') || 'nothing';
+  err(`kpot scan: ${scan.assets.length} files (${kinds})`
+    + ` · dates: ${verdicts.dated} dated, ${verdicts.partial} partial, ${verdicts.unknown} unknown`
+    + cacheNote(scan)
+    + (scan.errors.length ? ` · ${scan.errors.length} unreadable — see "errors"` : ''));
+  return EXIT_OK;
 }
 
 /**
  * The plan phase: the pre-sort master plan (GOAL.md §а). Human-readable on stdout by default —
  * this is the artifact the OWNER reads before anything moves — and the machine-readable SortPlan
- * with `--json`, which is what Phase 4/5 (dry run, apply, rollback) will consume.
+ * with `--json`, which is what apply and rollback consume.
  * Nothing is written and nothing is moved: planning is strictly read-only.
  */
 async function runPlan(dir, { out, err, json, cache, pixels, progress }) {
   let plan, scan, unreadable;
   try {
-    const { result } = await scanAndAnnotate(dir, { cache, pixels, progress });
-    scan = result;
-    ({ plan, unreadable } = await planWithDecisions(dir, result));
+    ({ scan, plan, unreadable } = await planArchive(dir, { cache, pixels, progress }));
   } catch (e) {
     err(`kpot plan: ${e.message}`);
     return EXIT_ERROR;
@@ -300,35 +216,70 @@ async function runPlan(dir, { out, err, json, cache, pixels, progress }) {
   return EXIT_OK;
 }
 
+/**
+ * The apply phase — the only command that moves files, and only after a backup exists.
+ * `--dry-run` runs the identical code path with inert filesystem effects (GOAL.md §в).
+ *
+ * All four endings of the phase now arrive as a named `outcome` from the app layer; this function's
+ * only job is to say each of them in words and pick the exit code.
+ */
+async function runApply(dir, { out, err, dryRun, allowNoSnapshot, json, cache, pixels, progress, resume }) {
+  let outcome;
+  try {
+    outcome = await applyArchive(dir, { dryRun, allowNoSnapshot, cache, pixels, progress, resume });
+  } catch (e) {
+    err(`kpot apply: ${e.message}`);
+    return EXIT_ERROR;
+  }
+
+  if (outcome.outcome === APPLY_OUTCOME.BLOCKED_BY_UNFINISHED) {
+    err(renderUnfinishedWarning(outcome.root, outcome.unfinished));
+    return EXIT_ERROR;
+  }
+  if (outcome.outcome === APPLY_OUTCOME.NOTHING_TO_RESUME) {
+    err('kpot apply --resume: незавершённых прогонов нет — продолжать нечего.');
+    return EXIT_ERROR;
+  }
+
+  // Folders awaiting a decision are announced BEFORE the run's own result, not after: the owner
+  // asked to be consulted, and a run that quietly leaves files behind is not a consultation.
+  if (outcome.awaitingDecision > 0) {
+    err(`kpot apply: ${outcome.awaitingDecision} папок ждут вашего решения — их файлы НЕ тронуты.`);
+    err(`             Ответьте в файле и запустите снова: ${outcome.decisionsPath}`);
+  }
+  if (outcome.outcome === APPLY_OUTCOME.NOTHING_TO_MOVE) {
+    err('kpot apply: nothing to move — the tree already matches the plan.');
+    return EXIT_OK;
+  }
+
+  const result = outcome.result;
+  out(json ? JSON.stringify(result, null, 2) : renderApplyReport(result));
+  const mode = (dryRun ? ' --dry-run' : '') + (result.resumed ? ' --resume' : '');
+  err(`kpot apply${mode}: ${result.moved} moved · ${result.failed} failed`
+    + ` · backup ${result.backup.snapshot} (${result.backup.linked}/${result.backup.files} linked)`
+    + (dryRun ? ' · NOTHING MOVED (dry run)' : ` · rollback: kpot rollback ${result.runId} ${outcome.root}`));
+  return result.failed > 0 ? EXIT_ERROR : EXIT_OK;
+}
+
+/** The rollback phase — replay a run's journal backwards and put every file back. */
+async function runRollback(runId, dir, { out, err, dryRun }) {
+  let result;
+  try {
+    ({ result } = await rollbackArchive(runId, dir, { dryRun }));
+  } catch (e) {
+    err(`kpot rollback: ${e.message}`);
+    return EXIT_ERROR;
+  }
+  out(renderRollbackReport(result));
+  err(`kpot rollback${dryRun ? ' --dry-run' : ''}: ${result.restored} restored · ${result.failed} failed`);
+  return result.failed > 0 ? EXIT_ERROR : EXIT_OK;
+}
+
 /** " · cache 23/26" — visible proof the cache is working, or silence when it is off/cold. */
 function cacheNote(scan) {
   const c = scan?.cache;
   if (!c || c.hits === 0) return '';
   return ` · cache ${c.hits}/${c.hits + c.misses} reused (no re-hash)`;
-}
-
-/**
- * The scan phase: machine-readable JSON on stdout, a human one-liner on stderr — so
- * `kpot scan dir > map.json` just works. Read-only over the tree (RULE 1). Per-file errors are
- * inside the JSON and do not fail the run; only a scan-level failure exits non-zero.
- */
-async function runScan(dir, { out, err, cache, pixels, progress }) {
-  let result, verdicts;
-  try {
-    ({ result, verdicts } = await scanAndAnnotate(dir, { cache, pixels, progress }));
-  } catch (e) {
-    err(`kpot scan: ${e.message}`);
-    return EXIT_ERROR;
-  }
-  out(JSON.stringify(result, null, 2));
-  const byKind = {};
-  for (const a of result.assets) byKind[a.kind] = (byKind[a.kind] ?? 0) + 1;
-  const kinds = Object.entries(byKind).map(([k, n]) => `${k} ${n}`).join(' · ') || 'nothing';
-  err(`kpot scan: ${result.assets.length} files (${kinds})`
-    + ` · dates: ${verdicts.dated} dated, ${verdicts.partial} partial, ${verdicts.unknown} unknown`
-    + cacheNote(result)
-    + (result.errors.length ? ` · ${result.errors.length} unreadable — see "errors"` : ''));
-  return EXIT_OK;
 }
 
 // Real invocation only (not when imported by tests): returned code → process exit code.

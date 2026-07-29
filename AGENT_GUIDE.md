@@ -199,7 +199,9 @@ back to. Full statement of intent: `GOAL.md` (in Russian, the owner's words — 
 > the agreed target shape — create directories as the phases land, and keep this section honest.
 
 ```
-bin/kpot.mjs    ← CLI entry point: parses argv, dispatches to a phase
+bin/kpot.mjs    ← a FACE: parses argv, calls src/app/, prints. No pipeline logic since phase 6.0
+src/app/        ← the four phases as callable functions: take a dir, return artifacts, PRINT NOTHING
+                  (one executor, many faces — the web UI of Phase 6 calls exactly this)
 src/scan/       ← walks the tree, identifies media files, hashes them          (reads user files)
 src/meta/       ← date & metadata extraction; every verdict carries a confidence + evidence
 src/dedupe/     ← groups identical/near-identical files across directories
@@ -215,8 +217,11 @@ after a backup commit exists and the run journal records the intended operation.
 strictly read-only over the user's data. Violating this is a bug even if the run "worked".
 
 **RULE 2 (dependency direction):** dependencies point one way only —
-`bin → apply → plan → {dedupe, meta, scan} → core`. A lower layer never imports a higher one, and sibling
-feature modules do not import each other; shared code moves down into `src/core/`.
+`{bin, ui} → app → apply → plan → {dedupe, meta, scan} → core`. A lower layer never imports a higher
+one, and sibling feature modules do not import each other; shared code moves down into `src/core/`.
+*Amended 2026-07-29 (phase 6.0):* `src/app/` was inserted so a second face cannot become a second
+implementation — a face may only compose what `src/app/` exposes, and it is the only layer allowed to
+print.
 
 **RULE 3 (evidence, not guesses):** a date is never silently invented. Every file carries the evidence
 and the confidence behind its date; anything unresolved goes to the global "прочее" bucket and is listed
@@ -490,6 +495,14 @@ preferences:
   (2026-07-28, verbatim: «мигрировать пока не нужно», «я сам веду обновления КАИф»). A newer KAIF
   release existing is not a task, not a backlog item and not a `/what-next` candidate. Report the
   deployed version if asked; otherwise leave the framework alone and spend the session on the product.
+- **The owner is asked through an INTERVIEW, never through a plan or an epic** (2026-07-29, verbatim:
+  «и общение со мной - через ИНТЕРВЬЮ, не через эпики. Нужна будет моя точка зрения, развилка
+  продуктовая - интервью»). A fork that needs his view goes into `interviews/interview_NNN_<topic>.md`
+  via `/interview` — closed questions, recommendation first, answered in the document. Working
+  documents in `plans/` (epics, operational plans, research) are the AGENT's; they record what was
+  decided and cite the interview that decided it, but they must never carry an unanswered question
+  addressed to him. Reason it is a rule and not a preference: a question buried in a 250-line plan is
+  a question that does not get asked — the owner reads interviews *as* questions, and plans as work.
 - **Research the field before building an epic feature** (2026-07-28, verbatim): «вообще, почти на всё
   в индустрии есть золотые стандарты и научные работы. давай зафиксируем в канон ИИ агента, что перед
   крупными эпик-фичами, нучно проводить гуглёж разветку и написание research документа». Mechanized as

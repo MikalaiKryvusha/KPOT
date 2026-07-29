@@ -37,9 +37,9 @@ KPOT/
 ├── .claude/skills/ # the CANONICAL skill set — edit here only
 ├── .agents/ .grok/ .cline/ .roo/   # derived copies for the other 4 agent systems (auto-resynced)
 │
-├── bin/kpot.mjs    # ✅ CLI entry: parseArgs → phase dispatch; ALL FOUR phases are implemented
-│                   #    (scan · plan · apply [--dry-run] · rollback). Exit codes 0/1/2, 3 reserved
-├── src/            # ✅ core/ (paths · journal · pool · progress · scan_cache · decisions) · meta/ (full date
+├── bin/kpot.mjs    # ✅ a FACE: parseArgs → one call into src/app/ → printing. Exit codes 0/1/2, 3 reserved
+├── src/            # ✅ app/ (the four phases as callable functions — the layer every face calls) ·
+│                   #    core/ (paths · journal · pool · progress · scan_cache · decisions) · meta/ (full date
 │                   #    pipeline: model + detectors + exif/mp4/dirname extractors + family signs + resolver) ·
 │                   #    scan/ (identify by magic bytes · walk · hash) · dedupe/ · plan/ (season ·
 │                   #    bucket · suspicious · SortPlan) · apply/ (backup · apply · rollback — the
@@ -66,7 +66,8 @@ KPOT/
 | `.kaif/kaif-core.mjs` | The framework's own machinery, backing `npm run kaif:*` | `.kaif/kaif.json` |
 | `researches/` | Desk research write-ups — first up: prior-art comparison required by `GOAL.md` | `GOAL.md` |
 | `interviews/` | Questions only the owner may answer (season boundaries, reuse-vs-write) | `STATUS.md` |
-| `bin/kpot.mjs` | ✅ CLI entry: `parseArgs`, phase dispatch (all four implemented), `--help`/`--version`, stable exit codes (0 ok · 1 error · 2 usage · 3 reserved) | `src/apply/`, `src/plan/`, `src/scan/`, `src/core/` |
+| `bin/kpot.mjs` | ✅ A **face**: `parseArgs`, validation, one call into `src/app/`, the printing, and the exit-code contract (0 ok · 1 error · 2 usage · 3 reserved). Since phase 6.0 it holds no pipeline logic at all | `src/app/`, plus the `render*` functions it prints |
+| ✅ `src/app/` | `phases.mjs` — the four phases as callable functions (`scanArchive`, `planArchive`, `applyArchive`, `rollbackArchive`). Takes a directory and settings, returns artifacts, **prints nothing, swallows no error, writes no user file**. The apply phase's four endings are named values (`APPLY_OUTCOME`) instead of printed sentences, so a second face can branch on them. Exists so the Phase-6 web interface calls the SAME executor as the terminal — two implementations of the pipeline would let the dry run and the real run drift apart (internal-map invariant 2) | `src/apply/`, `src/plan/`, `src/scan/`, `src/meta/`, `src/core/` |
 | ✅ `src/scan/` | `identify.mjs` (kind by magic bytes — extensions lie; junk-by-name policy) + `scan.mjs` (walk without following links, bounded-concurrency sniff + streamed SHA-256, per-file errors collected). Read-only over user data; wired to `kpot scan` | `src/core/` |
 | ✅ `src/meta/` | the full date pipeline: `evidence.mjs` (model: precedence, wall/instant claims, plausibility) · `filename_date.mjs` (survey-derived detectors) · `exif.mjs` (`exifreader`: dates + FACTS — camera, geometry, XMP identity; editor saves demoted to upper bounds, plans/02 §1.1) · `mp4.mjs` (own mvhd walk) · `dirname_date.mjs` · `family.mjs` (camera-family signs: census + geometry + year fork + save ceiling, plans/02 §1.3) · `resolve.mjs` (DateVerdict: disputed kept, mtime/editor-save never determine, spike discounting) · `sidecar.mjs` (a THM/XMP twin dates the media file beside it — researches/04; capture properties only) · `pixels.mjs` (the ONLY module that decodes an image: finds an edited photo's actual original among its neighbours and inherits its real capture date — plans/02 §Шаг 2, designed by researches/05 §7 and calibrated in researches/06) · `annotate.mjs` (composition + the derived-original XMP `DocumentID` pass, plans/02 §1.2, + the pixel pass; feeds `kpot scan`) | `src/core/`, `jpeg-js` |
 | ✅ `src/dedupe/` | `dedupe.mjs` — groups identical files by sha256 and picks the keeper by an explainable total order | `src/scan/` output, `src/core/` |
@@ -78,9 +79,11 @@ KPOT/
 
 ## Cross-references & dependency rules
 
-1. **Code depends one way only:** `bin → apply → plan → {dedupe, meta, scan} → core`. A lower layer never
-   imports a higher one; sibling feature modules never import each other — shared code moves down into
-   `src/core/`. (Same rule as `AGENT_GUIDE.md` RULE 2 — if they ever disagree, the guide wins.)
+1. **Code depends one way only:** `{bin, ui} → app → apply → plan → {dedupe, meta, scan} → core`. A lower
+   layer never imports a higher one; sibling feature modules never import each other — shared code moves
+   down into `src/core/`. (Same rule as `AGENT_GUIDE.md` RULE 2 — if they ever disagree, the guide wins.)
+   `src/app/` was added 2026-07-29 (phase 6.0) so the coming web interface calls the same executor the
+   terminal does; **only a face prints**, the app layer never does.
 2. **Only `src/apply/` writes to user files.** Every other module is read-only over the user's archive.
 3. **Skills have one source:** `.claude/skills/` is canonical; `.agents/`, `.grok/`, `.cline/`,
    `.roo/commands/` are generated copies. Edit the canon, never a copy — `verify-final` and

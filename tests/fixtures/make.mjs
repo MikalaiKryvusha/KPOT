@@ -41,6 +41,9 @@ const QT_EPOCH_OFFSET = 2082844800;
 /** A fixed "bulk copy day" mtime planted on files whose filesystem time must NOT be trusted. */
 const COPY_SPIKE_MTIME = new Date('2023-05-15T12:00:00Z');
 
+/** The mtime every other planted file gets, so the tree never depends on the generation-time clock. */
+const FIXED_MTIME = new Date('2015-01-01T00:00:00Z');
+
 // ---------------------------------------------------------------------------
 // Binary builders — minimal but magic-correct file bodies.
 // They are as small as honesty allows: metadata segments are real and parseable; pixel/sound data
@@ -548,7 +551,7 @@ export async function makeFixtureTree(root) {
     await writeFile(abs, c.body);
     // Plant a deterministic mtime: spike files get the fake copy day; the rest get a fixed old date,
     // so nothing depends on the machine clock at generation time.
-    const mtime = COPY_SPIKE_PATHS.has(c.path) ? COPY_SPIKE_MTIME : new Date('2015-01-01T00:00:00Z');
+    const mtime = COPY_SPIKE_PATHS.has(c.path) ? COPY_SPIKE_MTIME : FIXED_MTIME;
     await utimes(abs, mtime, mtime);
   }
   const manifest = {
@@ -557,7 +560,13 @@ export async function makeFixtureTree(root) {
     files: cases.map(c => ({ path: c.path, size: c.body.length, expected: c.expected,
                              mtimeSpiked: COPY_SPIKE_PATHS.has(c.path) })),
   };
-  await writeFile(join(root, 'expected.json'), JSON.stringify(manifest, null, 2) + '\n', 'utf8');
+  const manifestPath = join(root, 'expected.json');
+  await writeFile(manifestPath, JSON.stringify(manifest, null, 2) + '\n', 'utf8');
+  // The ground-truth manifest lives INSIDE the tree, so the scan sees it as one more file — and
+  // until 2026-07-29 it was the single thing here that carried a wall-clock mtime, which made this
+  // generator's own "deterministic" claim false by exactly one row. Found by a golden-snapshot
+  // harness that was self-tested first: two captures of UNCHANGED code differed in this one number.
+  await utimes(manifestPath, FIXED_MTIME, FIXED_MTIME);
   return manifest;
 }
 

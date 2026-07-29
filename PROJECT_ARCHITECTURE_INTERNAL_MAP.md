@@ -134,6 +134,15 @@ These hold at all times. Breaking one is a bug even if the run completes and the
 - **A single writer.** Concentrating every mutation in `src/apply/` means the safety invariants can be
   enforced in one place and tested in one place. The cost is an extra hop for the caller; the benefit is
   that "did we write something we shouldn't have?" is answerable by reading one module.
+- **A single executor, several faces** *(added 2026-07-29, phase 6.0)*. `src/app/phases.mjs` composes
+  the pipeline and returns artifacts; a face (the terminal, and the web interface of Phase 6) decides
+  only wording and exit codes. The alternative — each face composing the pipeline itself — would give
+  the dry run and the real run two code paths, which is invariant 2 broken by construction rather than
+  by accident. Two consequences worth stating: the apply phase's four endings became **named values**
+  rather than printed sentences, because a printed sentence is not something a second caller can branch
+  on; and the archive-root check moved DOWN out of the CLI, since it turned out that asking the pipeline
+  about a mistyped path used to *create* that directory — a guard living in a face protects only that
+  face.
 - **Unknown is a real answer.** Modelling *undatable* explicitly (rather than defaulting to mtime)
   keeps the global "прочее" bucket honest — the alternative silently fabricates chronology, which is the
   exact chaos the tool exists to remove.
