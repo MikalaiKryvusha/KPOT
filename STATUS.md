@@ -471,6 +471,11 @@ wrap up at his hour. Suite 192 → **239**; commits `5aba4ce` · `a1ff719` · `a
   which `Host` is a forbidden header, so it never sent the attack it claimed to · a port spec that
   HUNG instead of going red · and **`\b` not working with Cyrillic**, which made every Russian
   pattern in the jargon guard unable to fire (EXP-0017).
+- **The whole product re-verified end to end after the refactor** — the domain-invariant gate, run
+  on a fresh fixture at the end of the session (a green suite is one observation, not the verdict):
+  the dry run leaves the tree **byte-identical** · a real sort keeps the **SHA-256 multiset
+  unchanged** while the layout changes (48 files, 19 → 50 folders) · a second plan yields **0
+  operations** (idempotent) · rollback restores **byte-for-byte**. Script: scratchpad `e2e.mjs`.
 - **One real latent defect in the product**, surfaced by 6.0 giving the engine a second caller:
   planning a mistyped path used to CREATE that directory. The guard lived in a face; it now lives in
   the engine, and the spec asserts the absence of the side effect rather than an error message.
