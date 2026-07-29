@@ -198,9 +198,17 @@ Application of `PHILOSOPHY.md` to this project:
     absent on any machine, and this development machine — with both defences disabled by policy —
     cannot validate the first launch at all. The clean-machine acceptance is the owner's, deferred
     by him to a friend's PC.
-  - 🔲 **6.6** remains — the closing language pass, and it should be done with the page RENDERED
-    (EXP-0024: six phases of specs never saw that the wizard's step strip was drawn on the panel).
-  Suite 192 → **283**. Plans: `04_DONE`, `05_DONE`, `06`, `07_DONE`, `08_DONE`, `09`.
+  - ✅ **6.6 — DONE 2026-07-29:** the closing language pass, done by READING every owner-facing
+    surface rather than by grepping. The reports turned out never to have had one: «ОТЧЁТ О СУХОМ
+    ПРОГОНЕ», a «БЭКАП» heading, «Манифест», «жёстких ссылок», a printed `sha256`, `XMP DocumentID`
+    in a Russian sentence, and «1 групп»/«1 папок» in the first ten lines of the master plan. Fixed
+    at the root (`src/core/words.mjs` — the three-form plural rule and the date-in-words helper),
+    and guarded structurally: `tests/reports_language.test.mjs` scans the RENDERED reports, which
+    the existing jargon spec never did — it only ever read `src/ui/i18n.mjs`.
+  **The interface epic is complete.** Suite 192 → **286**. Plans: `04_DONE`, `05_DONE`, `06`,
+  `07_DONE`, `08_DONE`, `09`. One defect found while looking and deliberately left for its own
+  fix: `bugs/06` — a folder containing any `2013/` is taken for a finished library, which skips the
+  wizard on precisely the archives it was built for.
 
 ### Phase N — The goal is reached
 Files are no longer scattered "как попало": the owner opens the library and walks his life by year and

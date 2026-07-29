@@ -26,6 +26,7 @@ import { mkdir, readdir, rename, rmdir, stat } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { createRunJournal, openRunJournal, newRunId } from '../core/journal.mjs';
 import { RUNS_DIR_NAME } from '../core/paths.mjs';
+import { counted, plural } from '../core/words.mjs';
 import { createBackup, verifyBackup, runDirFor } from './backup.mjs';
 
 /**
@@ -269,33 +270,44 @@ export async function applyPlan(root, plan, scan, {
  */
 export function renderApplyReport(result) {
   const L = [];
-  L.push(result.dryRun ? 'ОТЧЁТ О СУХОМ ПРОГОНЕ' : 'ПОСТ-СОРТИРОВОЧНЫЙ ОТЧЁТ');
+  // «Сухой прогон» is a literal translation of "dry run" and one of the words the owner banned;
+  // the interface has called the same thing «репетиция» since 6.2, so the product was using two
+  // names for one act and the worse one lived in the report (phase 6.6, found by reading).
+  L.push(result.dryRun ? 'ОТЧЁТ О РЕПЕТИЦИИ' : 'ОТЧЁТ О СОРТИРОВКЕ');
   L.push('='.repeat(60));
   L.push(`Прогон:            ${result.runId}`);
   if (result.dryRun) {
     L.push('');
-    L.push('ЭТО СУХОЙ ПРОГОН. Ни один файл не тронут — показано, что произошло бы.');
-    L.push(`Было бы перемещено: ${result.moved}`);
+    L.push('ЭТО БЫЛА РЕПЕТИЦИЯ. Ни один файл не тронут — показано, что произошло бы.');
+    L.push(`Переехало бы ${counted(result.moved, 'файл', 'файла', 'файлов')}.`);
   } else {
-    L.push(`Перемещено:        ${result.moved}`);
+    L.push(`Перемещено:        ${counted(result.moved, 'файл', 'файла', 'файлов')}`);
   }
-  if (result.failed > 0) L.push(`Не удалось:        ${result.failed}`);
+  if (result.failed > 0) {
+    L.push(`Не удалось:        ${counted(result.failed, 'файл', 'файла', 'файлов')}`);
+  }
   if (result.dirsRemoved?.length > 0) {
-    L.push(`Удалено пустых папок: ${result.dirsRemoved.length}  (их пути в бэкапе — откат воссоздаст)`);
+    const n = result.dirsRemoved.length;
+    L.push(`Убрано пустых папок: ${n}  (${plural(n, 'она записана', 'они записаны', 'они записаны')} `
+      + 'в запасной копии — возврат создаст их заново)');
   }
   L.push('');
-  L.push('БЭКАП');
+  L.push('ЗАПАСНАЯ КОПИЯ');
   L.push('-'.repeat(60));
-  L.push(`  Манифест:  ${result.backup.files} файлов`);
+  L.push(`  Переписано:  ${counted(result.backup.files, 'файл', 'файла', 'файлов')} `
+    + '— размер, дата и содержимое каждого');
   if (result.backup.snapshot === 'hardlink') {
-    L.push(`  Снимок:    ${result.backup.linked} жёстких ссылок (содержимое защищено, места не занимает)`);
+    // «Жёсткая ссылка» is a filesystem term. What the person needs to know is the PROPERTY: the
+    // originals are held safe and it cost no disk space.
+    L.push(`  Сохранено:   ${counted(result.backup.linked, 'файл', 'файла', 'файлов')} `
+      + '— каждый удержан на месте, места на диске это не занимает');
   } else if (result.backup.snapshot === 'unsupported') {
-    L.push('  Снимок:    НЕТ — файловая система не умеет жёсткие ссылки.');
-    L.push('             Структуру восстановить можно, содержимое НЕ защищено.');
+    L.push('  Сохранено:   НЕТ — этот диск так не умеет.');
+    L.push('               Расположение папок вернуть можно, сами файлы НЕ защищены.');
   } else {
-    L.push('  Снимок:    не создавался (сухой прогон)');
+    L.push('  Сохранено:   ничего — это репетиция, файлы никто не трогал');
   }
-  L.push(`  Журнал:    ${result.journalPath}`);
+  L.push(`  Что делалось, по шагам: ${result.journalPath}`);
   L.push('');
 
   if (result.errors.length > 0) {
@@ -306,9 +318,9 @@ export function renderApplyReport(result) {
   }
 
   if (!result.dryRun && result.moved > 0) {
-    L.push('ОТКАТ');
+    L.push('ЕСЛИ ЗАХОТИТЕ ВЕРНУТЬ ВСЁ НАЗАД');
     L.push('-'.repeat(60));
-    L.push('  Всё вернуть на свои места одной командой:');
+    L.push('  Всё вернётся на прежние места одной командой:');
     L.push('');
     L.push(`      kpot rollback ${result.runId}`);
     L.push('');

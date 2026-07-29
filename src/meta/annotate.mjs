@@ -20,6 +20,7 @@
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { mapLimit } from '../core/pool.mjs';
+import { wallInWords } from '../core/words.mjs';
 import { exifExtract } from './exif.mjs';
 import { mp4Evidence } from './mp4.mjs';
 import { allNameEvidence } from './filename_date.mjs';
@@ -149,8 +150,12 @@ function inheritFromOriginals(annotated, now, resetFloorYear) {
       wall: orig.wall,
       dateOnly: orig.dateOnly,
       // Owner-facing text: this detail is printed in the plan's «даты, взятые у исходного снимка»
-      // section, and the owner asked for plain language without jargon (2026-07-28).
-      detail: `исходный снимок: '${ref.path}' (${formatWall(orig.wall)}, совпала метка редактора XMP DocumentID)`,
+      // section, and the owner asked for plain language without jargon (2026-07-28). «XMP
+      // DocumentID» was still in it until phase 6.6 — the name of a metadata field, in Latin, in
+      // the middle of a Russian sentence explaining where his photograph's date came from. What
+      // matters to him is that the editor itself left the link, so nobody had to guess.
+      detail: `исходный снимок: ${ref.path}\n    снят ${wallInWords(orig.wall)}; `
+        + 'фоторедактор сам записал, из какого файла сделан этот — гадать не пришлось',
     });
     applyVerdict(asset, [...asset.evidence, inherited], now, resetFloorYear);
   }

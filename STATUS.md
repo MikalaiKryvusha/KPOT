@@ -578,6 +578,39 @@ had never been able to see. Commits `80d6a3a` · `7f7f52a` + this one; suite 279
   Deferred with a known owner, not forgotten (`plans/09` §9 carries the exact steps, including
   printing the two policy values first so the result is readable).
 
+### Session of 2026-07-29 (late 7) — phase 6.6: the language pass, done by READING
+The last phase of the interface epic. Its acceptance criterion is «проверка — чтением, а не грепом»,
+and that is the whole story of it: every defect below was invisible to a word list. Suite 283 →
+**286**.
+
+- **The reports had never had the pass at all.** Reading all five surfaces found, in shipped code:
+  «ОТЧЁТ О СУХОМ ПРОГОНЕ» (a literal rendering of "dry run", while the interface has said
+  «репетиция» since 6.2 — one product, two names for one act) · a «БЭКАП» heading · «Манифест» ·
+  «жёстких ссылок» · a printed **`sha256`** in the duplicates section · **`XMP DocumentID`** inside
+  a Russian sentence about a photograph · `различие 26 из 1024, отрыв от следующего 360` · and an
+  ISO `2012-06-15 12:30:00` two screens below the same date written as «15 июня 2012, 12:30».
+- **And Russian that was simply wrong:** «Дубликаты: **1 групп**», «Ждут вашего решения: **1 папок**»
+  — in the first ten lines of the document `GOAL.md` is built around. Fixed at the root:
+  `src/core/words.mjs` holds the three-form plural rule and the date-in-words helper, which moved
+  down out of `bucket.mjs` because the plan needed the same function and was printing raw ISO instead.
+- **The structural half, and it is worth more than any wording:** `tests/reports_language.test.mjs`.
+  The jargon guard has existed since 6.2 but scanned `src/ui/i18n.mjs` **only** — the reports were
+  never covered. The new spec checks the RENDERED text of all five, because a banned word can arrive
+  from a constant, from a detail string built three modules away, or from an evidence label.
+- **Two of my own guards were defective and the break pass caught both.** The jargon list convicted
+  the owner's own file name `скан_без_даты.jpg.xmp` (a negative guard must be narrow enough to fire
+  AND precise enough not to convict the innocent — the file names are now excised before matching,
+  and the trade is stated in the spec). And the plural guard **stayed green with «1 папок» planted
+  back in**: I had written `\b` next to Cyrillic, which is EXP-0017 exactly — in the guard that
+  cites EXP-0017. Both re-verified red before being trusted.
+- **`bugs/06` filed, not fixed** (behaviour, not language, so it does not ride into this phase):
+  **a messy folder containing any `2013/` is taken for a finished library**, so the interface shows
+  the panel — «Всё уже разложено» — with «Пока ничего не запускалось» two blocks below it. This
+  matters on the owner's real archive specifically: `researches/02` recorded that it already holds
+  hand-made `<year>/<season>` folders, so **his first run would skip the wizard entirely**. Nothing
+  is at risk; the first impression is a false statement about his files. Four candidate fixes are
+  in the document, with a recommendation.
+
 ---
 
 ## Where we are now
@@ -627,7 +660,8 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
 | ✅ | ~~6.3 — the control panel, incl. the undo button~~ | **done 2026-07-29** (`plans/07_DONE`, commit `c3dac29`) — three re-launchable runs, guarded folder links, history with an undo on every row that can honour one | — |
 | ✅ | ~~6.4 — the `НОВОЕ` top-up~~ | **done 2026-07-29** (`plans/08_DONE`, commit `abac68a`) — four misbehaviours removed rather than a pipeline added; it also caught `bugs/05_DONE`, a false deletion warning shipped in `v0.1` | — |
 | ✅ | ~~6.5 — the portable package~~ | **done 2026-07-29** (`plans/09`, 33.2 MB, built + verified on its own runtime). Its recon refuted the epic; the clean-machine acceptance is deferred by the owner to a friend's PC | — |
-| 1 | **Фаза 6.6 — the closing language pass** | The last phase of the interface epic. Now genuinely a gate rather than a workload: the big debt was paid on 2026-07-29 and the wizard's words were written to the rule from the start | **unblocked** |
+| ✅ | ~~6.6 — the closing language pass~~ | **done 2026-07-29.** The interface epic is complete. Found by reading, not grepping: the reports had never had the pass at all | — |
+| 0 | **`bugs/06` — a messy folder is mistaken for a finished library** | The only open defect, and it lands on the owner's OWN archive: `researches/02` recorded that it already holds hand-made `<year>/<season>` folders, so his first run would skip the wizard and be told «Всё уже разложено» about an unsorted archive. Nothing is at risk; the first impression is a false statement about his files | **unblocked** — four candidate fixes and a recommendation are in the document |
 | 2 | **A user-facing README for the interface + the download instructions** | The moment someone other than the owner runs KPOT, nothing tells them how — and the download page must carry the sentence about what Windows may show on the first launch (`researches/09` §6.2) | — |
 | 3 | **A square app icon** | The shortcut currently shows its target's icon. Blocked on a BRAND decision, not on work: the logo is a 1734×907 banner and a square mark out of it is the owner's call (EXP-0023). One line once he supplies one | **the owner** |
 
@@ -809,7 +843,7 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
 > A concrete checklist so the next session (empty context) can start immediately: which files, which
 > commands, what to verify first.
 
-1. Verify the environment: `node -v` (≥20), `npm test` (**must be 283/283**), `git status` (clean),
+1. Verify the environment: `node -v` (≥20), `npm test` (**must be 286/286**), `git status` (clean),
    `gh auth status` (MikalaiKryvusha). Owner-provided paths from this file are PAST observations —
    re-check they still exist before planning around them (EXP-0011: a sample vanished once already).
 2. **Run the whole product once, end to end, before designing on top of it.** It all works now:
@@ -825,20 +859,23 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
    the copy on 2026-07-28). Undo it with
    `node bin/kpot.mjs rollback run-20260728-201538-437c4d D:\work\ai_sandbox\KPOT_SANDBOX`.
    Do not delete it without his word, and never copy more of his photographs without a fresh one.
-3. ⭐ **THE NEXT PIECE OF WORK — phase 6.6, the closing language pass**, the last phase of the
-   interface epic. Everything before it is shipped: `kpot ui` opens a **wizard** on a messy folder
-   and a **control panel** on a library (three re-launchable runs · a guarded «Открыть» · a run
-   history with a working undo · the **`НОВОЕ` inbox block** · a desktop-shortcut offer), and
-   `npm run package` produces the **33.2 MB portable ZIP** that `npm run package:verify` proves works
-   on its own bundled runtime.
+3. ⭐ **THE NEXT PIECE OF WORK — `bugs/06`, the one open defect.** The interface epic is COMPLETE:
+   all six phases shipped, `kpot ui` gives a wizard and a control panel, `npm run package` builds the
+   33.2 MB portable ZIP that `npm run package:verify` proves works on its own runtime, and every
+   owner-facing text has been read line by line.
 
-   **Before touching the wording, LOOK at it.** The tooling now exists and it is the single most
-   valuable thing this session added: drive a headless browser you control (`--headless=new
-   --remote-debugging-port=N --user-data-dir=<temp>`), navigate, click, read `innerText`, screenshot
-   — scripts `ui_shot.mjs` / `ui_drive.mjs` in the 2026-07-29 scratchpad. Six phases of specs never
-   noticed that the wizard's step strip was drawn on the control panel or that every run card said
-   «Дальше»; one screenshot did (EXP-0024). A language pass done by grepping the dictionary will
-   miss exactly that class of thing.
+   Bug 06 is small in code and large in consequence: `libraryShape()` calls any folder holding a
+   `20xx/` directory a finished library, so the panel says «Всё уже разложено» over an unsorted
+   archive — and `researches/02` recorded that the owner's real archive is exactly that shape. Read
+   the bug document: it has four candidate fixes and recommends two of them together (require a real
+   run history, and where a guess is still needed, ASK — invariant 10 applied to a screen).
+
+   **KEEP LOOKING AT THE PAGE.** The single most valuable tool this project gained on 2026-07-29 is
+   a browser you control: `--headless=new --remote-debugging-port=N --user-data-dir=<temp>`, then
+   CDP over a WebSocket — navigate, click, read `innerText`, screenshot. Scripts `ui_shot.mjs`,
+   `ui_drive.mjs`, `ui_wizard.mjs` in that session's scratchpad. It found, in one afternoon, defects
+   that six phases and 280 green specs never could: the wizard's step strip drawn on the panel,
+   every run card labelled «Дальше», and bug 06 itself (EXP-0024).
 
    **Two items are open for the owner, not blocking:** the clean-machine acceptance of the package
    (he chose to do it at a friend's, «сильно позже» — exact steps in `plans/09` §9, and it MUST
@@ -951,7 +988,16 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
 
 ## Open bugs
 
-**None open.** Closed so far:
+- 🔧 **`bugs/06_messy_tree_looks_like_a_library.md`** (found 2026-07-29, present since 6.3) — any
+  top-level `20xx/` folder makes `libraryShape()` answer "library", so the interface shows the
+  control panel and says «Всё уже разложено» about a folder where nothing has been sorted, with
+  «Пока ничего не запускалось» two blocks below it. It lands on the owner's own archive:
+  `researches/02` recorded that it already holds hand-made `<year>/<season>` folders, so his first
+  run would never see the wizard. Nothing is at risk — every run behind the panel is the same
+  guarded run — the damage is a false first statement about his files. Four candidate fixes in the
+  document; recommended: require a real run history, and ask rather than guess where one is absent.
+
+Closed so far:
 
 - ✅ `bugs/05_DONE_emptied_dirs_false_positive.md` (2026-07-29) — the plan announced folders that
   are FULL as about to be deleted: on a sorted library, **48 folders** at **0 operations**, and the

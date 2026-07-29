@@ -90,8 +90,11 @@ test('the plan lists the folders that will be emptied, before anything runs', as
 
     // The owner reads the report, not the JSON — the deletions must be visible there too.
     const text = renderPlan(plan);
-    assert.match(text, /ПАПКИ, КОТОРЫЕ ОПУСТЕЮТ И БУДУТ УДАЛЕНЫ/);
-    assert.match(text, /откат воссоздаст каждую папку/);
+    // Wording updated in phase 6.6 («удалены» → «убраны», «откат» → «вернёте всё назад»). What is
+    // asserted has not moved: the section must be THERE, and it must still carry the owner's
+    // condition for allowing the deletion at all — that everything comes back if he undoes the run.
+    assert.match(text, /ПАПКИ, КОТОРЫЕ ОПУСТЕЮТ И БУДУТ УБРАНЫ/);
+    assert.match(text, /каждая папка появится снова/);
     for (const d of plan.emptied) assert.ok(text.includes(d), `«${d}» is deleted but not shown`);
 
     // Every folder still exists at plan time: planning deletes nothing.
@@ -191,7 +194,7 @@ test('A SORTED LIBRARY HAS NO FOLDERS WAITING TO BE DELETED — bug 05', async (
     assert.equal(second.plan.counts.emptiedDirs, 0);
 
     // The report is where the damage would land, so assert on the report too.
-    assert.equal(renderPlan(second.plan).includes('ПАПКИ, КОТОРЫЕ ОПУСТЕЮТ'), false);
+    assert.equal(renderPlan(second.plan).includes('ОПУСТЕЮТ'), false);
   } finally { await rm(root, { recursive: true, force: true }); }
 });
 

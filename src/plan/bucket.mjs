@@ -26,6 +26,7 @@
 // no clock and no filesystem (AGENT_GUIDE → canonical order).
 
 import { INBOX_DIR } from '../core/paths.mjs';
+import { dateInWords } from '../core/words.mjs';
 import { SEASONS, seasonForMonth } from './season.mjs';
 
 /** Top-level bucket for everything undatable, plus its two quarantine areas. */
@@ -203,31 +204,10 @@ export const EVIDENCE_IN_WORDS = Object.freeze({
   'fs-mtime':           'дата взята из отметки файловой системы',
 });
 
-const MONTHS_GENITIVE = Object.freeze(['января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
-  'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря']);
-
-/**
- * A date the way a person writes one: «15 июня 2012, 10:11». [NOT-TESTED]
- * Takes the verdict's wall-clock string when there is one, and otherwise reads the UTC instant as
- * UTC — the same deterministic choice `yearMonthOf` makes, and for the same reason.
- * A midnight time is dropped rather than printed as «00:00», which reads as a claim about the hour.
- */
-function dateInWords(verdict) {
-  const { year, month } = yearMonthOf(verdict);
-  let day, hh, mm;
-  if (verdict.date) {
-    day = Number(verdict.date.slice(8, 10));
-    hh = verdict.date.slice(11, 13);
-    mm = verdict.date.slice(14, 16);
-  } else {
-    const d = new Date(verdict.instant);
-    day = d.getUTCDate();
-    hh = String(d.getUTCHours()).padStart(2, '0');
-    mm = String(d.getUTCMinutes()).padStart(2, '0');
-  }
-  const dayPart = `${day} ${MONTHS_GENITIVE[month - 1]} ${year}`;
-  return (hh === '00' && mm === '00') ? dayPart : `${dayPart}, ${hh}:${mm}`;
-}
+// `dateInWords` used to live here. It moved down to `src/core/words.mjs` in phase 6.6, because the
+// plan's «даты, взятые у исходного снимка» section needed the same function and was printing raw
+// `2012-06-15 12:30:00` instead — one product writing a date two ways in one document. Two modules
+// needing one fact is exactly the case RULE 2 sends downward.
 
 function yearMonthOf(verdict) {
   if (verdict.date) {

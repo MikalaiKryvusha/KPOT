@@ -213,7 +213,11 @@ test('a dry run is still allowed while a run is unresolved — a rehearsal canno
     await interruptedRun(root, 'run-cut', 5);
     const after = await census(root);
     const r = await execFileP(process.execPath, [KPOT, 'apply', '--dry-run', root], { maxBuffer: 64 * 1024 * 1024 });
-    assert.match(r.stdout, /СУХОМ ПРОГОНЕ/);
+    // «Сухой прогон» was a literal rendering of "dry run" and one of the words the owner banned;
+    // phase 6.6 renamed it to «репетиция», which is what the interface had been calling it since
+    // 6.2. What this asserts is unchanged: the run produced a REHEARSAL report rather than a real
+    // one, and the census below proves nothing moved.
+    assert.match(r.stdout, /ОТЧЁТ О РЕПЕТИЦИИ/);
     assert.deepEqual([...(await census(root))].sort(), [...after].sort());
   } finally { await rm(root, { recursive: true, force: true }); }
 });

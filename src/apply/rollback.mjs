@@ -27,6 +27,7 @@
 import { mkdir, readdir, readFile, rename, rmdir, stat } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { readRunJournal } from '../core/journal.mjs';
+import { counted } from '../core/words.mjs';
 import { MANIFEST_NAME } from './backup.mjs';
 
 /** Absolute path of a journal-relative ('/'-separated) path inside the root. */
@@ -201,18 +202,26 @@ export async function readManifest(runDir) {
  */
 export function renderRollbackReport(result) {
   const L = [];
-  L.push('ОТЧЁТ ОБ ОТКАТЕ');
+  L.push('ВСЁ ВЕРНУЛОСЬ НА ПРЕЖНИЕ МЕСТА');
   L.push('='.repeat(60));
   L.push(`Прогон:            ${result.runId}`);
-  L.push(`Возвращено:        ${result.restored}`);
-  if (result.alreadyInPlace > 0) L.push(`Уже были на месте: ${result.alreadyInPlace}`);
-  if (result.dirsRestored?.length > 0) L.push(`Воссоздано папок:  ${result.dirsRestored.length}`);
-  if (result.dirsRemoved.length > 0) L.push(`Убрано пустых папок: ${result.dirsRemoved.length}`);
-  if (result.failed > 0) L.push(`Не удалось:        ${result.failed}`);
+  L.push(`Возвращено:        ${counted(result.restored, 'файл', 'файла', 'файлов')}`);
+  if (result.alreadyInPlace > 0) {
+    L.push(`Уже были на месте: ${counted(result.alreadyInPlace, 'файл', 'файла', 'файлов')}`);
+  }
+  if (result.dirsRestored?.length > 0) {
+    L.push(`Создано заново папок: ${result.dirsRestored.length}  (те, что сортировка убрала)`);
+  }
+  if (result.dirsRemoved.length > 0) {
+    L.push(`Убрано пустых папок:  ${result.dirsRemoved.length}  (те, что сортировка создала)`);
+  }
+  if (result.failed > 0) {
+    L.push(`Не удалось:        ${counted(result.failed, 'файл', 'файла', 'файлов')}`);
+  }
   if (result.truncated) {
     L.push('');
-    L.push('ВНИМАНИЕ: журнал прогона оборван (программа была прервана). Откачено всё, что в нём');
-    L.push('успело записаться; бэкап-снимок прогона по-прежнему на месте.');
+    L.push('ВНИМАНИЕ: запись о том прогоне обрывается на середине — программу тогда прервали.');
+    L.push('Возвращено всё, что успело в неё попасть; запасная копия того прогона цела.');
   }
   if (result.errors.length > 0) {
     L.push('');
@@ -222,7 +231,8 @@ export function renderRollbackReport(result) {
   }
   L.push('');
   L.push(result.failed === 0
-    ? 'Дерево возвращено в исходное состояние.'
-    : 'Часть файлов вернуть не удалось — смотрите ошибки выше; бэкап прогона не тронут.');
+    ? 'Ваши папки выглядят ровно так же, как до сортировки.'
+    : 'Часть файлов вернуть не удалось — смотрите список выше. Запасная копия того прогона цела, '
+      + 'из неё всё ещё можно всё достать.');
   return L.join('\n');
 }

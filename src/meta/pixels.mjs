@@ -58,6 +58,7 @@
 
 import jpegJs from 'jpeg-js';
 import { makeEvidence } from './evidence.mjs';
+import { counted } from '../core/words.mjs';
 
 // --- Tunables (all named, all measured — see researches/06) ---------------------------------------
 
@@ -470,15 +471,21 @@ export function pixelEvidence(decision, originalAsset, { available = 0 } = {}) {
   if (!capture) return null;
   // Owner-facing text (he asked for plain language, 2026-07-28): «no rival» is not a margin, it is
   // the case where every candidate is from the SAME DAY — so whichever won, the date is the same.
-  const margin = Number.isFinite(decision.margin)
-    ? `отрыв от следующего ${decision.margin}`
-    : 'все остальные снимки того же дня, дата от этого не меняется';
-  const capped = available > decision.compared ? ` из ${available}` : '';
+  // Phase 6.6. This line used to read «различие 26 из 1024, отрыв от следующего 360, сравнивалось
+  // снимков: 4» — every number true, and nothing a person can do with any of them. What he needs is
+  // WHICH file it is (so he can look at it with his own eyes) and HOW SURE we are, said in words.
+  // The numbers are not lost: they stay in the machine artifact, where a number belongs.
+  // Two states, not three: this evidence only exists when the decision was ACCEPTED, and acceptance
+  // already required a decisive margin (PIXEL_MIN_MARGIN). Inventing a second threshold to grade
+  // confidence further would put a number on the page that nothing measured — worse than none.
+  const sureness = Number.isFinite(decision.margin)
+    ? 'совпадение уверенное — остальные снимки рядом похожи заметно меньше'
+    : 'все похожие снимки сделаны в один день, так что дата от выбора не зависит';
+  const looked = counted(decision.compared, 'снимок', 'снимка', 'снимков');
   return makeEvidence('pixel-original', {
     wall: capture.wall,
     dateOnly: capture.dateOnly,
-    detail: `исходный снимок: '${originalAsset.path}' `
-      + `(различие ${decision.best.distance} из ${FINE_BITS}, `
-      + `${margin}, сравнивалось снимков: ${decision.compared}${capped})`,
+    detail: `исходный снимок: ${originalAsset.path}\n    ${sureness}; `
+      + `рядом посмотрели ${looked}`,
   });
 }

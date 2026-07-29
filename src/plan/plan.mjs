@@ -17,6 +17,7 @@
 // which is deliberately isolated in `meta` so Phase 4 can compare the actionable parts directly.
 
 import { samePath, normalizeForCompare, INBOX_DIR } from '../core/paths.mjs';
+import { counted, plural, wallInWords } from '../core/words.mjs';
 import { groupDuplicates } from '../dedupe/dedupe.mjs';
 import { planBucket, isTechnicalDir, stripReviewPrefix, REVIEW_DIR, EVIDENCE_IN_WORDS } from './bucket.mjs';
 import { findSuspiciousDirs, heldBy } from './suspicious.mjs';
@@ -396,16 +397,23 @@ export function renderPlan(plan) {
   const c = plan.counts;
   L.push('ПРЕД-СОРТИРОВОЧНЫЙ МАСТЕР-ПЛАН');
   L.push('='.repeat(60));
-  L.push(`Корень:            ${plan.meta.root}`);
-  L.push(`Файлов найдено:    ${c.files}`);
-  L.push(`Будет перемещено:  ${c.moves}`);
-  L.push(`Уже на месте:      ${c.alreadyInPlace}`);
-  L.push(`Остаётся на месте: ${c.stay}  (не медиа — не трогаем)`);
-  L.push(`Дубликаты:         ${c.duplicateGroups} групп, ${c.duplicateCopies} копий в сторону`);
-  L.push(`Спорных случаев:   ${c.disputed}`);
-  L.push(`Конфликтов имён:   ${c.collisions}`);
-  L.push(`Опустевших папок:  ${c.emptiedDirs ?? 0}  (будут удалены, откат воссоздаст)`);
-  if (c.awaitingDecision > 0) L.push(`Ждут вашего решения: ${c.awaitingDecision} папок — см. ниже`);
+  // Every count agrees with its noun. «Дубликаты: 1 групп» and «Ждут вашего решения: 1 папок» were
+  // in the first ten lines of this document until 2026-07-29 — no banned word, and wrong Russian
+  // in the report the whole product is built around (phase 6.6; the rule lives in core/words.mjs).
+  L.push(`Папка:             ${plan.meta.root}`);
+  L.push(`Найдено:           ${counted(c.files, 'файл', 'файла', 'файлов')}`);
+  L.push(`Переедет:          ${counted(c.moves, 'файл', 'файла', 'файлов')}`);
+  L.push(`Уже на месте:      ${counted(c.alreadyInPlace, 'файл', 'файла', 'файлов')}`);
+  L.push(`Останется как есть: ${counted(c.stay, 'файл', 'файла', 'файлов')}  `
+    + '(это не фотографии, не видео и не звук — их не трогаем)');
+  L.push(`Одинаковых копий:  ${counted(c.duplicateCopies, 'штука', 'штуки', 'штук')} `
+    + `в ${counted(c.duplicateGroups, 'группе', 'группах', 'группах')}`);
+  L.push(`Требуют взгляда:   ${counted(c.disputed, 'случай', 'случая', 'случаев')}`);
+  L.push(`Совпало имён:      ${counted(c.collisions, 'штука', 'штуки', 'штук')}`);
+  L.push(`Опустеет папок:    ${c.emptiedDirs ?? 0}  (будут убраны; возврат создаст их заново)`);
+  if (c.awaitingDecision > 0) {
+    L.push(`Ждут вашего решения: ${counted(c.awaitingDecision, 'папка', 'папки', 'папок')} — см. ниже`);
+  }
   L.push('');
   L.push('ЭТО ТОЛЬКО ПЛАН. Ни один файл ещё не тронут.');
   L.push('');
@@ -448,9 +456,13 @@ export function renderPlan(plan) {
     L.push('ДУБЛИКАТЫ (побайтово идентичные копии — ничего не удалено)');
     L.push('-'.repeat(60));
     for (const g of plan.duplicates) {
-      L.push(`  ${g.count} копии, ${g.size} байт, sha256 ${g.sha256.slice(0, 12)}…`);
-      L.push(`    хранитель: ${g.keeper}`);
-      L.push(`               (выбран: ${g.keeperReason})`);
+      // The sha256 used to be printed here. It is the tool's proof of identity, not the owner's:
+      // «хеш» is one of the words he banned, and a person cannot check a hash by eye anyway. What
+      // he CAN check is the file size and the names, so those are what the line shows.
+      L.push(`  ${counted(g.count, 'одинаковый файл', 'одинаковых файла', 'одинаковых файлов')}, `
+        + `по ${g.size} ${plural(g.size, 'байту', 'байта', 'байт')} каждый:`);
+      L.push(`    оставляем: ${g.keeper}`);
+      L.push(`               (почему именно его: ${g.keeperReason})`);
       for (const copy of g.copies) L.push(`    копия:     ${copy}  → ПРОЧЕЕ/_дубликаты/`);
     }
     L.push('');
@@ -465,7 +477,10 @@ export function renderPlan(plan) {
     L.push('');
     for (const i of plan.inherited) {
       L.push(`  ${i.path}`);
-      L.push(`    дата ${i.date}, найдено ${i.how}`);
+      // The date is written the same way it is written two screens up, in the move lines. It used
+      // to print `2012-06-15 12:30:00` here while the rest of the report said «15 июня 2012, 12:30»
+      // — one product writing a date two ways in one document.
+      L.push(`    снято ${wallInWords(i.date)}, найдено ${i.how}`);
       if (i.detail) L.push(`    ${i.detail}`);
     }
     L.push('');
@@ -492,10 +507,10 @@ export function renderPlan(plan) {
   }
 
   if (plan.emptied?.length > 0) {
-    L.push('ПАПКИ, КОТОРЫЕ ОПУСТЕЮТ И БУДУТ УДАЛЕНЫ');
+    L.push('ПАПКИ, КОТОРЫЕ ОПУСТЕЮТ И БУДУТ УБРАНЫ');
     L.push('-'.repeat(60));
-    L.push('  Все файлы из них переедут, пустые папки убираются. Их пути записаны в бэкап —');
-    L.push('  откат воссоздаст каждую папку.');
+    L.push('  Все файлы из них переедут, а пустые папки убираются. Названия записаны в запасную');
+    L.push('  копию — если вернёте всё назад, каждая папка появится снова.');
     L.push('');
     for (const d of [...plan.emptied].sort()) L.push(`  ${d}/`);
     L.push('');

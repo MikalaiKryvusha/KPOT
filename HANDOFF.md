@@ -5,15 +5,15 @@
 > working. It is a *snapshot*, not a second source of truth: where it summarises another document it
 > names it, and that document wins on any disagreement.
 >
-> **Written:** 2026-07-28 at release `v0.1`; **refreshed 2026-07-29** after phase 6.4 closed — the
-> interface now has both faces (the first-flight wizard and the control panel), the panel can undo a
-> past run, and the `НОВОЕ` inbox has its block on it.
-> **Suite: 283/283 green.** If today is much later than that, re-read `STATUS.md` first — it is
+> **Written:** 2026-07-28 at release `v0.1`; **refreshed 2026-07-29** after the interface epic
+> finished its last phase — both faces exist, the panel can undo a past run and shows the `НОВОЕ`
+> inbox, the product ships as a portable ZIP, and every owner-facing text has had its language pass.
+> **Suite: 286/286 green.** If today is much later than that, re-read `STATUS.md` first — it is
 > maintained continuously, this file is not.
 >
-> **Start here, then:** §6 is the next task — **phase 6.5, the portable package**, and it is GATED:
-> the Mark-of-the-Web on a real browser download must be measured before the package may promise a
-> silent first launch. §6 says what is already settled and what the recon must go and look at.
+> **Start here, then:** §6 is the next task — **`bugs/06`**, the one open defect: a messy folder
+> containing any `2013/` is taken for a finished library, so the wizard is skipped on exactly the
+> kind of archive it was built for. Four candidate fixes and a recommendation are in that document.
 
 ---
 
@@ -46,10 +46,10 @@ tool has sorted a real archive sample. Everything below is verified, not claimed
 
 | | |
 |---|---|
-| Test suite | **283/283** green (`npm test`, `node --test`) |
+| Test suite | **286/286** green (`npm test`, `node --test`) |
 | Phases 0–5 | ✅ **all closed** (foundation · research+skeleton · scan/dates · dedupe/plan · safety · first real use) |
-| Phase 6 — the interface | 🔧 under way. Epic: `plans/03_interface_epic.md`. **6.0 · 6.1 · 6.2 · 6.3 · 6.4 · 6.5 done** — `kpot ui` opens a wizard on a messy folder and a control panel on a library (three re-launchable runs, guarded folder links, a run history with a working undo, the `НОВОЕ` inbox block, a desktop-shortcut offer), and `npm run package` builds the **33.2 MB portable ZIP** that `npm run package:verify` proves runs on its own bundled runtime. **6.6 remains** |
-| Open bugs | **none** (five closed — four found by real data, one by a probe run for another reason; see `bugs/`) |
+| Phase 6 — the interface | ✅ **all six phases done** (`plans/03_interface_epic.md`). `kpot ui` opens a wizard on a messy folder and a control panel on a library (three re-launchable runs, guarded folder links, a run history with a working undo, the `НОВОЕ` inbox block, a desktop-shortcut offer); `npm run package` builds the **33.2 MB portable ZIP** that `npm run package:verify` proves runs on its own bundled runtime; and 6.6 put every owner-facing text through a reading pass |
+| Open bugs | **one** — `bugs/06`: a messy folder with any `2013/` in it is mistaken for a finished library. Five closed (see `bugs/`) |
 | Runtime deps | two: `exifreader` and `jpeg-js` (BSD-3-Clause, added 2026-07-28 for the pixel search) |
 | Node | ≥ 20 (developed on 24, Windows 11) |
 
@@ -68,7 +68,7 @@ node bin/kpot.mjs ui                       # the window: a local server + a page
 
 ```bash
 node -v                                    # must be >= 20
-npm test                                   # must be 266/266
+npm test                                   # must be 286/286
 git status                                 # must be clean; work on main, no feature branches
 
 # then run the whole product once, end to end, on a throwaway tree:
