@@ -419,6 +419,32 @@ and report in the chat.
 Rule of thumb: *is it cheap to reverse?* If yes — decide yourself. If it shapes brand/architecture/UX
 for the long term — interview.
 
+**A BLANKET AUTHORISATION GRANTS EXECUTION, NEVER AUTHORSHIP OF IDENTITY** (added 2026-07-29 after
+`bugs/07`, which is exactly this mistake). When the owner says «на всё даю добро», «не спрашивай»,
+«делай что нужно», he is removing the *confirmation friction* on an action — publish, push, tag,
+proceed without coming back for a yes at every step. He is **not** transferring the decisions about
+what things are CALLED and how the product PRESENTS itself. These are different objects and a wide
+yes to the first is silent about the second:
+
+| | what it is | who owns it |
+|---|---|---|
+| «публикуй, не спрашивай» | permission to **act** without re-confirmation | his to grant, and he granted it |
+| «назови релиз / продукт / фичу» | authorship of the product's **identity** | his, and no width of approval transfers it |
+
+So: **naming is never the agent's** — release codenames, product and feature names, taglines, any
+brand-visible string a person reads before they read anything else. Under a blanket yes the correct
+move is neither to stop nor to guess: **do all the rest, and ask the one naming question.** A single
+pointed question inside work already authorised costs nothing and is not what «не спрашивай» was
+aimed at. Where even that is impossible, ship **without** a name — a neutral factual title is always
+available and is never a brand claim; a placeholder name is not a fallback, because it is still a
+name somebody must later un-choose.
+
+The failure mode this prevents is specific and was observed: the rule above («never make brand
+decisions without confirmation») was present, read in-session, and *recalled correctly one message
+too late*. It did not fail from ignorance — it failed because a blanket approval was read as
+covering it. A rule that fires only after the fact is not a gate, which is why this paragraph exists
+next to it rather than as a lesson somewhere else.
+
 **Write-gate on the owner's canon artifacts** (`GOAL.md`, the interview answers, the `MASTER_PLAN.md`
 decision log, the READMEs the owner reads — anything where the owner's word IS the content): **new
 entities** (mechanics, facts, decisions) enter only through a draft to the owner (interview/chat) and

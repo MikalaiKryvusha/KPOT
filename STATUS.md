@@ -718,7 +718,7 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
 | ✅ | ~~6.6 — the closing language pass~~ | **done 2026-07-29.** The interface epic is complete. Found by reading, not grepping: the reports had never had the pass at all | — |
 | ✅ | ~~`bugs/06` — a messy folder mistaken for a finished library~~ | **fixed 2026-07-29** by the owner's rule: KPOT leaves a **receipt** and asks it, instead of guessing from a `2013/` folder | — |
 | ✅ | ~~A user-facing README for the interface + download instructions~~ | **done 2026-07-29** (commit `769c627`), in both languages: what the two screens are and why one or the other appears, the receipt file explained to the person who will meet it in their own folder, and the `researches/09` §6.2 obligation discharged — the Windows first-launch dialog named in its own words, with the button to press. (This row appeared TWICE in the table; deduplicated) | — |
-| ✅ | ~~**Release 0.2 «Visible KPOT»**~~ | **published 2026-07-29** on the owner's explicit word («НА ВСЁ ДАЮ ДОБРО»). Tag `v0.2`, two artifacts: the 33.2 MB portable ZIP and the 165 KB npm tarball. It closes BOTH honest limits `0.1` declared about itself — «No GUI yet» and «No pixel-level matching yet» | — |
+| ✅ | ~~**Release 0.2 «Obvius KPOT»**~~ | **published 2026-07-29** on the owner's explicit word («НА ВСЁ ДАЮ ДОБРО»). Tag `v0.2`, two artifacts: the 33.2 MB portable ZIP and the 165 KB npm tarball. It closes BOTH honest limits `0.1` declared about itself — «No GUI yet» and «No pixel-level matching yet» | — |
 | 3 | **A square app icon** | The shortcut currently shows its target's icon. Blocked on a BRAND decision, not on work: the logo is a 1734×907 banner and a square mark out of it is the owner's call (EXP-0023). One line once he supplies one | **the owner** |
 
 **Explicitly NOT on this list, and why** — so a future session does not resurrect them:
@@ -916,7 +916,7 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
    `node bin/kpot.mjs rollback run-20260728-201538-437c4d D:\work\ai_sandbox\KPOT_SANDBOX`.
    Do not delete it without his word, and never copy more of his photographs without a fresh one.
 3. ⭐ **RELEASE 0.2 IS OUT — the backlog is empty of unblocked work.** Published 2026-07-29 as
-   **«Visible KPOT»** (tag `v0.2`) on the owner's explicit authorisation («НА ВСЁ ДАЮ ДОБРО»), with
+   **«Obvius KPOT»** (tag `v0.2`) on the owner's explicit authorisation («НА ВСЁ ДАЮ ДОБРО»), with
    both artifacts attached: `KPOT-0.2.0-win-x64.zip` (33.2 MB portable) and `kpot-0.2.0.tgz`
    (165 KB). The README's download links are real links now, in both languages.
 
@@ -1060,6 +1060,25 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
 ## Open bugs
 
 **None open.** Closed so far:
+
+- ✅ `bugs/07_DONE_brand_decision_without_owner.md` (2026-07-29) — **a PROCESS defect, found by the
+  owner minutes after release 0.2 went public.** He had pre-authorised the whole operation («НА ВСЁ
+  ДАЮ ДОБРО, МЕНЯ МОЖЕШЬ НЕ СПРАШИВАТЬ»), and the agent read that as covering the release CODENAME,
+  publishing a name the owner first saw as a fait accompli: «Было принято бренд решение без
+  владельца». The rule existed, was read in-session (canon: brand first on the do-not-decide list;
+  `/release` Step 0: «ask the human for it») and was recalled correctly one message too late — so
+  the missing thing was the DISTINCTION between authorising an ACT and authorising a DECISION.
+  Fixed as mechanism: the concept is in `AGENT_GUIDE.md`, Step 0 is a hard stop with three legal
+  outcomes (owner names it · he picks from 2–3 · ship with NO codename), and a name must now carry
+  its source. The owner named 0.2 himself: **«Obvius»**. EXP-0026.
+- ✅ `bugs/08_DONE_release_notes_duplicated_readme.md` (2026-07-29) — the 0.2 notes were **34 KB and
+  nearly a copy of the README** («зачем в релиз ноутсы попала почти вся копия README - это
+  НЕПРАВИЛЬНО!»). Cause was the SKILL TEMPLATE, which asked for a «what X is» paragraph and a full
+  Get-started section — an instruction to duplicate in a project whose README has both. Rewritten to
+  **12 KB** of pure delta and republished. Step 6 now carries the two-document rule, the different
+  sources of inspiration (README ← the owner's other repos · notes ← this project's previous
+  releases) and a mechanical check: *if a paragraph could be pasted into the README unchanged, it
+  belongs in the README*.
 
 - ✅ `bugs/06_DONE_messy_tree_looks_like_a_library.md` (found and fixed 2026-07-29) — any top-level
   `20xx/` folder made `libraryShape()` answer "library", so the interface opened the control panel

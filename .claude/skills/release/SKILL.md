@@ -19,8 +19,30 @@ show the error, do NOT continue blindly.
 Confirm with the human (or confirm the default): patch / minor / major. State the current → new version.
 
 **Every release gets a short codename** (a memorable one- or two-word name for the theme, e.g. *Anonymous*,
-*Slim*, *Savvied*). Ask the human for it (or propose one and confirm). The codename drives the release
-**title** and headline — see Step 6.
+*Slim*, *Savvied*). The codename drives the release **title** and headline — see Step 6.
+
+> 🛑 **HARD STOP — THE CODENAME IS NEVER THE AGENT'S TO INVENT.** It is a BRAND decision, and
+> `AGENT_GUIDE.md` §Decisions the agent must NOT make alone puts brand first on the list of what an
+> agent may not decide alone. Exactly one of these may happen:
+>
+> 1. **The human names it** — quote his words, and record the source beside the name («owner, chat,
+>    2026-07-29») the way a research claim carries its link.
+> 2. **You propose 2–3 and he picks one.** A proposal is not a decision; shipping your proposal
+>    because he did not answer *is*.
+> 3. **It ships with NO codename** — a neutral factual title (`KPOT 0.2`) — which is always available,
+>    never a brand claim, and the correct fallback when he is away or busy.
+>
+> **A blanket approval does NOT dissolve this gate.** «На всё даю добро», «не спрашивай», «делай что
+> нужно» authorise the ACTION (publish, tag, push without re-confirmation); they do not transfer
+> authorship of what the product is CALLED. Under a blanket yes: do every other step, and ask this
+> one question — it is a single line and it is not what «не спрашивай» was aimed at.
+>
+> A placeholder name is **not** a fallback: it is still a name somebody must later un-choose.
+>
+> Why this is a hard stop and not advice: `bugs/07`. This step already said "ask the human for it",
+> was read in-session, and was skipped anyway under a blanket «ДА, ДОБРО» — the release shipped
+> publicly under a name the owner first saw as a fait accompli, and his answer was «Было принято
+> бренд решение без владельца.» The instruction was present; what was missing was the refusal.
 
 ## Step 1. Pre-check the environment (don't release on a dirty/broken tree)
 
@@ -81,12 +103,26 @@ gh release create vX.Y --title "<PROJECT> X.Y — <Codename>" --notes-file <NOTE
 > `KAIF 1.3 — Slim KAIF`, `KAIF 1.4 — Savvied KAIF`. **Not** `vX.Y`, no guillemets, no quotes. Keep it
 > consistent with every prior release (check `gh release list`).
 >
-> 📝 **Release notes — detailed and BILINGUAL (do NOT `--generate-notes`).** Write real notes and mirror
-> **every language the README ships in**, with in-page language anchors/toggles, matching the house style
-> of previous releases (check the last release's body with `gh release view <prev> --json body -q .body`
+> 📝 **Release notes — BILINGUAL and about the DELTA (do NOT `--generate-notes`).** Write real notes and
+> mirror **every language the README ships in**, with in-page language anchors/toggles, matching the house
+> style of previous releases (check the last release's body with `gh release view <prev> --json body -q .body`
 > and follow its shape). Structure per language: a header line (release date · place), a one-paragraph
-> "what this release is", a short "what KAIF is" paragraph, the attached artifacts, a **✨ What's new**
-> section, and a **🚀 Get started** section. Write the notes to a file and pass `--notes-file`.
+> "what this release is", **a LINK to the README** for what the product is, the attached artifacts, a
+> **✨ What's new** section, and a short **🚀 Get started**. Write the notes to a file and pass `--notes-file`.
+>
+> 🚫 **THE NOTES ARE NOT A COPY OF THE README.** They answer *«what changed, and should I update?»*;
+> the README answers *«what is this and how do I use it?»*. When both need the same paragraph — the
+> product description, the full install instructions, the platform warnings, the feature tour — the
+> notes **link**, they do not repeat. Concretely, do not paste into the notes: the "what the product
+> is" tour, the safety/feature bullets that already live in the README, or the full get-started
+> section (one download line plus one command is enough).
+>
+> Why this is written here: release 0.2 shipped with notes that were **34 KB and nearly a copy of the
+> README**, and the owner's verdict was «зачем в релиз ноутсы попала почти вся копия README - это
+> НЕПРАВИЛЬНО!». Rewritten to 12 KB of pure delta. The old wording of this very step — "a short *what
+> X is* paragraph … and a 🚀 Get started section" — is what invited the duplication, so it is fixed at
+> the source rather than left as a matter of taste. **Sanity check before publishing: if a paragraph
+> could be pasted into the README unchanged, it belongs in the README, not in the notes.**
 
 ## Step 6.5. The deploy checklist (when shipping replaces a RUNNING system)
 

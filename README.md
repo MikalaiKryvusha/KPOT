@@ -5,7 +5,7 @@
 # KPOT — Krinik Photo Organizer Tool
 
 ![License](https://img.shields.io/badge/license-MIT-green)
-![Release](https://img.shields.io/badge/release-0.2%20«Visible%20KPOT»-blue)
+![Release](https://img.shields.io/badge/release-0.2%20«Obvius%20KPOT»-blue)
 ![Status](https://img.shields.io/badge/status-window%20·%20portable%20package%20·%20sorted%20a%20real%20archive-brightgreen)
 ![Node](https://img.shields.io/badge/node-%E2%89%A520-brightgreen)
 ![Platform](https://img.shields.io/badge/platform-Windows--first-blue)
@@ -109,7 +109,7 @@ node bin/kpot.mjs --help
 
 ### Status
 
-🎉 **Release 0.2 “Visible KPOT”.** The tool now has a **face**: a window you drive with the mouse,
+🎉 **Release 0.2 “Obvius KPOT”.** The tool now has a **face**: a window you drive with the mouse,
 a portable package that needs neither Node nor a terminal, and a note it leaves behind saying what
 it did to your folder. Verified by **294 green tests** *and* by two supervised runs on real material
 taken out of a genuinely messy 551 GB collection — a 3 397-file / 13 GB sample, and a fresh
@@ -311,7 +311,7 @@ node bin/kpot.mjs --help
 
 ### Статус
 
-🎉 **Релиз 0.2 «Visible KPOT».** У инструмента появилось **лицо**: окно, которым управляют мышью,
+🎉 **Релиз 0.2 «Obvius KPOT».** У инструмента появилось **лицо**: окно, которым управляют мышью,
 портативный пакет, которому не нужны ни Node, ни командная строка, и записка, которую программа
 оставляет в папке — что именно она с ней сделала. Проверено **294 зелёными тестами** *и* двумя
 контролируемыми прогонами на живом материале из по-настоящему захламлённой коллекции на 551 ГБ —
