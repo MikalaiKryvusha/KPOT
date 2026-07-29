@@ -24,6 +24,9 @@
 
 import { resolve } from 'node:path';
 import { stat } from 'node:fs/promises';
+import { renderPlan } from '../plan/plan.mjs';
+import { renderApplyReport } from '../apply/apply.mjs';
+import { renderRollbackReport } from '../apply/rollback.mjs';
 import { scanTree } from '../scan/scan.mjs';
 import { annotateAssets } from '../meta/annotate.mjs';
 import { buildPlan } from '../plan/plan.mjs';
@@ -39,6 +42,16 @@ import { loadDecisions, saveDecisions } from '../core/decisions.mjs';
  * used to distinguish them by which message it printed — which meant a second caller had to
  * re-derive them from prose. Naming them makes each ending a value both faces can branch on.
  */
+/**
+ * The owner-facing reports, re-exported so every FACE gets them from one place.
+ *
+ * They live in the modules that own their artifacts (the internal map explains why), but a face may
+ * not reach below this layer — so without this line the web interface would either break RULE 2 or,
+ * far worse, grow its own second rendering of the master plan. The owner reads that text and has
+ * already corrected its wording twice; there must be exactly one of it.
+ */
+export { renderPlan, renderApplyReport, renderRollbackReport };
+
 export const APPLY_OUTCOME = {
   /** An earlier run stopped half-way. Only the owner may choose between resuming and rolling back. */
   BLOCKED_BY_UNFINISHED: 'blocked-by-unfinished',

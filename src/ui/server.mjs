@@ -32,6 +32,9 @@ import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createJobRunner } from './jobs.mjs';
+import { listFolders } from './folders.mjs';
+import { renderPage } from './page.mjs';
+import { renderPlan } from '../app/phases.mjs';
 
 /**
  * The port we ask for first. Arbitrary on purpose, and chosen the way Syncthing chose 8384: high
@@ -284,6 +287,30 @@ export async function startServer({ port = DEFAULT_PORT, token = randomBytes(24)
       return;
     }
 
+    // Choosing the folder. A browser page CANNOT open a file dialog that returns a real path — the
+    // web platform deliberately forbids it — and telling an inexperienced person to type
+    // `D:\Фото\архив` by hand is the opposite of the «защита от дурака» the owner asked for. So the
+    // server lists folders and the page walks them. Read-only: it returns names, never contents.
+    if (url.pathname === '/api/folders') {
+      listFolders(url.searchParams.get('path')).then((data) => {
+        res.writeHead(200, { 'content-type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify(data));
+      }).catch((e) => deny(res, 400, e.message));
+      return;
+    }
+
+    // The plan the person reads. Rendered by the SAME function the terminal uses — the owner has
+    // corrected that text's wording twice, and there must be exactly one of it.
+    if (url.pathname === '/api/plan-report') {
+      const last = jobs.state().last;
+      const planned = last?.kind === 'plan' && last.state === 'done' ? last.result : null;
+      res.writeHead(200, { 'content-type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify(planned
+        ? { plan: planned.plan, report: renderPlan(planned.plan) }
+        : { plan: null, report: '' }));
+      return;
+    }
+
     // What is happening right now, and what happened last. A browser that was closed during a run
     // and reopened afterwards must be able to catch up — the owner's server/«морда» split makes
     // that the normal case, not an edge one.
@@ -324,7 +351,7 @@ export async function startServer({ port = DEFAULT_PORT, token = randomBytes(24)
 
     if (url.pathname === '/') {
       res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
-      res.end(PLACEHOLDER_PAGE);
+      res.end(renderPage());
       return;
     }
 
@@ -347,28 +374,4 @@ export async function startServer({ port = DEFAULT_PORT, token = randomBytes(24)
     broadcast, browserProgress, jobs, subscriberCount: () => subscribers.size };
 }
 
-/**
- * A deliberately bare page for phase 6.1: it proves the server is alive and reachable, and nothing
- * more. The wizard is phase 6.2 and the control panel is 6.3 — building any of that here would mean
- * designing the face before its foundations are verified. Bilingual strings start in 6.2, where the
- * first real interface text appears.
- */
-const PLACEHOLDER_PAGE = `<!doctype html>
-<html lang="ru"><head><meta charset="utf-8">
-<title>Krinik Photo Organizer Tool (KPOT)</title>
-<style>body{font:16px/1.5 system-ui,sans-serif;margin:3rem auto;max-width:34rem;padding:0 1rem}</style>
-</head><body>
-<h1>Krinik Photo Organizer Tool</h1>
-<p>Программа работает. Это временная страница: рабочий вид появится на следующем шаге.</p>
-<p>Окно можно закрыть — программа продолжит работать. Чтобы выключить её совсем,
-нажмите «Завершить работу».</p>
-<button id="stop">Завершить работу</button>
-<p id="said"></p>
-<script>
-const token = new URLSearchParams(location.search).get('token');
-document.getElementById('stop').onclick = async () => {
-  await fetch('/api/shutdown?token=' + encodeURIComponent(token), { method: 'POST' });
-  document.getElementById('said').textContent = 'Программа выключена. Окно можно закрыть.';
-};
-</script>
-</body></html>`;
+// The wizard itself lives in ./page.mjs — one self-contained page, every word from ./i18n.mjs.
