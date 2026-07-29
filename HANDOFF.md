@@ -165,10 +165,14 @@ confirmation. What exists, and what you must CALL rather than re-implement:
 - `src/ui/i18n.mjs` — every interface word, RU/EN. Nothing may be written into markup: a spec fails
   on a Cyrillic character found in the page's HTML.
 
-**The recon that gates 6.3** (canon step 9b): the panel puts «Открыть» next to every year, which
-means the local server launches Explorer with a path — an external program driven by an HTTP request.
-Write the recon covering how that behaves on Windows and how the path is proven to lie inside the
-library root BEFORE it is passed anywhere.
+**The recon that gated 6.3 is DONE:** `researches/08_open_folder_and_path_safety.md`, measured on the
+development machine. Read it before writing the «Открыть» control — it contains three facts you would
+otherwise get wrong. (a) `explorer.exe` **exits 1 even when it succeeds**, so its exit code is
+meaningless and the path must be checked BEFORE launching. (b) A **junction** created inside the
+library — no admin rights needed — defeats the textual `isInside` in `src/core/paths.mjs`, which is
+correct for the plan and insufficient as a security boundary. (c) **8.3 short names** break the same
+check in the opposite direction. One rule covers all three: **realpath first, then check containment,
+then launch and ignore the result.**
 
 **What the panel owes** (owner's words, interview #003): re-launch any of the three runs with a state
 on each card · folders awaiting a decision, answered in the UI over the existing

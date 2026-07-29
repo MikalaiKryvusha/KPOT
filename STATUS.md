@@ -517,7 +517,7 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
 | # | Item | Why it ranks here | Blocked by |
 |---|------|-------------------|-----------|
 | ✅ | ~~6.0 shared layer · 6.1 server · 6.2 wizard · the jargon debt~~ | **all four done 2026-07-29** — see the session record above | — |
-| 1 | **Фаза 6.3 — the control panel** | The wizard is right exactly once; after the first flight it becomes an interrogation. The panel is what makes the tool usable forever: three re-launchable runs, folder decisions answered in the UI, links into Explorer, run history with a rollback per row | **a recon first** — opening a folder in Explorer from the local server is an external-program launch, and the path must be proven to lie inside the library root |
+| 1 | **Фаза 6.3 — the control panel** | The wizard is right exactly once; after the first flight it becomes an interrogation. The panel is what makes the tool usable forever: three re-launchable runs, folder decisions answered in the UI, links into Explorer, run history with a rollback per row | **UNBLOCKED 2026-07-29** — the recon is written (`researches/08`): resolve the real path, then check containment, then launch and ignore the exit code |
 | 2 | **Фаза 6.4 — the `НОВОЕ` top-up** (idea 01) | Without it the tidy-up decays: in a year the archive needs another big sort. Small, because every mechanism it needs already exists | 6.3 |
 | 3 | **Фаза 6.5 — the portable package** | This is what makes the product reachable by anyone but us | **a recon first**: the Mark-of-the-Web on a REAL browser download is unverified and must not be promised before it is measured |
 | 4 | **Фаза 6.6 — the closing language pass** | Now genuinely a gate rather than a workload: the big debt was paid on 2026-07-29 and the wizard's words were written to the rule from the start | 6.3–6.5 |
@@ -721,10 +721,17 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
    Phases 6.0, 6.1 and 6.2 are shipped, so the interface already runs: `kpot ui` opens a wizard that
    can choose a folder, build a plan and sort with one confirmation.
 
-   **The recon that gates it** (canon step 9b): the panel links «Открыть» next to every year, which
-   means the local server launches Explorer with a path. That is an external-program launch driven by
-   an HTTP request — write the recon covering how it actually behaves on Windows AND how the path is
-   proven to lie inside the library root before it is passed to anything.
+   **The recon that gated it is DONE** — `researches/08_open_folder_and_path_safety.md`, measured on
+   this machine 2026-07-29. Its three findings, so nobody re-derives them:
+   - **`explorer.exe` exits 1 even when it succeeds** (3 of 3 tries on a folder that opened). The
+     exit code carries no information: check the path BEFORE launching, then ignore the result.
+   - **A junction defeats the textual `isInside`** — `mklink /J` inside the library, no admin rights
+     needed, points anywhere on the machine and the textual check says "inside". `realpath` catches
+     it. `src/core/paths.mjs` is correct for the plan and **insufficient as a security boundary**.
+   - **8.3 short names break the same check the other way** (a legitimate path rejected), and
+     `realpath` fixes that too. One rule covers both: **resolve first, then check containment, then
+     launch.** A path that cannot be resolved is refused — `realpath` throws `ENOENT`, which is the
+     answer we want anyway.
 
    **What the panel must do** (owner's own words, interview #003): re-launch **any of the three runs**
    (scan · plan · sort) with a state on each card · show what needs a decision — folders awaiting an
