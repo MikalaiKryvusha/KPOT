@@ -77,7 +77,7 @@ node bin/kpot.mjs --help
 ### Status
 
 🎉 **Release 0.1 “First KPOT”.** Every phase works end to end, and the tool has already sorted real
-archives. Verified by **200 green tests** *and* by two supervised runs on real material taken out of
+archives. Verified by **239 green tests** *and* by two supervised runs on real material taken out of
 a genuinely messy 551 GB collection — a 3 397-file / 13 GB sample, and a fresh 813-file / 943 MB one.
 
 ```
@@ -138,10 +138,12 @@ done), with a wizard for the first run and a control panel afterwards. Design an
 settled: [interview 003](interviews/interview_003_interface.md), with
 [clickable mock-ups](interviews/interview_003_designs.html) and the
 [prior-art review](researches/07_local_ui_and_delivery.md) behind them; the plan is the
-[interface epic](plans/03_interface_epic.md). Its first phase has landed: the pipeline now lives in
-`src/app/` as functions that return artifacts and print nothing, so the browser interface will call
-**the same executor** the terminal does — two implementations would let the dry run and the real run
-drift apart.
+[interface epic](plans/03_interface_epic.md). **Three of its phases have landed** — `kpot ui` starts
+a local server and opens a window that walks you through choosing a folder, reading the plan and
+sorting, with the four guarantees on screen the whole time. It calls **the same executor** the
+terminal does (two implementations would let the dry run and the real run drift apart), it refuses to
+sort without your explicit confirmation, and closing the browser does not stop a run. Still ahead:
+the control panel, the top-up flow and the portable package.
 
 Roadmap: `MASTER_PLAN.md` · current state: `STATUS.md`.
 
@@ -222,7 +224,7 @@ node bin/kpot.mjs --help
 ### Статус
 
 🎉 **Релиз 0.1 «First KPOT».** Все фазы работают от начала до конца, и инструмент уже разобрал
-настоящие архивы. Проверено **200 зелёными тестами** *и* двумя контролируемыми прогонами на живом
+настоящие архивы. Проверено **239 зелёными тестами** *и* двумя контролируемыми прогонами на живом
 материале из по-настоящему захламлённой коллекции на 551 ГБ — на выборке 3 397 файлов / 13 ГБ и на
 свежей 813 файлов / 943 МБ.
 
@@ -283,10 +285,12 @@ kpot rollback <run-id> <dir>  всё возвращается как было
 поставки согласованы: [интервью 003](interviews/interview_003_interface.md), к нему
 [кликабельные макеты](interviews/interview_003_designs.html) и
 [разведка готовых решений](researches/07_local_ui_and_delivery.md); план — 
-[эпик интерфейса](plans/03_interface_epic.md). Первая фаза уже сделана: конвейер переехал в
-`src/app/` — это функции, которые возвращают артефакты и ничего не печатают, поэтому веб-интерфейс
-будет звать **тот же самый исполнитель**, что и терминал. Две реализации означали бы, что сухой
-прогон и настоящий однажды разойдутся.
+[эпик интерфейса](plans/03_interface_epic.md). **Три его фазы уже сделаны:** команда `kpot ui`
+поднимает локальный сервер и открывает окно, которое проводит вас по шагам — выбрать папку,
+прочитать план, разложить, — и все четыре гарантии всё это время на экране. Окно зовёт **тот же самый
+исполнитель**, что и терминал (две реализации означали бы, что сухой прогон и настоящий однажды
+разойдутся), сортировка не начнётся без вашего явного подтверждения, а закрытие браузера не
+останавливает работу. Впереди: пульт управления, доливка новых файлов и портативный пакет.
 
 
 Дорожная карта: `MASTER_PLAN.md` · текущее состояние: `STATUS.md`.

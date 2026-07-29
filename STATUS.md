@@ -447,6 +447,34 @@ suite 192 → **200**. He also set two standing rules this session (see below).
   - autonomous work is time-boxed by his clock: groom the backlog by value, and wrap up cleanly at
     the stated hour with a pause, a push and a handoff.
 
+### Session of 2026-07-29 (late 3) — the interface exists: 6.0, 6.1 and 6.2 shipped
+The owner said «Делаем!» and set the session's frame: work autonomously on the value-ranked backlog,
+wrap up at his hour. Suite 192 → **239**; commits `5aba4ce` · `a1ff719` · `ab71b22` · `7af1986` ·
+`d54a071` · `bf94587`.
+
+- **6.0 — one executor, several faces** (`src/app/phases.mjs`). Verified by an EMPTY DIFF: a golden
+  harness captured 13 CLI scenarios from the OLD code lifted out of git and from the new one.
+- **6.1 — the server** (`src/ui/server.mjs`, `kpot ui`). Every guard is somebody else's documented
+  failure: token · `Host` whitelist · port fallback with the real address reported · browser opened
+  only after `listening` · one instance (a second launch finds the running server) · «Завершить
+  работу» · progress over SSE. **Live-smoked on this machine**, not just green.
+- **6.2 — the wizard** (`src/ui/page.mjs`, `i18n.mjs`, `folders.mjs`, `jobs.mjs`). Four steps, the
+  four `GOAL.md` guarantees on every screen, RU/EN from the first string, and **one job at a time
+  with the sort confirmation enforced on the SERVER** — a mis-wired button cannot move a file.
+  A browser cannot open a real folder dialog, so the server lists folders and the page walks them.
+- **The plain-language debt is PAID** (`a1ff719`): the plan report no longer says
+  `dated 2012-06-15 (exif-original)` at the owner but «снято 15 июня 2012, 10:11 — дату записала сама
+  камера в момент съёмки», and the disputed section is Russian too. Machine keys were left untouched,
+  so every spec that branches on them is exactly as strong as before.
+- **Four defects found in my own verification, none in the product** — all by the break-the-code pass:
+  a golden harness blind to two of four `apply` endings · a rebinding spec that used `fetch`, for
+  which `Host` is a forbidden header, so it never sent the attack it claimed to · a port spec that
+  HUNG instead of going red · and **`\b` not working with Cyrillic**, which made every Russian
+  pattern in the jargon guard unable to fire (EXP-0017).
+- **One real latent defect in the product**, surfaced by 6.0 giving the engine a second caller:
+  planning a mistyped path used to CREATE that directory. The guard lived in a face; it now lives in
+  the engine, and the spec asserts the absence of the side effect rather than an error message.
+
 ---
 
 ## Where we are now
@@ -488,13 +516,12 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
 
 | # | Item | Why it ranks here | Blocked by |
 |---|------|-------------------|-----------|
-| 1 | **Фаза 6.1 — the server** (`src/ui/server.mjs`) | Nothing else in the interface can exist without it, and it is where every documented failure mode of this class of tool lives (`researches/07` §5). Risk falls fastest here | — ready to start |
-| 2 | **Фаза 6.2 — the first-flight wizard** | The first thing a human ever sees; it is what makes the four `GOAL.md` guarantees visible instead of being flags | 6.1 |
-| 3 | **The jargon debt in the plan report** | Cheap, independent of everything above, and it is a promise already made to the owner on 2026-07-28. Scheduled as 6.6 but there is no reason to wait — pay it at the first idle moment | — ready to start |
-| 4 | **Фаза 6.3 — the control panel** | Turns a one-shot tool into something usable forever | 6.1, 6.2 + a recon on opening a folder in Explorer from the server |
-| 5 | **Фаза 6.4 — the `НОВОЕ` top-up** (idea 01) | Without it the tidy-up decays: in a year the archive needs another big sort. Small, because the mechanisms exist | 6.3 |
-| 6 | **Фаза 6.5 — the portable package** | This is what makes the product reachable by anyone but us | **a recon first**: Mark-of-the-Web on a REAL browser download is unverified and must not be promised before it is measured |
-| 7 | **Фаза 6.6 — the closing language pass** | A gate, not where the work happens: every phase carries the plain-language rule | all of the above |
+| ✅ | ~~6.0 shared layer · 6.1 server · 6.2 wizard · the jargon debt~~ | **all four done 2026-07-29** — see the session record above | — |
+| 1 | **Фаза 6.3 — the control panel** | The wizard is right exactly once; after the first flight it becomes an interrogation. The panel is what makes the tool usable forever: three re-launchable runs, folder decisions answered in the UI, links into Explorer, run history with a rollback per row | **a recon first** — opening a folder in Explorer from the local server is an external-program launch, and the path must be proven to lie inside the library root |
+| 2 | **Фаза 6.4 — the `НОВОЕ` top-up** (idea 01) | Without it the tidy-up decays: in a year the archive needs another big sort. Small, because every mechanism it needs already exists | 6.3 |
+| 3 | **Фаза 6.5 — the portable package** | This is what makes the product reachable by anyone but us | **a recon first**: the Mark-of-the-Web on a REAL browser download is unverified and must not be promised before it is measured |
+| 4 | **Фаза 6.6 — the closing language pass** | Now genuinely a gate rather than a workload: the big debt was paid on 2026-07-29 and the wizard's words were written to the rule from the start | 6.3–6.5 |
+| 5 | **A user-facing README for the interface** | The moment someone other than the owner runs `kpot ui`, the current README does not tell them how | 6.5 |
 
 **Explicitly NOT on this list, and why** — so a future session does not resurrect them:
 - **`plans/02` step 3 (PRNU)** — unstarted and **unauthorised**. It identifies a camera, not a
@@ -674,7 +701,7 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
 > A concrete checklist so the next session (empty context) can start immediately: which files, which
 > commands, what to verify first.
 
-1. Verify the environment: `node -v` (≥20), `npm test` (**must be 200/200**), `git status` (clean),
+1. Verify the environment: `node -v` (≥20), `npm test` (**must be 239/239**), `git status` (clean),
    `gh auth status` (MikalaiKryvusha). Owner-provided paths from this file are PAST observations —
    re-check they still exist before planning around them (EXP-0011: a sample vanished once already).
 2. **Run the whole product once, end to end, before designing on top of it.** It all works now:
@@ -690,29 +717,30 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
    the copy on 2026-07-28). Undo it with
    `node bin/kpot.mjs rollback run-20260728-201538-437c4d D:\work\ai_sandbox\KPOT_SANDBOX`.
    Do not delete it without his word, and never copy more of his photographs without a fresh one.
-3. ⭐ **THE NEXT PIECE OF WORK — phase 6.1, the server.** Everything before it is done: the epic is
-   written (`plans/03_interface_epic.md`), `MASTER_PLAN.md` carries Phase 6, and **phase 6.0 is
-   shipped** (`plans/04_DONE_…`, commit `5aba4ce`) — so `src/app/phases.mjs` is already there to be
-   called. Write the operational plan for 6.1 first, then the code.
+3. ⭐ **THE NEXT PIECE OF WORK — phase 6.3, the control panel — and it starts with a RECON, not code.**
+   Phases 6.0, 6.1 and 6.2 are shipped, so the interface already runs: `kpot ui` opens a wizard that
+   can choose a folder, build a plan and sort with one confirmation.
 
-   What 6.1 must contain, and none of it is optional (`researches/07` §5, and the epic §6):
-   `node:http` on `127.0.0.1` · a **token** minted at start-up and carried in the opened URL ·
-   a **`Host` header whitelist** · the default port with a **random fallback**, and the real address
-   shown to the human · the browser opened **only after the `listening` event** · **one instance**
-   (a second launch finds the running server instead of starting a second one) · an explicit
-   **«Завершить работу»** · progress over `text/event-stream` from the existing
-   `src/core/progress.mjs`. Each of those is a failure mode somebody else already documented.
+   **The recon that gates it** (canon step 9b): the panel links «Открыть» next to every year, which
+   means the local server launches Explorer with a path. That is an external-program launch driven by
+   an HTTP request — write the recon covering how it actually behaves on Windows AND how the path is
+   proven to lie inside the library root before it is passed to anything.
 
-   Read first: **`plans/03_interface_epic.md`** (the six-phase cut and the acceptance criterion of
-   each), then `researches/07_local_ui_and_delivery.md` (§5 is the section that shapes the design)
-   and `interviews/interview_003_interface.md` (all ten answers, verbatim). The clickable mock-up of
-   the agreed design is `interviews/interview_003_designs.html` — open it in a browser, first tab.
+   **What the panel must do** (owner's own words, interview #003): re-launch **any of the three runs**
+   (scan · plan · sort) with a state on each card · show what needs a decision — folders awaiting an
+   answer (answered in the UI, over the existing `src/core/decisions.mjs`) and disputed dates · the
+   library by year with **links that open folders, никаких миниатюр** · the `НОВОЕ` top-up block ·
+   a run history with a rollback on each row.
 
-   **The golden harness from 6.0 is worth reusing** for every later phase: it lifts the previous
-   code out of git, runs 13 CLI scenarios and diffs byte-for-byte. It lives in the session scratchpad
-   (`golden.mjs`); if a future phase needs it again, re-create it — and **self-test it first by
-   capturing twice from unchanged code**, because its first version was blind to two of the four
-   apply endings.
+   Read first: `plans/03_interface_epic.md` (the cut and each acceptance criterion), the two closed
+   plans `04_DONE`/`05_DONE` for how the layers fit, and `interviews/interview_003_designs.html`
+   (the clickable mock-up — the «Пульт управления» tab is the target).
+
+   **The golden harness from 6.0 is worth re-creating** for any later refactor: it lifts the previous
+   code out of git (`git stash push -- <file>`), runs 13 CLI scenarios and diffs byte-for-byte. It
+   lived in the session scratchpad (`golden.mjs`). **Self-test it first by capturing twice from
+   unchanged code, then by planting a break** — its first version was blind to two of the four apply
+   endings and said nothing (EXP-0016).
 
    **The design, settled:**
    - **Two screens.** A wizard for the first flight (four steps, one thing per screen, the four

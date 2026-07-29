@@ -5,14 +5,14 @@
 > working. It is a *snapshot*, not a second source of truth: where it summarises another document it
 > names it, and that document wins on any disagreement.
 >
-> **Written:** 2026-07-28 at release `v0.1`; **refreshed 2026-07-29** after the interface epic was
-> designed, `MASTER_PLAN.md` gained Phase 6, and its first phase (6.0) shipped.
-> **Suite: 200/200 green.** If today is much later than that, re-read `STATUS.md` first — it is
+> **Written:** 2026-07-28 at release `v0.1`; **refreshed 2026-07-29 (late)** after the interface
+> epic was designed and its first three phases — the shared layer, the server and the wizard — were
+> built and shipped.
+> **Suite: 239/239 green.** If today is much later than that, re-read `STATUS.md` first — it is
 > maintained continuously, this file is not.
 >
-> **Start here, then:** §6 is the next task — **phase 6.1, the server.** The planning is already
-> done (the epic exists, the phase cut is agreed, 6.0 is in), so unlike the previous handoff this
-> one IS ready to code, after its operational plan.
+> **Start here, then:** §6 is the next task — **phase 6.3, the control panel.** It is ready to work
+> on, but it opens with a RECON rather than code; §6 says which one and why.
 
 ---
 
@@ -45,14 +45,14 @@ tool has sorted a real archive sample. Everything below is verified, not claimed
 
 | | |
 |---|---|
-| Test suite | **200/200** green (`npm test`, `node --test`) |
+| Test suite | **239/239** green (`npm test`, `node --test`) |
 | Phases 0–5 | ✅ **all closed** (foundation · research+skeleton · scan/dates · dedupe/plan · safety · first real use) |
-| Phase 6 — the interface | 🔧 under way. Epic written (`plans/03_interface_epic.md`), **6.0 done** — the pipeline is callable from `src/app/`; **6.1, the server, is next** |
+| Phase 6 — the interface | 🔧 under way. Epic: `plans/03_interface_epic.md`. **6.0 · 6.1 · 6.2 done** — `kpot ui` opens a working wizard. **6.3, the control panel, is next** (recon first) |
 | Open bugs | **none** (four closed, all found by real data — see `bugs/`) |
 | Runtime deps | two: `exifreader` and `jpeg-js` (BSD-3-Clause, added 2026-07-28 for the pixel search) |
 | Node | ≥ 20 (developed on 24, Windows 11) |
 
-The five commands, all live:
+The six commands, all live:
 
 ```bash
 node bin/kpot.mjs scan <dir>               # what each file is + when it was taken + the evidence
@@ -60,13 +60,14 @@ node bin/kpot.mjs plan <dir>               # the owner-facing master plan (+ --j
 node bin/kpot.mjs apply --dry-run <dir>    # full rehearsal, zero writes
 node bin/kpot.mjs apply <dir>              # the ONLY writer; refuses to start without a backup
 node bin/kpot.mjs rollback <run-id> <dir>  # everything back where it was
+node bin/kpot.mjs ui                       # the window: a local server + a page in the browser
 ```
 
 ## 3. Get productive in ten minutes
 
 ```bash
 node -v                                    # must be >= 20
-npm test                                   # must be 200/200
+npm test                                   # must be 239/239
 git status                                 # must be clean; work on main, no feature branches
 
 # then run the whole product once, end to end, on a throwaway tree:
@@ -85,7 +86,11 @@ do not invent it. The correctness gate is `npm test`.
 ```
 bin/kpot.mjs   a FACE: parses argv, calls src/app/, prints, picks the exit code. No pipeline logic
 src/app/       phases.mjs — the four phases as callable functions: take a dir, RETURN artifacts,
-               print nothing, swallow no error. The web UI will call exactly this (phase 6.0)
+               print nothing, swallow no error. Both faces call exactly this (phase 6.0)
+src/ui/        the OTHER face: server.mjs (token · Host whitelist · one instance · SSE) ·
+               jobs.mjs (one job at a time; a sort needs an explicit yes) · folders.mjs (a browser
+               cannot open a folder dialog, so the server lists folders) · i18n.mjs (every word,
+               RU/EN) · page.mjs (the wizard, one self-contained page)
 src/scan/      identify.mjs (kind by MAGIC BYTES, not extension) · scan.mjs (walk + streamed sha256)
 src/meta/      the date pipeline — see below (incl. pixels.mjs, the ONLY module that decodes an image)
 src/dedupe/    groups identical files by sha256; picks the keeper by an explainable total order
@@ -145,38 +150,33 @@ likely to accidentally re-litigate:
 
 ## 6. The next piece of work
 
-**Phase 6.1 — the SERVER of the local web interface.** The planning above it is finished, so this is
-ready to code once its operational plan exists. Read `plans/03_interface_epic.md` first: it holds the
-seven-phase cut and the acceptance criterion of each.
+**Phase 6.3 — the CONTROL PANEL, and it starts with a RECON rather than code.**
 
-**What 6.1 must contain — none of it optional**, because each item is a failure mode somebody else
-already documented and wrote up (`researches/07` §5):
+Phases 6.0, 6.1 and 6.2 are shipped (2026-07-29), so the interface already runs: `kpot ui` starts a
+local server and opens a wizard that chooses a folder, builds a plan and sorts with one deliberate
+confirmation. What exists, and what you must CALL rather than re-implement:
 
-- `node:http` bound to `127.0.0.1`; a **token** minted at start-up and carried in the URL the tool
-  opens (Jupyter's model); a **`Host` header whitelist** (DNS rebinding has a filed advisory against
-  Glances, a tool of exactly our shape) — "it only listens on localhost" is not a security model, and
-  this program's one dangerous button moves 71 606 of the owner's photographs;
-- the default port with a **random fallback**, and the REAL address shown to the human (Syncthing's
-  behaviour); the shortcut may not hard-code a port;
-- the browser opened **only after the `listening` event**, or the very first run shows a connection
-  error;
-- **one instance**: a second launch of the shortcut finds the running server and opens the face on
-  it. The owner split the program into a server and a «морда», and closing the browser must not stop
-  a sort that takes minutes — so a visible, plainly-worded **«Завершить работу»** is part of this
-  phase, not a later nicety;
-- progress to the browser over `text/event-stream`, fed by the existing `src/core/progress.mjs`
-  (which today is inert unless stderr is a terminal).
+- `src/app/phases.mjs` — the four phases as functions that return artifacts and **print nothing**,
+  plus the three report renderers. Every face calls this. A second implementation is how a dry run
+  and a real run start to drift apart;
+- `src/ui/server.mjs` — token, `Host` whitelist, port fallback, one instance, «Завершить работу»,
+  SSE progress. `src/ui/jobs.mjs` — ONE job at a time, and a real sort refused without an explicit
+  confirmation, checked on the SERVER so a mis-wired button cannot move a file;
+- `src/ui/i18n.mjs` — every interface word, RU/EN. Nothing may be written into markup: a spec fails
+  on a Cyrillic character found in the page's HTML.
 
-**The ground is already prepared** (phase 6.0, commit `5aba4ce`): `src/app/phases.mjs` exposes
-`scanArchive` · `planArchive` · `applyArchive` · `rollbackArchive`. They take a directory and
-settings, return artifacts, print nothing and swallow no error, and the apply phase's four endings
-are named values (`APPLY_OUTCOME`) rather than printed sentences. **Call those.** Do not compose the
-pipeline again in the server: two implementations are how the dry run and the real run drift apart.
+**The recon that gates 6.3** (canon step 9b): the panel puts «Открыть» next to every year, which
+means the local server launches Explorer with a path — an external program driven by an HTTP request.
+Write the recon covering how that behaves on Windows and how the path is proven to lie inside the
+library root BEFORE it is passed anywhere.
 
-**Two recon gates later in the epic that must not be skipped** (canon step 9b): the Mark-of-the-Web
-on a REAL browser download, before phase 6.5 may promise a silent first launch; and opening a folder
-in Explorer from the local server — an external-program launch whose path must be proven to lie
-inside the library root — before phase 6.3.
+**What the panel owes** (owner's words, interview #003): re-launch any of the three runs with a state
+on each card · folders awaiting a decision, answered in the UI over the existing
+`src/core/decisions.mjs` · the library by year with links that open folders and **no thumbnails** ·
+the `НОВОЕ` top-up block · a run history with a rollback on each row.
+
+**The other recon gate, later in the epic** (canon step 9b): the Mark-of-the-Web on a REAL browser
+download, before phase 6.5 may promise a silent first launch.
 
 **Finished and needing no further work:** `plans/02` steps 1 and 2 (editor exports dated honestly;
 an edited photo's original found by its pixels — `src/meta/pixels.mjs`, designed by `researches/05`

@@ -164,8 +164,17 @@ Application of `PHILOSOPHY.md` to this project:
 - **Two recon gates that must NOT be skipped** (canon step 9b): the Mark-of-the-Web on a REAL browser
   download, before 6.5 may be promised; and opening a folder in Explorer from the local server, whose
   path must be proven to lie inside the library root, before 6.3.
-- **Status:** 🔲 todo — the epic document is written (`plans/03_interface_epic.md`, 2026-07-29) and
-  awaits the owner's read-through; the operational plan for 6.0 is the next artifact.
+- **Status:** 🔧 **under way — 6.0, 6.1 and 6.2 are DONE** (2026-07-29, one session, owner's «Делаем!»).
+  - ✅ **6.0** — `src/app/phases.mjs`: the pipeline is callable, prints nothing, and the CLI output is
+    byte-identical to before (proven by a golden capture of 13 scenarios against the old code).
+  - ✅ **6.1** — `src/ui/server.mjs`: token · `Host` whitelist · port fallback · browser only after
+    `listening` · one instance · «Завершить работу» · progress over SSE. Live-smoked: `kpot ui`
+    started on 5768, a second launch reused it, the shutdown left the port closed.
+  - ✅ **6.2** — the first-flight wizard: four steps, the four `GOAL.md` guarantees always visible,
+    a folder chooser (a browser cannot open a real folder dialog, so the server lists folders), one
+    deliberate confirmation enforced ON THE SERVER, and every word from an RU/EN dictionary.
+  - 🔲 **6.3 · 6.4 · 6.5 · 6.6** remain. 6.3 and 6.5 each need their recon first.
+  Suite 192 → **239**. Plans: `04_DONE`, `05_DONE`, `06`.
 
 ### Phase N — The goal is reached
 Files are no longer scattered "как попало": the owner opens the library and walks his life by year and
