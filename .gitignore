@@ -14,6 +14,18 @@ node_modules/
 # npm pack artifacts (release rehearsals) — built on demand, never versioned
 *.tgz
 
+# The portable package (phase 6.5) and everything it is built from — written BEFORE the first
+# artifact exists, per AGENT_GUIDE §git hygiene ("ignore first, then the tool").
+# `dist/` holds the staged package, `vendor/` the downloaded official node.exe (87 MB), and the ZIP
+# is the release asset itself. All three are built on demand and published to GitHub Releases —
+# a binary of that size in git history could never be removed from a public repository.
+/dist/
+/vendor/
+*.zip
+# The recon's own scratch tree: files carrying a real Mark-of-the-Web, used to measure how it
+# propagates. Never versioned — they are downloads, not sources.
+/motw-probe/
+
 # OS
 Thumbs.db
 .DS_Store
