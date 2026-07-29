@@ -242,6 +242,15 @@ npm test              # node --test — the correctness gate; exits 0 on a clean
 node --check <file>   # syntax-only check of a single .mjs file
 ```
 
+**`npm run package` runs ONLY from PowerShell** (EXP-0027). From Git Bash it dies with
+`tar: Cannot connect to D: resolve failed` — GNU tar reads `D:\…` as a remote host, while PowerShell's
+`tar.exe` is Windows' bsdtar and handles it. Same family, same day: **pass text to tools through
+FILES, never through command-line arguments** — `python -c` with Cyrillic arrives already mangled by
+the console codepage, a backtick inside a double-quoted shell string is eaten as command substitution
+**without any error** (it corrupted a canon document and the script still printed `ok`), and `D:\…`
+inside a string literal is a `\u` escape. Write a UTF-8 file with a quoted heredoc, pass the path, and
+**read the result back** — the silent variant is invisible otherwise.
+
 Environment: Node ≥20 (`engines` in `package.json`); developed on Node 24 / Windows 11 with PowerShell
 as the primary shell. No native dependencies so far — if a metadata library needs one, treat that as an
 architecture fork and run `/interview` first. Keep the dependency count near zero: `GOAL.md` says reuse
