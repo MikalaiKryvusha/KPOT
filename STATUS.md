@@ -654,6 +654,17 @@ CLAIMS were wrong. Suite **286 → 294**.
   among loose photographs). Heap → **МАСТЕР**; after a real sort → **ПУЛЬТ** «Всё уже разложено»;
   after the undo → **МАСТЕР** again. The third state is the one that matters: the bug does not
   return by its other door. Script: scratchpad `bug06_look.mjs`.
+- **Then the next ranked item, and it is done** (`769c627`): **the user-facing README**. The only
+  «Install» was `npm i -g <tgz>` — a terminal instruction in a product whose audience the owner
+  defined as «и я и обычные не опытные пользователи ПК». Both languages now open with the window
+  version: the two screens and WHY one or the other appears, the receipt file explained to the
+  person who will meet it among their own folders (safe to delete, and an undo takes it away), and
+  the `researches/09` §6.2 obligation — the Windows first-launch dialog named in its own words with
+  the button to press. `kpot ui` is in the command-line block for the first time since 6.1 shipped.
+- **The download link was deliberately NOT written**, because it would have been false: `v0.1`
+  predates the portable package and carries the CLI tarball only. The note says the ZIP is built
+  from source today and that a ready-made one ships with the next release — which is the owner's
+  call and is now the single top item in the backlog.
 
 ---
 
@@ -706,9 +717,8 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
 | ✅ | ~~6.5 — the portable package~~ | **done 2026-07-29** (`plans/09`, 33.2 MB, built + verified on its own runtime). Its recon refuted the epic; the clean-machine acceptance is deferred by the owner to a friend's PC | — |
 | ✅ | ~~6.6 — the closing language pass~~ | **done 2026-07-29.** The interface epic is complete. Found by reading, not grepping: the reports had never had the pass at all | — |
 | ✅ | ~~`bugs/06` — a messy folder mistaken for a finished library~~ | **fixed 2026-07-29** by the owner's rule: KPOT leaves a **receipt** and asks it, instead of guessing from a `2013/` folder | — |
-| 1 | **A user-facing README + download instructions** | The moment someone other than the owner meets the package, nothing tells them how — and the download page must carry the sentence about what Windows may show on the first launch (`researches/09` §6.2) | — |
-| 2 | **Release 0.2** — the interface, the package, the top-up, the receipt | Everything since `v0.1` is unreleased: a whole interface epic, a portable package and five closed bugs. Needs the owner's word (a release is outward-facing) | **the owner** |
-| 2 | **A user-facing README for the interface + the download instructions** | The moment someone other than the owner runs KPOT, nothing tells them how — and the download page must carry the sentence about what Windows may show on the first launch (`researches/09` §6.2) | — |
+| ✅ | ~~A user-facing README for the interface + download instructions~~ | **done 2026-07-29** (commit `769c627`), in both languages: what the two screens are and why one or the other appears, the receipt file explained to the person who will meet it in their own folder, and the `researches/09` §6.2 obligation discharged — the Windows first-launch dialog named in its own words, with the button to press. (This row appeared TWICE in the table; deduplicated) | — |
+| 1 | **Release 0.2** — the interface, the package, the top-up, the receipt | Everything since `v0.1` is unreleased: a whole interface epic, a portable package and six closed bugs. Needs the owner's word (a release is outward-facing). It also COMPLETES the README above: today the download note says honestly that the ZIP is built from source, because `v0.1` predates the package and linking to it would send a non-technical person to the wrong file | **the owner** |
 | 3 | **A square app icon** | The shortcut currently shows its target's icon. Blocked on a BRAND decision, not on work: the logo is a 1734×907 banner and a square mark out of it is the owner's call (EXP-0023). One line once he supplies one | **the owner** |
 
 **Explicitly NOT on this list, and why** — so a future session does not resurrect them:
@@ -905,18 +915,28 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
    the copy on 2026-07-28). Undo it with
    `node bin/kpot.mjs rollback run-20260728-201538-437c4d D:\work\ai_sandbox\KPOT_SANDBOX`.
    Do not delete it without his word, and never copy more of his photographs without a fresh one.
-3. ⭐ **THE NEXT PIECE OF WORK — a user-facing README and the download instructions**, then ask the
-   owner about **release 0.2**. The interface epic is COMPLETE (6.0 … 6.6), the portable package is
-   built and verified, and `bugs/06` is closed — **there are no open defects.**
+3. ⭐ **THE NEXT PIECE OF WORK — ask the owner about release 0.2.** There is nothing else ranked
+   above it. The interface epic is COMPLETE (6.0 … 6.6), the portable package is built and verified,
+   `bugs/06` is closed and independently judged, and the user-facing README landed 2026-07-29
+   (`769c627`) — **there are no open defects and no unblocked backlog item left.**
 
    Everything since `v0.1` is unreleased: a whole interface, a 33.2 MB portable package, the `НОВОЕ`
-   top-up, the receipt, and five closed bugs. A release is outward-facing, so it needs his word
-   (`AGENT_GUIDE` §Git workflow) — do not cut one on your own initiative.
+   top-up, the receipt, and six closed bugs. A release is outward-facing, so it needs his word
+   (`AGENT_GUIDE` §Git workflow) — **do not cut one on your own initiative.** Ask it as a question
+   to him, not as a plan: `/interview` if it needs forks (codename, what goes in the notes), a plain
+   chat question if it does not.
 
-   The README work has one hard requirement from `researches/09` §6.2: the download page must say,
-   in advance and in plain words, what Windows may show on the first launch and which button to
-   press. We cannot promise silence on anybody's machine, and the product's answer is to warn rather
-   than to hope.
+   **The release is what completes the README.** Its download note currently says, truthfully, that
+   the portable ZIP is built from source with `npm run package` — because `v0.1` predates the
+   package and carries the CLI tarball only, so linking a non-technical person there would send them
+   to a file that cannot do what the paragraph above it describes. The moment 0.2 ships with the ZIP
+   attached, that note becomes a real download link, in both languages.
+
+   `researches/09` §6.2's requirement is already discharged in BOTH places it names — the package's
+   own `ЧИТАТЬ.txt` (built by `tools/build_package.mjs`) and the README's download section: the
+   Windows first-launch dialog is named in the words Windows itself uses, with why it appears and
+   which button to press. We cannot promise silence on anybody's machine; the product warns instead
+   of hoping. Keep that paragraph in any release notes too.
 
    **KEEP LOOKING AT THE PAGE.** The single most valuable tool this project gained on 2026-07-29 is
    a browser you control: `--headless=new --remote-debugging-port=N --user-data-dir=<temp>`, then
