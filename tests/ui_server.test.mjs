@@ -14,8 +14,9 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile, rm } from 'node:fs/promises';
 import { createServer, request as httpRequest } from 'node:http';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { join } from 'node:path';
 
 import { startServer, findRunningInstance, hostAllowed, urlFor, STATE_FILE, DEFAULT_PORT }
   from '../src/ui/server.mjs';
@@ -264,14 +265,76 @@ test('shutting down does not hang on a browser window someone left open', async 
   sub.req.destroy();
 });
 
-test('src/ui/ may not reach below src/app/ — the layering rule is checked, not promised', () => {
-  const src = readFileSync(fileURLToPath(new URL('../src/ui/server.mjs', import.meta.url)), 'utf8');
-  const imports = [...src.matchAll(/^import[^;]*?from\s+'([^']+)'/gm)].map((m) => m[1]);
-  const internal = imports.filter((p) => p.startsWith('.'));
-  for (const p of internal) {
-    assert.ok(p.startsWith('../app/'),
-      `src/ui/ imports «${p}» — a face may only compose what src/app/ exposes (RULE 2). `
-      + 'Reaching into apply/ or plan/ directly is how a second implementation of the product starts.');
+// ─── running a phase over HTTP ───────────────────────────────────────────────────────────────────
+
+/** POST a JSON body, the way the page does. */
+function post(port, path, token, body) {
+  const payload = JSON.stringify(body);
+  return new Promise((resolve, reject) => {
+    const req = httpRequest({ host: '127.0.0.1', port, path: `${path}?token=${token}`, method: 'POST',
+      headers: { Host: '127.0.0.1', 'content-type': 'application/json',
+        'content-length': Buffer.byteLength(payload) } }, (res) => {
+      let text = '';
+      res.on('data', (c) => { text += c; });
+      res.on('end', () => resolve({ status: res.statusCode, body: text }));
+    });
+    req.on('error', reject);
+    req.end(payload);
+  });
+}
+
+test('the server refuses to sort without a confirmation — over HTTP, not just in the module', async () => {
+  await clean();
+  const s = await startServer({ port: 0 });
+  try {
+    const r = await post(s.port, '/api/run', s.token, { kind: 'apply', root: process.cwd() });
+    assert.equal(r.status, 409, 'a refusal is an answer, and it must not look like success');
+    const parsed = JSON.parse(r.body);
+    assert.equal(parsed.ok, false);
+    assert.equal(parsed.reason, 'needs-confirmation');
+    assert.equal(s.jobs.state().busy, false, 'and nothing started');
+  } finally { await s.close(); }
+});
+
+test('/api/state lets a browser that was closed mid-run catch up when it comes back', async () => {
+  await clean();
+  const s = await startServer({ port: 0 });
+  try {
+    const r = await ask(s.port, '/api/state', { token: s.token });
+    assert.equal(r.status, 200);
+    const parsed = JSON.parse(r.body);
+    // The owner's server/«морда» split makes reconnecting the NORMAL case, not an edge one, so the
+    // page must be able to ask "what is happening?" instead of only hearing live events.
+    assert.deepEqual(Object.keys(parsed).sort(), ['busy', 'current', 'last']);
+    assert.equal(parsed.busy, false);
+  } finally { await s.close(); }
+});
+
+test('starting a phase needs the token like everything else', async () => {
+  await clean();
+  const s = await startServer({ port: 0 });
+  try {
+    const r = await post(s.port, '/api/run', 'wrong'.repeat(9), { kind: 'scan', root: process.cwd() });
+    assert.equal(r.status, 401);
+    assert.equal(s.jobs.state().busy, false);
+  } finally { await s.close(); }
+});
+
+test('NO file in src/ui/ may reach below src/app/ — the layering rule is checked, not promised', () => {
+  // Scans the whole directory, not one file: the rule is about the LAYER, and a second module added
+  // later is exactly where it would be broken without anyone noticing. Siblings inside src/ui/ are
+  // fine — that is the same layer; what may never appear is a reach into apply/, plan/, meta/ or
+  // scan/, because that is how a face quietly becomes a second implementation of the product.
+  const dir = fileURLToPath(new URL('../src/ui/', import.meta.url));
+  const files = readdirSync(dir).filter((f) => f.endsWith('.mjs'));
+  assert.ok(files.length > 0, 'the guard must actually have files to check');
+  for (const file of files) {
+    const src = readFileSync(join(dir, file), 'utf8');
+    const imports = [...src.matchAll(/^import[^;]*?from\s+'([^']+)'/gm)].map((m) => m[1]);
+    for (const p of imports.filter((x) => x.startsWith('.'))) {
+      assert.ok(p.startsWith('../app/') || p.startsWith('./'),
+        `src/ui/${file} imports «${p}» — a face may only compose what src/app/ exposes (RULE 2).`);
+    }
   }
 });
 

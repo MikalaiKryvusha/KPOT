@@ -31,6 +31,7 @@ import { randomBytes, timingSafeEqual } from 'node:crypto';
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { createJobRunner } from './jobs.mjs';
 
 /**
  * The port we ask for first. Arbitrary on purpose, and chosen the way Syncthing chose 8384: high
@@ -93,6 +94,25 @@ function listenWithFallback(server, port) {
       resolve(server.address().port);
     });
     server.listen(port, '127.0.0.1');
+  });
+}
+
+/**
+ * Read a JSON request body, refusing anything implausibly large.
+ * The cap is not about attackers — the token already keeps strangers out — it is about a bug in our
+ * own page never being able to make the server eat memory.
+ */
+function readJsonBody(req, limitBytes = 64 * 1024) {
+  return new Promise((resolve, reject) => {
+    let raw = '';
+    req.on('data', (c) => {
+      raw += c;
+      if (raw.length > limitBytes) { reject(new Error('request too large')); req.destroy(); }
+    });
+    req.on('end', () => {
+      try { resolve(raw === '' ? {} : JSON.parse(raw)); } catch (e) { reject(e); }
+    });
+    req.on('error', reject);
   });
 }
 
@@ -217,6 +237,13 @@ export async function startServer({ port = DEFAULT_PORT, token = randomBytes(24)
     };
   }
 
+  // The job runner reports into the same SSE stream the progress uses, so a page needs one
+  // connection for everything that happens.
+  const jobs = createJobRunner({
+    onEvent: (event, data) => broadcast(event, data),
+    progressFor: () => browserProgress(),
+  });
+
   const server = createHttpServer((req, res) => handle(req, res));
   const actualPort = await listenWithFallback(server, port);
   await writeState({ app: 'kpot', port: actualPort, token, pid: process.pid });
@@ -254,6 +281,28 @@ export async function startServer({ port = DEFAULT_PORT, token = randomBytes(24)
       res.writeHead(200, { 'content-type': 'application/json; charset=utf-8' });
       res.end(JSON.stringify({ ok: true }));
       close().then(() => onShutdown?.());
+      return;
+    }
+
+    // What is happening right now, and what happened last. A browser that was closed during a run
+    // and reopened afterwards must be able to catch up — the owner's server/«морда» split makes
+    // that the normal case, not an edge one.
+    if (url.pathname === '/api/state') {
+      res.writeHead(200, { 'content-type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify(jobs.state()));
+      return;
+    }
+
+    // Start a phase. The server, not the page, decides whether it may: one job at a time, and no
+    // real sort without an explicit confirmation (src/ui/jobs.mjs).
+    if (url.pathname === '/api/run' && req.method === 'POST') {
+      readJsonBody(req).then((body) => {
+        const started = jobs.start(body?.kind, body?.root,
+          { confirmed: body?.confirmed === true, dryRun: body?.dryRun === true,
+            startedAtMs: Date.now() });
+        res.writeHead(started.ok ? 202 : 409, { 'content-type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify(started));
+      }).catch(() => deny(res, 400, 'не удалось прочитать запрос'));
       return;
     }
 
@@ -295,7 +344,7 @@ export async function startServer({ port = DEFAULT_PORT, token = randomBytes(24)
   }
 
   return { url: urlFor(actualPort, token), port: actualPort, token, server, close,
-    broadcast, browserProgress, subscriberCount: () => subscribers.size };
+    broadcast, browserProgress, jobs, subscriberCount: () => subscribers.size };
 }
 
 /**
