@@ -174,11 +174,11 @@ Application of `PHILOSOPHY.md` to this project:
     a folder chooser (a browser cannot open a real folder dialog, so the server lists folders), one
     deliberate confirmation enforced ON THE SERVER, and every word from an RU/EN dictionary.
   - 🔧 **6.3 — mostly built:** the recon is written (`researches/08`), folder reveal is checked and
-    guarded, library detection chooses wizard-vs-panel, and the panel screen is live. **Left: the
-    run history with a rollback per row** — deliberately not rushed, because it puts the most
-    destructive operation behind an HTTP endpoint.
+    guarded, library detection chooses wizard-vs-panel, and the panel screen is live. **Left: the UNDO BUTTON on a
+    history row** — the history itself is done and read-only; the button is deliberately not rushed,
+    because it puts the most destructive operation behind an HTTP endpoint.
   - 🔲 **6.4 · 6.5 · 6.6** remain; 6.5 still needs its Mark-of-the-Web recon.
-  Suite 192 → **251**. Plans: `04_DONE`, `05_DONE`, `06`.
+  Suite 192 → **256**. Plans: `04_DONE`, `05_DONE`, `06`.
 
 ### Phase N — The goal is reached
 Files are no longer scattered "как попало": the owner opens the library and walks his life by year and

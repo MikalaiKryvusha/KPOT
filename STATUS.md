@@ -706,7 +706,7 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
 > A concrete checklist so the next session (empty context) can start immediately: which files, which
 > commands, what to verify first.
 
-1. Verify the environment: `node -v` (≥20), `npm test` (**must be 251/251**), `git status` (clean),
+1. Verify the environment: `node -v` (≥20), `npm test` (**must be 256/256**), `git status` (clean),
    `gh auth status` (MikalaiKryvusha). Owner-provided paths from this file are PAST observations —
    re-check they still exist before planning around them (EXP-0011: a sample vanished once already).
 2. **Run the whole product once, end to end, before designing on top of it.** It all works now:
@@ -748,13 +748,14 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
    - the panel screen: three re-launchable runs, the attention count, the years newest-first with
      «Открыть» on each, and a sort that still passes the one confirmation and returns to the panel.
 
-   **What is LEFT in 6.3 — one thing, and it was deliberately not rushed:** the **run history with a
-   rollback on each row**. It needs a "list past runs" reader over `.kpot-runs/` (only
-   `findUnfinishedRuns` exists today), and it puts the product's most destructive operation behind an
-   HTTP endpoint. That is not work to squeeze into the end of a session — safety outranks tidiness
-   here as everywhere. Design it deliberately: the same one-confirmation rule as the sort, the run
-   named in the confirmation, and the server refusing a rollback for a run that does not belong to
-   the library it is pointed at.
+   **What is LEFT in 6.3 — one thing, and it was deliberately not rushed:** the **undo BUTTON** on a
+   history row. The history itself is done and read-only (`listRuns` + `GET /api/runs`, shown on the
+   panel, each row honest about whether an undo is still possible). What remains puts the product's most destructive operation behind an
+   the product's most destructive operation behind an HTTP endpoint — not work to squeeze into the
+   end of a session, in a project whose first rule is that safety outranks tidiness. Design it
+   deliberately: the same one-confirmation rule as the sort, the run named in the confirmation, and
+   the server refusing a rollback for a run that does not belong to the library it is pointed at.
+   `listRuns().undoable` already tells you exactly which rows may carry the button.
 
    **What the panel must do** (owner's own words, interview #003): re-launch **any of the three runs**
    (scan · plan · sort) with a state on each card · show what needs a decision — folders awaiting an
