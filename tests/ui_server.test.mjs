@@ -18,8 +18,8 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
 
-import { startServer, findRunningInstance, hostAllowed, urlFor, STATE_FILE, DEFAULT_PORT }
-  from '../src/ui/server.mjs';
+import { startServer, findRunningInstance, hostAllowed, urlFor, STATE_FILE, DEFAULT_PORT,
+  openInBrowser } from '../src/ui/server.mjs';
 
 /**
  * Ask the server for something, choosing the Host and the token deliberately rather than by luck.
@@ -76,6 +76,30 @@ test('a FOREIGN Host is refused even WITH a valid token — this is the DNS-rebi
     const ok = await ask(s.port, '/api/hello', { token: s.token, host: `localhost:${s.port}` });
     assert.equal(ok.status, 200, 'but our own hostnames must work, port included');
   } finally { await s.close(); }
+});
+
+// KPOT_NO_BROWSER exists for automated runs, and it was added after a real incident: the phase-6.5
+// acceptance script starts the packaged launcher to prove it works, and that opened a browser window
+// on the owner's desktop showing a connection error, because the same script had shut the server
+// down a second later. The guard is that the hatch must SKIP the spawn rather than merely ignore its
+// result, and must report success — reporting failure would make the CLI tell a person «не получилось
+// открыть браузер», which would be a lie about something that did not fail.
+test('KPOT_NO_BROWSER skips opening a browser, and does not call it a failure', async () => {
+  const calls = [];
+  const spawnImpl = (...a) => { calls.push(a); return { unref() {} }; };
+  const saved = process.env.KPOT_NO_BROWSER;
+  try {
+    process.env.KPOT_NO_BROWSER = '1';
+    assert.equal(await openInBrowser('http://127.0.0.1:1/?token=x', { spawnImpl }), true,
+      'a window nobody wanted is not an error');
+    assert.deepEqual(calls, [], 'nothing may be spawned when the hatch is set');
+
+    delete process.env.KPOT_NO_BROWSER;
+    assert.equal(await openInBrowser('http://127.0.0.1:1/?token=x', { spawnImpl }), true);
+    assert.equal(calls.length, 1, 'without the hatch it must really try to open a browser');
+  } finally {
+    if (saved === undefined) delete process.env.KPOT_NO_BROWSER; else process.env.KPOT_NO_BROWSER = saved;
+  }
 });
 
 test('hostAllowed accepts our names with and without a port, and nothing else', () => {

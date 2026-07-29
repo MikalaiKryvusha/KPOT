@@ -176,6 +176,15 @@ export const urlFor = (port, token) => `http://127.0.0.1:${port}/?token=${token}
  * opening it earlier greets a first-time user with a connection error (`researches/07` §5.3).
  */
 export async function openInBrowser(url, { spawnImpl = null } = {}) {
+  // An escape hatch for automated runs, and it exists because of a real incident: the phase-6.5
+  // acceptance script launches the packaged `KPOT.cmd` to prove it starts, and that opened a browser
+  // window on the owner's desktop — which then showed a connection error, because the same script
+  // had already shut the server down a second later. The LAUNCHER is deliberately not changed (it
+  // must be tested exactly as a person runs it); only the environment differs.
+  //
+  // Reported as SUCCESS on purpose: nothing failed, the window was simply not wanted. Returning
+  // false would make the CLI say «не получилось открыть браузер», which would be untrue.
+  if (process.env.KPOT_NO_BROWSER) return true;
   const { spawn } = spawnImpl ? { spawn: spawnImpl } : await import('node:child_process');
   const [cmd, args] = process.platform === 'win32'
     // `start` is a shell builtin, not a program, and its first quoted argument is the window title —

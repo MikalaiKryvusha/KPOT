@@ -167,6 +167,11 @@ function chrome() {
   }
   el('lang').textContent = t('langName');
   el('shutdown').textContent = t('shutdown');
+  // The step strip belongs to the WIZARD. On the control panel (step 0) it is not merely useless,
+  // it is untrue: it draws a four-step progress bar over something that is not a four-step process,
+  // with «Папка» permanently unlit. Found by looking at the rendered page rather than by reading the
+  // code — no specification of ours could have failed on it.
+  el('steps').style.display = step === 0 ? 'none' : 'flex';
   for (const d of el('steps').children) {
     const n = Number(d.dataset.step);
     d.className = n === step ? 'on' : (n < step ? 'done' : '');
@@ -253,9 +258,12 @@ function viewPanel() {
   const years = panel?.years ?? [];
   const c = plan?.plan?.counts ?? {};
   const attention = (c.awaitingDecision ?? 0) + (c.disputed ?? 0);
+  // The button says what pressing it does. It used to say «Дальше», inherited from the wizard, where
+  // that word is correct because there IS a next step — on a panel of three independent actions it
+  // told the person nothing about which of them they were about to start.
   const card = (kind, title, help) =>
     '<div><b style="font-size:1rem">' + title + '</b><span>' + help + '</span>'
-    + '<div class="row"><button data-panel-run="' + kind + '">' + t('next') + '</button></div></div>';
+    + '<div class="row"><button data-panel-run="' + kind + '">' + t('panelRunGo') + '</button></div></div>';
   const yearRows = years.map((y) =>
     '<li><button data-reveal="' + escapeAttr(y) + '">\\u{1F4C1} ' + escapeHtml(y)
     + ' \\u2014 ' + t('panelOpen') + '</button></li>').join('');

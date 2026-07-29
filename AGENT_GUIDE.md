@@ -355,6 +355,8 @@ The project has **no custom tooling yet** — only the KAIF handles the installe
 | Command | What it does |
 |---------|--------------|
 | `npm test` | The correctness gate (`node --test`). See the harness section above. |
+| `npm run package` | Builds the portable Windows ZIP (phase 6.5): verifies the vendored Node archive against the SHA-256 nodejs.org published, reads the Authenticode signature **on the file that is actually shipping**, stages the tree, audits it against an allow-list, and zips it. Needs `vendor/node-<ver>-win-x64.zip` — gitignored, 35 MB, download it from nodejs.org. |
+| `npm run package:verify` | The acceptance run for that ZIP: unzips into a clean folder and proves the product works there **on its own bundled runtime** (plan → apply → idempotent re-plan → rollback), that `KPOT.cmd` really starts the server, and that nothing of ours came along for the ride. Refuses loudly if no package is built. Sets `KPOT_NO_BROWSER=1`, so it never opens a window on anyone's desktop. |
 | `npm run kaif:version` | Prints the deployed KAIF version / sphere / language (skill: `/kaif-version`). |
 | `npm run kaif:check` | Checks the origin for a newer KAIF release. |
 | `npm run kaif:update` | Updates the KAIF framework files in place (skill: `/kaif-update`). |
