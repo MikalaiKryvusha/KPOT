@@ -182,6 +182,88 @@ test('the shutdown control refuses an unauthenticated caller like everything els
   } finally { await s.close(); }
 });
 
+// ─── live progress, and the property the owner's decision turns into a requirement ───────────────
+
+/** Open an SSE stream and collect the raw frames as they arrive. */
+function subscribe(port, token) {
+  return new Promise((resolve, reject) => {
+    const req = httpRequest({ host: '127.0.0.1', port, path: `/api/events?token=${token}`,
+      headers: { Host: '127.0.0.1' } }, (res) => {
+      let text = '';
+      res.on('data', (c) => { text += c; });
+      resolve({ res, req, read: () => text });
+    });
+    req.on('error', reject);
+    req.end();
+  });
+}
+
+const settle = () => new Promise((r) => setTimeout(r, 60));
+
+test('the browser receives live progress as Server-Sent Events', async () => {
+  await clean();
+  const s = await startServer({ port: 0 });
+  try {
+    const sub = await subscribe(s.port, s.token);
+    await settle();
+    assert.match(sub.read(), /event: hello/, 'a subscriber is greeted, so the page knows it is connected');
+
+    const p = s.browserProgress();
+    p.start('Изучаю папку', 3);
+    p.tick();
+    p.done('готово');
+    await settle();
+
+    const text = sub.read();
+    assert.match(text, /event: progress\n/);
+    assert.match(text, /"label":"Изучаю папку"/, 'the label travels in the owner\'s own language');
+    assert.match(text, /"total":3/);
+    assert.match(text, /event: progress-done/);
+    sub.req.destroy();
+  } finally { await s.close(); }
+});
+
+test('A CLOSED TAB DOES NOT AFFECT THE SERVER — the owner\'s rule, as a test', async () => {
+  await clean();
+  const s = await startServer({ port: 0 });
+  try {
+    const sub = await subscribe(s.port, s.token);
+    await settle();
+    assert.equal(s.subscriberCount(), 1);
+
+    // The person closes the window mid-run. This is the normal case, not a failure: the owner
+    // decided «Закрытие Морды не влияет на сервер - он работает», and a sort of 71 606 files takes
+    // minutes that must not die with a tab.
+    sub.req.destroy();
+    await settle();
+
+    const p = s.browserProgress();
+    p.start('Раскладываю файлы', 2);
+    p.tick();
+    p.done();                                  // must not throw with nobody listening
+    assert.equal(s.subscriberCount(), 0, 'the departed window is simply forgotten');
+
+    const alive = await ask(s.port, '/api/hello', { token: s.token });
+    assert.equal(alive.status, 200, 'and the server is still serving');
+  } finally { await s.close(); }
+});
+
+test('shutting down does not hang on a browser window someone left open', async () => {
+  await clean();
+  const s = await startServer({ port: 0 });
+  const sub = await subscribe(s.port, s.token);
+  await settle();
+  // An SSE response holds its socket open forever by design, and server.close() waits for open
+  // connections — so without ending the streams first, one forgotten tab would keep the program
+  // alive after «Завершить работу», which is the exact complaint this whole design avoids.
+  const closed = await Promise.race([
+    s.close().then(() => 'closed'),
+    new Promise((r) => setTimeout(() => r('HUNG'), 3000)),
+  ]);
+  assert.equal(closed, 'closed', 'shutdown must not wait for a window nobody is looking at');
+  sub.req.destroy();
+});
+
 test('src/ui/ may not reach below src/app/ — the layering rule is checked, not promised', () => {
   const src = readFileSync(fileURLToPath(new URL('../src/ui/server.mjs', import.meta.url)), 'utf8');
   const imports = [...src.matchAll(/^import[^;]*?from\s+'([^']+)'/gm)].map((m) => m[1]);

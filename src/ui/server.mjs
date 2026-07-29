@@ -1,5 +1,9 @@
 // src/ui/server.mjs — the local server behind KPOT's web interface (phase 6.1, plans/05).
-// [NOT-TESTED]
+// [TESTED: 2026-07-29 · tests/ui_server.test.mjs — 15 specs (token · Host whitelist · port fallback ·
+// single instance · shutdown · SSE · a closed tab · layering), each guard verified by breaking the
+// code first · plus a live smoke: `kpot ui` really started on 5768, a SECOND launch returned the
+// SAME address instead of a second server, the browser opened, and «Завершить работу» left the port
+// closed and the state file gone]
 //
 // The owner split the program into a SERVER and a «морда» (the browser page): «Закрытие Морды не
 // влияет на сервер - он работает». That single decision is why this file exists as its own layer
@@ -136,7 +140,10 @@ export async function findRunningInstance({ fetchImpl = fetch } = {}) {
 export const urlFor = (port, token) => `http://127.0.0.1:${port}/?token=${token}`;
 
 /**
- * Show `url` in the person's normal browser. [NOT-TESTED]
+ * Show `url` in the person's normal browser.
+ * [TESTED: 2026-07-29 · live smoke on Windows 11 — `kpot ui` opened the default browser at the
+ * address it printed; not covered by a spec, because a passing spec would only prove that a child
+ * process was spawned, not that a window appeared]
  *
  * Never fatal: if this fails the program has still started, and the address is printed anyway. A
  * tool that refuses to run because it could not open a window would be worse than one that says
@@ -169,6 +176,46 @@ export async function openInBrowser(url, { spawnImpl = null } = {}) {
 export async function startServer({ port = DEFAULT_PORT, token = randomBytes(24).toString('hex'),
   onShutdown = null } = {}) {
   let closing = false;
+  /** Open browser windows listening for progress. A tab may leave at any moment; that is normal. */
+  const subscribers = new Set();
+
+  /**
+   * Push one progress event to every open window.
+   *
+   * Deliberately fire-and-forget and deliberately unaware of who is listening: the owner ruled that
+   * closing the «морда» must not affect the server, so a run may have zero subscribers for minutes
+   * and must not notice. A write to a socket the browser has already dropped throws — it is caught
+   * and the subscriber forgotten, because a closed tab is not an error condition.
+   */
+  function broadcast(event, data) {
+    const frame = `event: ${event}\ndata: ${JSON.stringify(data ?? {})}\n\n`;
+    for (const res of subscribers) {
+      try { res.write(frame); } catch { subscribers.delete(res); }
+    }
+    return subscribers.size;
+  }
+
+  /**
+   * A `progress`-shaped object (same three calls as `src/core/progress.mjs`) that reports into the
+   * browser instead of into a terminal. It is the SAME interface on purpose: the phases in
+   * `src/app/` already take one, so the web interface needs no special path through the pipeline —
+   * which is the whole reason phase 6.0 exists.
+   */
+  function browserProgress() {
+    let label = '', total = 0, count = 0;
+    return {
+      enabled: true,
+      start(newLabel, newTotal = 0) {
+        label = newLabel; total = newTotal; count = 0;
+        broadcast('progress', { label, total, count });
+      },
+      tick(n = 1) {
+        count += n;
+        broadcast('progress', { label, total, count });
+      },
+      done(summary = null) { broadcast('progress-done', { label, count, summary }); },
+    };
+  }
 
   const server = createHttpServer((req, res) => handle(req, res));
   const actualPort = await listenWithFallback(server, port);
@@ -210,6 +257,22 @@ export async function startServer({ port = DEFAULT_PORT, token = randomBytes(24)
       return;
     }
 
+    // Live progress to the browser. Server-Sent Events, not WebSockets: this direction is the only
+    // one we need, and SSE is a content-type rather than a dependency (`researches/07` §6).
+    if (url.pathname === '/api/events') {
+      res.writeHead(200, {
+        'content-type': 'text/event-stream; charset=utf-8',
+        'cache-control': 'no-cache',
+        connection: 'keep-alive',
+      });
+      res.write('event: hello\ndata: {}\n\n');
+      subscribers.add(res);
+      // A tab that goes away is the normal case, not a failure: the owner decided the server keeps
+      // working when the «морда» closes, so its departure is simply forgotten.
+      req.on('close', () => { subscribers.delete(res); });
+      return;
+    }
+
     if (url.pathname === '/') {
       res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
       res.end(PLACEHOLDER_PAGE);
@@ -223,10 +286,16 @@ export async function startServer({ port = DEFAULT_PORT, token = randomBytes(24)
     if (closing) return;
     closing = true;
     await clearState();
+    // End every open stream first: an SSE response holds the socket open, and server.close() waits
+    // for connections to finish — so a single forgotten browser tab would hang the shutdown for as
+    // long as it stayed open. «Завершить работу» has to mean it.
+    for (const res of subscribers) { try { res.end(); } catch { /* already gone */ } }
+    subscribers.clear();
     await new Promise((resolve) => server.close(resolve));
   }
 
-  return { url: urlFor(actualPort, token), port: actualPort, token, server, close };
+  return { url: urlFor(actualPort, token), port: actualPort, token, server, close,
+    broadcast, browserProgress, subscriberCount: () => subscribers.size };
 }
 
 /**
