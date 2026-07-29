@@ -51,7 +51,12 @@ Application of `PHILOSOPHY.md` to this project:
      normalization + bounded-concurrency pool.
 - **Acceptance:** `npm test` green with real specs; `node bin/kpot.mjs --help` prints the phases;
   a fixture tree can be generated reproducibly.
-- **Status:** 🔲 todo — this is what the next session starts.
+- **Status:** ✅ done 2026-07-24 (two sessions). `researches/01_prior_art.md` (→ reuse `exifreader` +
+  `node:crypto`, write our own MP4 parser and all product logic) and `researches/02_real_archive_survey.md`
+  (71 606 files / 551 GB, observed read-only) · **interview #001 answered** — all five forks closed ·
+  `tests/fixtures/make.mjs` with `expected.json` ground truth · `bin/kpot.mjs` skeleton with the
+  exit-code contract · `src/core/` primitives · the `src/meta/` Evidence model. All three acceptance
+  criteria met.
 
 ### Phase 2 — Scan & date resolution
 - **Goal of the phase:** for any tree, KPOT can say what each file is and when it was captured — with
@@ -109,7 +114,58 @@ Application of `PHILOSOPHY.md` to this project:
   run on a *copy* of a real directory · README + a tagged release via `/release`.
 - **Acceptance:** a real messy directory (copy) is sorted, the report is understandable to a
   non-technical reader, and rollback demonstrably restores it.
-- **Status:** 🔲 todo.
+- **Status:** ✅ done 2026-07-28, released `v0.1` «First KPOT». The acceptance was met by a supervised
+  run on `KPOT_SANDBOX` — a fresh copy of four real folders the owner authorised, **813 files moved,
+  0 failures, the SHA-256 multiset identical before and after**, and a rehearsed rollback (813 files
+  + 5 folders restorable). Also landed in this phase: the scan cache · idempotent sorting (bug 01) ·
+  reversible empty-folder cleanup · the `НА_РАЗБОР/` approval quarantine · live progress ·
+  resumability · `plans/02` steps 1 and 2 (editor exports dated honestly; the original found by its
+  pixels) · THM/XMP sidecar evidence · the reset-camera-clock rule · the bilingual README and the
+  tagged release.
+
+### Phase 6 — The interface: KPOT for a person who does not open a terminal
+- **Goal of the phase:** the product stops requiring a command line. A local web interface, a
+  portable package, and plain human language everywhere the tool speaks.
+- **Why it is a phase and not a polish pass:** today KPOT is the right product with the wrong door —
+  built for a non-technical owner of a chaotic archive, usable only by typing
+  `node bin/kpot.mjs plan <dir>`. The owner made the audience explicit («и я и обычные не опытные
+  пользователи ПК»), which turns the interface, the delivery and the wording into product
+  requirements rather than decoration.
+- **Design, fully settled by the owner** (interview #003, all ten answers, 2026-07-29): a **wizard**
+  for the first flight that gives way to a **control panel** afterwards · **no thumbnails**, folder
+  links instead · **server and «морда» separated**, closing the browser does not stop a run ·
+  **portable ZIP**, no installer and no certificate · one deliberate confirmation with the numbers ·
+  folder decisions answered in the UI · **bilingual RU/EN** · this computer only.
+- **The cut into sub-phases** (full document with per-phase acceptance criteria:
+  **`plans/03_interface_epic.md`**):
+  1. **6.0 — the shared layer.** The phase composition currently lives as private functions inside
+     `bin/kpot.mjs`, entangled with printing and exit codes; a server cannot call them. Extract it so
+     the product has ONE executor and two callers, guarded by byte-exact goldens of today's reports.
+  2. **6.1 — the server.** `node:http` on `127.0.0.1`: start-up token, `Host` whitelist, default port
+     with a random fallback, the browser opened only after `listening`, a single instance, an explicit
+     «Завершить работу», and progress over `text/event-stream`.
+  3. **6.2 — the first-flight wizard.** Four steps, the four `GOAL.md` guarantees visible, one
+     confirmation with the numbers, and the RU/EN string dictionary starting at the first string.
+  4. **6.3 — the control panel.** Three re-launchable runs, folder decisions answered in the UI over
+     the existing `src/core/decisions.mjs`, «Открыть» links into Explorer, run history with a rollback
+     per row.
+  5. **6.4 — the `НОВОЕ` top-up** (idea 01): an inbox inside the library root, deduplicated against
+     what is already there, with emptied inbox folders removed by the mechanism already approved for
+     emptied folders.
+  6. **6.5 — the portable package:** Node's own signed binary (measured: 87.4 MB → **32.7 MB zipped**)
+     plus our `.mjs`, so no unsigned executable is ever introduced; the first run offers a desktop
+     shortcut.
+  7. **6.6 — the closing language pass**, which also clears the standing debt: the plan report still
+     prints `dated 2012-06-15 (exif-original)` at the owner.
+- **Acceptance:** a person who has never opened a terminal downloads the archive, unzips it,
+  double-clicks, and reaches a sorted library — without a command line and without meeting a word they
+  do not understand; the run survives a closed browser tab; `npm test` green; RULE 1 intact (only
+  `src/apply/` writes, with the server as one more caller above it).
+- **Two recon gates that must NOT be skipped** (canon step 9b): the Mark-of-the-Web on a REAL browser
+  download, before 6.5 may be promised; and opening a folder in Explorer from the local server, whose
+  path must be proven to lie inside the library root, before 6.3.
+- **Status:** 🔲 todo — the epic document is written (`plans/03_interface_epic.md`, 2026-07-29) and
+  awaits the owner's read-through; the operational plan for 6.0 is the next artifact.
 
 ### Phase N — The goal is reached
 Files are no longer scattered "как попало": the owner opens the library and walks his life by year and
