@@ -5,13 +5,14 @@
 > working. It is a *snapshot*, not a second source of truth: where it summarises another document it
 > names it, and that document wins on any disagreement.
 >
-> **Written:** 2026-07-28, at release `v0.1`; refreshed twice the same day, last after the pixel
-> search and the supervised sandbox run.
-> **Suite: 192/192 green.** If today is much later than that, re-read `STATUS.md` first — it is
+> **Written:** 2026-07-28 at release `v0.1`; **refreshed 2026-07-29** after the interface epic was
+> designed, `MASTER_PLAN.md` gained Phase 6, and its first phase (6.0) shipped.
+> **Suite: 200/200 green.** If today is much later than that, re-read `STATUS.md` first — it is
 > maintained continuously, this file is not.
 >
-> **Start here, then:** §6 is the next task. Unlike every previous handoff it is NOT ready to run:
-> the owner asked for эпик → фазы → операционные планы, so it starts with research and a plan.
+> **Start here, then:** §6 is the next task — **phase 6.1, the server.** The planning is already
+> done (the epic exists, the phase cut is agreed, 6.0 is in), so unlike the previous handoff this
+> one IS ready to code, after its operational plan.
 
 ---
 
@@ -44,8 +45,9 @@ tool has sorted a real archive sample. Everything below is verified, not claimed
 
 | | |
 |---|---|
-| Test suite | **192/192** green (`npm test`, `node --test`) |
+| Test suite | **200/200** green (`npm test`, `node --test`) |
 | Phases 0–5 | ✅ **all closed** (foundation · research+skeleton · scan/dates · dedupe/plan · safety · first real use) |
+| Phase 6 — the interface | 🔧 under way. Epic written (`plans/03_interface_epic.md`), **6.0 done** — the pipeline is callable from `src/app/`; **6.1, the server, is next** |
 | Open bugs | **none** (four closed, all found by real data — see `bugs/`) |
 | Runtime deps | two: `exifreader` and `jpeg-js` (BSD-3-Clause, added 2026-07-28 for the pixel search) |
 | Node | ≥ 20 (developed on 24, Windows 11) |
@@ -64,7 +66,7 @@ node bin/kpot.mjs rollback <run-id> <dir>  # everything back where it was
 
 ```bash
 node -v                                    # must be >= 20
-npm test                                   # must be 171/171
+npm test                                   # must be 200/200
 git status                                 # must be clean; work on main, no feature branches
 
 # then run the whole product once, end to end, on a throwaway tree:
@@ -81,7 +83,9 @@ do not invent it. The correctness gate is `npm test`.
 ## 4. The architecture in one page
 
 ```
-bin/kpot.mjs   parses argv, dispatches a phase, composes the modules below
+bin/kpot.mjs   a FACE: parses argv, calls src/app/, prints, picks the exit code. No pipeline logic
+src/app/       phases.mjs — the four phases as callable functions: take a dir, RETURN artifacts,
+               print nothing, swallow no error. The web UI will call exactly this (phase 6.0)
 src/scan/      identify.mjs (kind by MAGIC BYTES, not extension) · scan.mjs (walk + streamed sha256)
 src/meta/      the date pipeline — see below (incl. pixels.mjs, the ONLY module that decodes an image)
 src/dedupe/    groups identical files by sha256; picks the keeper by an explainable total order
@@ -95,8 +99,9 @@ tests/         node --test specs + fixtures/make.mjs (deterministic messy tree +
 
 1. **Only `src/apply/` may modify, move or delete a user's file**, and only after a verified backup
    exists and the journal records the intent. Everything else is strictly read-only over user data.
-2. **Dependencies point one way:** `bin → apply → plan → {dedupe, meta, scan} → core`. A lower layer
-   never imports a higher one; siblings never import each other (shared code moves down to `core`).
+2. **Dependencies point one way:** `{bin, ui} → app → apply → plan → {dedupe, meta, scan} → core`. A
+   lower layer never imports a higher one; siblings never import each other (shared code moves down
+   to `core`). **Only a face prints** — `src/app/` never does, and a spec enforces it.
 3. **A date is never invented.** Every verdict names its winning evidence *and keeps the claims it
    overruled*; anything unresolved goes to the global `ПРОЧЕЕ` bucket and is listed in the plan's
    disputed section.
@@ -140,40 +145,49 @@ likely to accidentally re-litigate:
 
 ## 6. The next piece of work
 
-**The INTERFACE — a local Web UI, an installer, and the product's language.** It is the owner's own
-priority and he closed every fork on 2026-07-28 (`ideas/02_electron_gui.md`, and the decision log):
+**Phase 6.1 — the SERVER of the local web interface.** The planning above it is finished, so this is
+ready to code once its operational plan exists. Read `plans/03_interface_epic.md` first: it holds the
+seven-phase cut and the acceptance criterion of each.
 
-- **a local Web UI**, not Electron and not Tauri — «давай локальный Web UI - это сильно проще»;
-- **plus an installer** that puts a desktop shortcut which starts it and opens the browser, because
-  «юзером буду не только я - а и обычные ПК юзеры»;
-- the **full** cycle (scan → plan → apply → rollback), not a read-only viewer;
-- audience: the owner **and inexperienced PC users**, so — his capitals — «ОЧЕНЬ ЮЗЕР ФРЕНДЛИ, С
-  ЗАЩИТАМИ ОТ ДУРАКА, НАПИСАННЫЙ ПОПУЛЯРНЫМ ПРОСТЫМ ДЛЯ ПОНИМАНИЯ ЯЗЫКОМ, АКАДЕМИЧЕСКИМ, БЕЗ
-  ЖАРГОНИЗМОВ И СЛЕНГА».
+**What 6.1 must contain — none of it optional**, because each item is a failure mode somebody else
+already documented and wrote up (`researches/07` §5):
 
-**Do not start with code.** The owner also named the order: «для начала планируем эпиками. Потом
-эпики режем на фазы и по фазам пишем операционные планы». Combined with this repo's own canon
-(`AGENT_GUIDE` step 9a — this is an epic by every threshold: new subsystem, new promise, an
-installer), the sequence is:
+- `node:http` bound to `127.0.0.1`; a **token** minted at start-up and carried in the URL the tool
+  opens (Jupyter's model); a **`Host` header whitelist** (DNS rebinding has a filed advisory against
+  Glances, a tool of exactly our shape) — "it only listens on localhost" is not a security model, and
+  this program's one dangerous button moves 71 606 of the owner's photographs;
+- the default port with a **random fallback**, and the REAL address shown to the human (Syncthing's
+  behaviour); the shortcut may not hard-code a port;
+- the browser opened **only after the `listening` event**, or the very first run shows a connection
+  error;
+- **one instance**: a second launch of the shortcut finds the running server and opens the face on
+  it. The owner split the program into a server and a «морда», and closing the browser must not stop
+  a sort that takes minutes — so a visible, plainly-worded **«Завершить работу»** is part of this
+  phase, not a later nicety;
+- progress to the browser over `text/event-stream`, fed by the existing `src/core/progress.mjs`
+  (which today is inert unless stderr is a terminal).
 
-1. a **prior-art review** in `researches/` — how local-first tools ship a browser UI without a
-   bundled runtime, how a Node CLI gets a Windows shortcut and an installer, and above all the
-   failure modes others documented (port conflicts, a server left running, SmartScreen on an
-   unsigned installer, the browser opening before the server is ready);
-2. the **epic document** in `plans/`, then `/revision` to add an interface phase to `MASTER_PLAN.md`,
-   then per-phase operational plans;
-3. only then code — and the plain-language rule is part of the deliverable, not a polish pass.
+**The ground is already prepared** (phase 6.0, commit `5aba4ce`): `src/app/phases.mjs` exposes
+`scanArchive` · `planArchive` · `applyArchive` · `rollbackArchive`. They take a directory and
+settings, return artifacts, print nothing and swallow no error, and the apply phase's four endings
+are named values (`APPLY_OUTCOME`) rather than printed sentences. **Call those.** Do not compose the
+pipeline again in the server: two implementations are how the dry run and the real run drift apart.
 
-Technically it is cheaper than it sounds: every phase already emits a `--json` artifact and the
-reports are rendered FROM it, so the UI is a second renderer over the same SortPlan, and `node:http`
-keeps the near-zero-dependency policy. `ideas/01_inbox_topup_flow.md` folds into this epic — the
-owner answered its forks the same day (inbox **inside** the library, default name **`НОВОЕ`**,
-emptied inbox folders deleted) and the «ярлычок» he asked for IS this shortcut.
+**Two recon gates later in the epic that must not be skipped** (canon step 9b): the Mark-of-the-Web
+on a REAL browser download, before phase 6.5 may promise a silent first launch; and opening a folder
+in Explorer from the local server — an external-program launch whose path must be proven to lie
+inside the library root — before phase 6.3.
 
-**What was finished on 2026-07-28 and needs no further work:** `plans/02` step 2 — an edited photo's
-original found by comparing images (`src/meta/pixels.mjs`, designed by `researches/05` §7, calibrated
-in `researches/06`); the reset-camera-clock rule; and Phase 5's supervised run on a real sandbox.
-Step 3 of plans/02 (PRNU) stays unstarted and unauthorised — it names a camera, not a photograph.
+**Finished and needing no further work:** `plans/02` steps 1 and 2 (editor exports dated honestly;
+an edited photo's original found by its pixels — `src/meta/pixels.mjs`, designed by `researches/05`
+§7, calibrated in `researches/06`); the reset-camera-clock rule; Phase 5's supervised run on a real
+sandbox; and phase 6.0. Step 3 of plans/02 (PRNU) stays unstarted and **unauthorised** — it names a
+camera, not a photograph.
+
+**One standing rule about talking to the owner, set 2026-07-29:** «общение со мной - через ИНТЕРВЬЮ,
+не через эпики». A fork that needs his view becomes `interviews/interview_NNN_<topic>.md` via
+`/interview` — closed questions, recommendation first. Plans and epics are the agent's working
+documents and must never carry an unanswered question addressed to him.
 
 ## 7. What is waiting on the owner — never decide these alone
 

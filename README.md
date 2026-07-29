@@ -77,7 +77,7 @@ node bin/kpot.mjs --help
 ### Status
 
 🎉 **Release 0.1 “First KPOT”.** Every phase works end to end, and the tool has already sorted real
-archives. Verified by **192 green tests** *and* by two supervised runs on real material taken out of
+archives. Verified by **200 green tests** *and* by two supervised runs on real material taken out of
 a genuinely messy 551 GB collection — a 3 397-file / 13 GB sample, and a fresh 813-file / 943 MB one.
 
 ```
@@ -133,11 +133,15 @@ What is behind that:
   [the first real run](researches/03_first_real_run.md), which found four bugs no synthetic fixture
   had · [what a sidecar really contains](researches/04_sidecars.md).
 
-Still ahead: **the interface** — a local web UI shipped as a portable package (download, unpack,
+Under way: **the interface** — a local web UI shipped as a portable package (download, unpack,
 done), with a wizard for the first run and a control panel afterwards. Design and delivery are
 settled: [interview 003](interviews/interview_003_interface.md), with
 [clickable mock-ups](interviews/interview_003_designs.html) and the
-[prior-art review](researches/07_local_ui_and_delivery.md) behind them.
+[prior-art review](researches/07_local_ui_and_delivery.md) behind them; the plan is the
+[interface epic](plans/03_interface_epic.md). Its first phase has landed: the pipeline now lives in
+`src/app/` as functions that return artifacts and print nothing, so the browser interface will call
+**the same executor** the terminal does — two implementations would let the dry run and the real run
+drift apart.
 
 Roadmap: `MASTER_PLAN.md` · current state: `STATUS.md`.
 
@@ -218,7 +222,7 @@ node bin/kpot.mjs --help
 ### Статус
 
 🎉 **Релиз 0.1 «First KPOT».** Все фазы работают от начала до конца, и инструмент уже разобрал
-настоящие архивы. Проверено **192 зелёными тестами** *и* двумя контролируемыми прогонами на живом
+настоящие архивы. Проверено **200 зелёными тестами** *и* двумя контролируемыми прогонами на живом
 материале из по-настоящему захламлённой коллекции на 551 ГБ — на выборке 3 397 файлов / 13 ГБ и на
 свежей 813 файлов / 943 МБ.
 
@@ -274,11 +278,15 @@ kpot rollback <run-id> <dir>  всё возвращается как было
   [первый настоящий прогон](researches/03_first_real_run.md), который нашёл четыре бага, невидимых
   ни одной синтетической фикстуре · [что на самом деле лежит в сайдкаре](researches/04_sidecars.md).
 
-Впереди: **интерфейс** — локальный веб-интерфейс, поставляемый портативным пакетом (скачал,
+В работе: **интерфейс** — локальный веб-интерфейс, поставляемый портативным пакетом (скачал,
 распаковал, готово), с мастером на первый запуск и пультом управления дальше. Дизайн и способ
 поставки согласованы: [интервью 003](interviews/interview_003_interface.md), к нему
 [кликабельные макеты](interviews/interview_003_designs.html) и
-[разведка готовых решений](researches/07_local_ui_and_delivery.md).
+[разведка готовых решений](researches/07_local_ui_and_delivery.md); план — 
+[эпик интерфейса](plans/03_interface_epic.md). Первая фаза уже сделана: конвейер переехал в
+`src/app/` — это функции, которые возвращают артефакты и ничего не печатают, поэтому веб-интерфейс
+будет звать **тот же самый исполнитель**, что и терминал. Две реализации означали бы, что сухой
+прогон и настоящий однажды разойдутся.
 
 
 Дорожная карта: `MASTER_PLAN.md` · текущее состояние: `STATUS.md`.

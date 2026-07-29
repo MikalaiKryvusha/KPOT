@@ -414,6 +414,39 @@ the same day. Commit `93f538a`; no product code by design.
   from the local server is an external-program launch whose path must be proven to be inside the
   library root — its own recon before 6.3.
 
+### Session of 2026-07-29 (late 2) — phase 6.0 shipped: one executor, several faces
+The owner said «Делаем!», and the epic's first phase is done and measured. Commit `5aba4ce`;
+suite 192 → **200**. He also set two standing rules this session (see below).
+
+- **`src/app/phases.mjs`** — the four phases as callable functions: take a directory and settings,
+  return artifacts, **print nothing, swallow no error, write no user file**. `bin/kpot.mjs` is now a
+  face: parsing, wording, exit codes. RULE 2 amended in both maps:
+  `{bin, ui} → app → apply → plan → {dedupe, meta, scan} → core`. The apply phase's four endings
+  became **named values** (`APPLY_OUTCOME`) instead of printed sentences — a printed sentence is not
+  something a second caller can branch on.
+- **Proof is an empty diff, not an impression:** a golden harness captured 13 CLI scenarios (stdout,
+  stderr and exit code each) from the OLD code lifted out of git, then from the new one. **Byte-identical.**
+- **Three findings the verification produced and reading the code would not have:**
+  - the golden harness was **blind** — its first version never ran `apply` over an already-sorted
+    tree, so two of the four endings went unexercised and a deliberately planted break passed
+    unnoticed. Extended to 13 scenarios and re-checked by planting the break again;
+  - **a mistyped path used to be CREATED**: planning a non-existent directory did not fail, it made
+    the directory, because `.kpot-runs/` is written with `mkdir -p` and that silently makes the
+    parent. Unreachable through the terminal — which is the point: the guard lived in a FACE, and
+    this phase gives the engine a second caller. Moved down into `src/app/`, and the spec asserts the
+    **absence of the side effect** rather than an error message;
+  - **a spec passed for the wrong reason** — the "missing path" assertion was green because an
+    earlier, unguarded run had created that path (EXP-0008 again). It now clears the path first.
+- **The fixture generator's own claim was false by one row:** `expected.json` carried a wall-clock
+  mtime, which is why two captures of unchanged code differed. Fixed — found only because the golden
+  harness was self-tested before being trusted.
+- **Two standing rules from the owner, both recorded in canon:**
+  - «общение со мной - через ИНТЕРВЬЮ, не через эпики» — a fork that needs his view goes into
+    `interviews/` via `/interview`; working documents in `plans/` are the agent's and must never
+    carry an unanswered question addressed to him (`AGENT_GUIDE.md` §Notes from the human);
+  - autonomous work is time-boxed by his clock: groom the backlog by value, and wrap up cleanly at
+    the stated hour with a pause, a push and a handoff.
+
 ---
 
 ## Where we are now
@@ -446,6 +479,30 @@ under supervision — 813 files, 0 failures, the SHA-256 multiset unchanged, rol
 Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
 
 ---
+
+## 🎯 The groomed backlog, ranked BY VALUE (2026-07-29)
+
+> Owner's instruction that produced this section: «запланируй автономную работу по грумингу
+> ценностей беклога». Ranked by what moves the product toward `GOAL.md`, not by what is easy. Every
+> item below is autonomous unless marked otherwise.
+
+| # | Item | Why it ranks here | Blocked by |
+|---|------|-------------------|-----------|
+| 1 | **Фаза 6.1 — the server** (`src/ui/server.mjs`) | Nothing else in the interface can exist without it, and it is where every documented failure mode of this class of tool lives (`researches/07` §5). Risk falls fastest here | — ready to start |
+| 2 | **Фаза 6.2 — the first-flight wizard** | The first thing a human ever sees; it is what makes the four `GOAL.md` guarantees visible instead of being flags | 6.1 |
+| 3 | **The jargon debt in the plan report** | Cheap, independent of everything above, and it is a promise already made to the owner on 2026-07-28. Scheduled as 6.6 but there is no reason to wait — pay it at the first idle moment | — ready to start |
+| 4 | **Фаза 6.3 — the control panel** | Turns a one-shot tool into something usable forever | 6.1, 6.2 + a recon on opening a folder in Explorer from the server |
+| 5 | **Фаза 6.4 — the `НОВОЕ` top-up** (idea 01) | Without it the tidy-up decays: in a year the archive needs another big sort. Small, because the mechanisms exist | 6.3 |
+| 6 | **Фаза 6.5 — the portable package** | This is what makes the product reachable by anyone but us | **a recon first**: Mark-of-the-Web on a REAL browser download is unverified and must not be promised before it is measured |
+| 7 | **Фаза 6.6 — the closing language pass** | A gate, not where the work happens: every phase carries the plain-language rule | all of the above |
+
+**Explicitly NOT on this list, and why** — so a future session does not resurrect them:
+- **`plans/02` step 3 (PRNU)** — unstarted and **unauthorised**. It identifies a camera, not a
+  photograph. Not a candidate until the owner says so.
+- **KAIF framework updates** — the owner runs those himself («я сам веду обновления КАИф»). A newer
+  release existing is not a task.
+- **Thumbnails** — cut by the owner on 2026-07-29. Wherever an eye is needed, the UI links to the
+  folder.
 
 ## 🤖 Autonomous backlog pool (no human / no special hardware needed)
 
@@ -617,7 +674,7 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
 > A concrete checklist so the next session (empty context) can start immediately: which files, which
 > commands, what to verify first.
 
-1. Verify the environment: `node -v` (≥20), `npm test` (**must be 192/192**), `git status` (clean),
+1. Verify the environment: `node -v` (≥20), `npm test` (**must be 200/200**), `git status` (clean),
    `gh auth status` (MikalaiKryvusha). Owner-provided paths from this file are PAST observations —
    re-check they still exist before planning around them (EXP-0011: a sample vanished once already).
 2. **Run the whole product once, end to end, before designing on top of it.** It all works now:
@@ -633,16 +690,29 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
    the copy on 2026-07-28). Undo it with
    `node bin/kpot.mjs rollback run-20260728-201538-437c4d D:\work\ai_sandbox\KPOT_SANDBOX`.
    Do not delete it without his word, and never copy more of his photographs without a fresh one.
-3. ⭐ **THE NEXT PIECE OF WORK — `/revision` of `MASTER_PLAN.md` to add Phase 6 «Интерфейс», then
-   the operational plan for phase 6.0, then its code.** The epic document is WRITTEN
-   (`plans/03_interface_epic.md`, 2026-07-29) — do not re-design it, and do not start at a screen:
-   its §5 explains, from the code, why the first phase is an extraction and not a UI.
+3. ⭐ **THE NEXT PIECE OF WORK — phase 6.1, the server.** Everything before it is done: the epic is
+   written (`plans/03_interface_epic.md`), `MASTER_PLAN.md` carries Phase 6, and **phase 6.0 is
+   shipped** (`plans/04_DONE_…`, commit `5aba4ce`) — so `src/app/phases.mjs` is already there to be
+   called. Write the operational plan for 6.1 first, then the code.
 
-   Read first: **`plans/03_interface_epic.md`** (the epic — the six-phase cut, the acceptance
-   criterion of each, the two recon gates), then `researches/07_local_ui_and_delivery.md` (the
-   prior-art review — the failure-modes section is the one that shapes the design) and
-   `interviews/interview_003_interface.md` (all ten answers, verbatim). The clickable mock-up of the
-   agreed design is `interviews/interview_003_designs.html` — open it in a browser, first tab.
+   What 6.1 must contain, and none of it is optional (`researches/07` §5, and the epic §6):
+   `node:http` on `127.0.0.1` · a **token** minted at start-up and carried in the opened URL ·
+   a **`Host` header whitelist** · the default port with a **random fallback**, and the real address
+   shown to the human · the browser opened **only after the `listening` event** · **one instance**
+   (a second launch finds the running server instead of starting a second one) · an explicit
+   **«Завершить работу»** · progress over `text/event-stream` from the existing
+   `src/core/progress.mjs`. Each of those is a failure mode somebody else already documented.
+
+   Read first: **`plans/03_interface_epic.md`** (the six-phase cut and the acceptance criterion of
+   each), then `researches/07_local_ui_and_delivery.md` (§5 is the section that shapes the design)
+   and `interviews/interview_003_interface.md` (all ten answers, verbatim). The clickable mock-up of
+   the agreed design is `interviews/interview_003_designs.html` — open it in a browser, first tab.
+
+   **The golden harness from 6.0 is worth reusing** for every later phase: it lifts the previous
+   code out of git, runs 13 CLI scenarios and diffs byte-for-byte. It lives in the session scratchpad
+   (`golden.mjs`); if a future phase needs it again, re-create it — and **self-test it first by
+   capturing twice from unchanged code**, because its first version was blind to two of the four
+   apply endings.
 
    **The design, settled:**
    - **Two screens.** A wizard for the first flight (four steps, one thing per screen, the four
