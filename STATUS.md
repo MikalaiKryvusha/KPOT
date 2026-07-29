@@ -611,6 +611,26 @@ and that is the whole story of it: every defect below was invisible to a word li
   is at risk; the first impression is a false statement about his files. Four candidate fixes are
   in the document, with a recommendation.
 
+### Session of 2026-07-29 (late 8) — `bugs/06` closed by the owner's own rule: KPOT leaves a receipt
+The last thing this session did, and the owner decided it himself after I had explained the bug
+twice. His words: «KPOT должен оставлять документ-расписку. Его нет — считаем, что беспорядок. Он
+есть — видим в нём историю сортировок.» Commit `d7ef914`; suite stays **286/286**.
+
+- **`src/core/receipt.mjs`** — a plain readable document in the archive root, «KPOT — что здесь
+  сделано.txt», listing the sorts that are **still in effect**: when, how many files, and the
+  command to undo each. A real run that moved something records itself; an undone run is removed;
+  when the last entry goes the document goes too. Parsed by **run id**, never by prose — phase 6.6
+  had just spent a day rewriting the prose around it.
+- **It replaces an inference with a memory,** and that is why it beats all four fixes I had drafted:
+  every one of them tried to deduce the past from the present and differed only in cleverness. It
+  also fails safe by construction (no document, no claim), it is something the person can open and
+  delete — with its own text saying so — and it makes an undone sort stop counting, which closes
+  the same bug by its other door.
+- **The two specs that asserted the old rule now assert its opposite on the same fixtures**, which
+  IS the fix; break-verified by restoring `isLibrary: years.length > 0` (both go red). Six census
+  helpers across the suite now skip the receipt as they already skip `.kpot-runs`: a census asking
+  «did the owner's files change?» must not count KPOT's own paperwork.
+
 ---
 
 ## Where we are now
@@ -661,7 +681,9 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
 | ✅ | ~~6.4 — the `НОВОЕ` top-up~~ | **done 2026-07-29** (`plans/08_DONE`, commit `abac68a`) — four misbehaviours removed rather than a pipeline added; it also caught `bugs/05_DONE`, a false deletion warning shipped in `v0.1` | — |
 | ✅ | ~~6.5 — the portable package~~ | **done 2026-07-29** (`plans/09`, 33.2 MB, built + verified on its own runtime). Its recon refuted the epic; the clean-machine acceptance is deferred by the owner to a friend's PC | — |
 | ✅ | ~~6.6 — the closing language pass~~ | **done 2026-07-29.** The interface epic is complete. Found by reading, not grepping: the reports had never had the pass at all | — |
-| 0 | **`bugs/06` — a messy folder is mistaken for a finished library** | The only open defect, and it lands on the owner's OWN archive: `researches/02` recorded that it already holds hand-made `<year>/<season>` folders, so his first run would skip the wizard and be told «Всё уже разложено» about an unsorted archive. Nothing is at risk; the first impression is a false statement about his files | **unblocked** — four candidate fixes and a recommendation are in the document |
+| ✅ | ~~`bugs/06` — a messy folder mistaken for a finished library~~ | **fixed 2026-07-29** by the owner's rule: KPOT leaves a **receipt** and asks it, instead of guessing from a `2013/` folder | — |
+| 1 | **A user-facing README + download instructions** | The moment someone other than the owner meets the package, nothing tells them how — and the download page must carry the sentence about what Windows may show on the first launch (`researches/09` §6.2) | — |
+| 2 | **Release 0.2** — the interface, the package, the top-up, the receipt | Everything since `v0.1` is unreleased: a whole interface epic, a portable package and five closed bugs. Needs the owner's word (a release is outward-facing) | **the owner** |
 | 2 | **A user-facing README for the interface + the download instructions** | The moment someone other than the owner runs KPOT, nothing tells them how — and the download page must carry the sentence about what Windows may show on the first launch (`researches/09` §6.2) | — |
 | 3 | **A square app icon** | The shortcut currently shows its target's icon. Blocked on a BRAND decision, not on work: the logo is a 1734×907 banner and a square mark out of it is the owner's call (EXP-0023). One line once he supplies one | **the owner** |
 
@@ -859,16 +881,18 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
    the copy on 2026-07-28). Undo it with
    `node bin/kpot.mjs rollback run-20260728-201538-437c4d D:\work\ai_sandbox\KPOT_SANDBOX`.
    Do not delete it without his word, and never copy more of his photographs without a fresh one.
-3. ⭐ **THE NEXT PIECE OF WORK — `bugs/06`, the one open defect.** The interface epic is COMPLETE:
-   all six phases shipped, `kpot ui` gives a wizard and a control panel, `npm run package` builds the
-   33.2 MB portable ZIP that `npm run package:verify` proves works on its own runtime, and every
-   owner-facing text has been read line by line.
+3. ⭐ **THE NEXT PIECE OF WORK — a user-facing README and the download instructions**, then ask the
+   owner about **release 0.2**. The interface epic is COMPLETE (6.0 … 6.6), the portable package is
+   built and verified, and `bugs/06` is closed — **there are no open defects.**
 
-   Bug 06 is small in code and large in consequence: `libraryShape()` calls any folder holding a
-   `20xx/` directory a finished library, so the panel says «Всё уже разложено» over an unsorted
-   archive — and `researches/02` recorded that the owner's real archive is exactly that shape. Read
-   the bug document: it has four candidate fixes and recommends two of them together (require a real
-   run history, and where a guess is still needed, ASK — invariant 10 applied to a screen).
+   Everything since `v0.1` is unreleased: a whole interface, a 33.2 MB portable package, the `НОВОЕ`
+   top-up, the receipt, and five closed bugs. A release is outward-facing, so it needs his word
+   (`AGENT_GUIDE` §Git workflow) — do not cut one on your own initiative.
+
+   The README work has one hard requirement from `researches/09` §6.2: the download page must say,
+   in advance and in plain words, what Windows may show on the first launch and which button to
+   press. We cannot promise silence on anybody's machine, and the product's answer is to warn rather
+   than to hope.
 
    **KEEP LOOKING AT THE PAGE.** The single most valuable tool this project gained on 2026-07-29 is
    a browser you control: `--headless=new --remote-debugging-port=N --user-data-dir=<temp>`, then
@@ -988,16 +1012,15 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
 
 ## Open bugs
 
-- 🔧 **`bugs/06_messy_tree_looks_like_a_library.md`** (found 2026-07-29, present since 6.3) — any
-  top-level `20xx/` folder makes `libraryShape()` answer "library", so the interface shows the
-  control panel and says «Всё уже разложено» about a folder where nothing has been sorted, with
-  «Пока ничего не запускалось» two blocks below it. It lands on the owner's own archive:
-  `researches/02` recorded that it already holds hand-made `<year>/<season>` folders, so his first
-  run would never see the wizard. Nothing is at risk — every run behind the panel is the same
-  guarded run — the damage is a false first statement about his files. Four candidate fixes in the
-  document; recommended: require a real run history, and ask rather than guess where one is absent.
+**None open.** Closed so far:
 
-Closed so far:
+- ✅ `bugs/06_DONE_messy_tree_looks_like_a_library.md` (found and fixed 2026-07-29) — any top-level
+  `20xx/` folder made `libraryShape()` answer "library", so the interface opened the control panel
+  over an untouched heap and said «Всё уже разложено», with «Пока ничего не запускалось» two blocks
+  below on the same screen. It landed on the owner's own archive (`researches/02`: it already holds
+  hand-made `<year>/<season>` folders), so his first run would never have seen the wizard.
+  **Fixed by the owner's own rule** — KPOT now leaves a **receipt** and asks it, instead of deducing
+  its past from the scenery. Both guards break-verified.
 
 - ✅ `bugs/05_DONE_emptied_dirs_false_positive.md` (2026-07-29) — the plan announced folders that
   are FULL as about to be deleted: on a sorted library, **48 folders** at **0 operations**, and the

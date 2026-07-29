@@ -1,6 +1,8 @@
 # Bug 06 — a messy folder with one `2013/` in it is taken for a finished library, and the wizard is skipped
 
-**Status:** 🔧 OPEN (found 2026-07-29)
+**Status:** ✅ DONE (found and fixed 2026-07-29, commit `d7ef914`) — fixed by the OWNER's rule, not
+by any of the four options below. He replaced the question itself: «KPOT должен оставлять
+документ-расписку. Его нет — считаем, что беспорядок. Он есть — видим в нём историю сортировок.»
 **Version/build:** `main` @ phase 6.6 — present since `libraryShape()` landed in 6.3 · **When/context:**
 found while driving the WIZARD in a headless browser for the language pass. The tree handed to it was
 the project's own messy fixture; the program showed the **control panel** instead.
@@ -76,14 +78,62 @@ The damage is that the product's first impression is a false statement about the
 Recommendation to start from: **2 + 4**. A run history is what "we have sorted this" actually means,
 and where the guess is still needed, the product's own rule is to ask rather than decide.
 
+## The fix — the owner's, and better than all four
+
+He did not pick from the list. He changed what the program asks:
+
+> **KPOT должен оставлять документ-расписку. Его нет — считаем, что беспорядок. Он есть — видим в
+> нём историю сортировок.**
+
+`src/core/receipt.mjs` — a plain readable document in the archive root («KPOT — что здесь
+сделано.txt») listing the sorts that are **still in effect**: when, how many files, and the command
+to undo each. Written by a real run that moved something; an undone run is removed from it, and when
+the last entry goes the document goes too. `libraryShape()` asks the receipt.
+
+Why this beats every option above: those all try to infer the past from the present, and differ only
+in how cleverly. A receipt does not infer — the program wrote down what it did. Three consequences
+fall out for free:
+
+- it fails **safe by construction**: no document, no claim, so the wizard is the default;
+- **the person can read it** and can delete it, and its own text says so — the transparency the
+  product is built on, applied to the product's own state;
+- **an undone sort stops counting**, which closes the same bug by its other door: after a full
+  rollback the tree really is a heap again.
+
+Parsed by **run id**, never by wording — `run-20260729-141204-22687e` is a machine token, and phase
+6.6 had just spent a day rewriting the prose around it.
+
 ## Guard
 
-A spec that points `libraryShape()` at the messy fixture and asserts `isLibrary === false`, plus one
-that asserts a genuinely sorted tree is still recognised. Both must be verified by breaking the fix.
+`tests/ui_folders.test.mjs`, and the two specs that asserted the OLD rule now assert its opposite on
+the same fixtures — which is the fix itself:
+
+- *YEAR FOLDERS ARE NOT PROOF OF ANYTHING* — hand-made `2011/2013/2014/Лето` plus a `ПРОЧЕЕ` bucket,
+  no receipt: `isLibrary === false`, and the years are still listed (that IS a question about the
+  folder);
+- *THE RECEIPT IS WHAT MAKES IT A LIBRARY* — the document's whole life: written, deleted by hand
+  (must fail safe), and removed by an undo.
+
+**Break-verified:** restoring the old rule (`isLibrary: years.length > 0`) turns **both red**.
+
+Six census helpers across the suite now skip `RECEIPT_NAME` as they already skip `RUNS_DIR_NAME`: a
+census asking "did the owner's files change?" must not count KPOT's own paperwork.
 
 ## Decisions made without the owner
 
-*(filled in when the bug is closed)*
+1. **The receipt lists sorts that are still IN EFFECT, not everything that ever happened.** His words
+   were «видим в нём историю сортировок»; a history that keeps describing an undone run would make
+   the document lie about the folder it sits in, and would re-open this very bug after a rollback.
+   The complete history is still on disk in `.kpot-runs/` and in the panel's run list.
+2. **The document is excluded from the scan.** Otherwise the plan would list KPOT's own paperwork
+   under «остаётся на месте», among his photographs.
+3. **Writing it is best-effort and happens after the files are home.** It is a courtesy to the
+   reader, not a link in the safety chain, and it must never cost a run that succeeded.
+4. **Only a real run that MOVED something is recorded** — a rehearsal moved nothing, and a run with
+   nothing to move has nothing to undo; neither makes a folder a sorted library.
+5. **The file name is visible and Russian** (`KPOT — что здесь сделано.txt`) rather than hidden or
+   dot-prefixed: a person meeting it among their own folders should be able to tell what it is, and
+   the panel's whole premise is that the program explains itself.
 
 ## Links
 

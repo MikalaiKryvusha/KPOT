@@ -11,9 +11,9 @@
 > **Suite: 286/286 green.** If today is much later than that, re-read `STATUS.md` first — it is
 > maintained continuously, this file is not.
 >
-> **Start here, then:** §6 is the next task — **`bugs/06`**, the one open defect: a messy folder
-> containing any `2013/` is taken for a finished library, so the wizard is skipped on exactly the
-> kind of archive it was built for. Four candidate fixes and a recommendation are in that document.
+> **Start here, then:** §6 is the next task. **There are no open defects and no unfinished phases** —
+> the next work is a user-facing README plus download instructions, and then asking the owner about
+> release 0.2 (everything since `v0.1` is unreleased, and a release needs his word).
 
 ---
 
@@ -49,7 +49,8 @@ tool has sorted a real archive sample. Everything below is verified, not claimed
 | Test suite | **286/286** green (`npm test`, `node --test`) |
 | Phases 0–5 | ✅ **all closed** (foundation · research+skeleton · scan/dates · dedupe/plan · safety · first real use) |
 | Phase 6 — the interface | ✅ **all six phases done** (`plans/03_interface_epic.md`). `kpot ui` opens a wizard on a messy folder and a control panel on a library (three re-launchable runs, guarded folder links, a run history with a working undo, the `НОВОЕ` inbox block, a desktop-shortcut offer); `npm run package` builds the **33.2 MB portable ZIP** that `npm run package:verify` proves runs on its own bundled runtime; and 6.6 put every owner-facing text through a reading pass |
-| Open bugs | **one** — `bugs/06`: a messy folder with any `2013/` in it is mistaken for a finished library. Five closed (see `bugs/`) |
+| Open bugs | **none** (six closed — see `bugs/`) |
+| How it knows a folder is a library | **its own receipt**, `KPOT — что здесь сделано.txt` in the archive root, NOT the shape of the folder. Owner's rule, 2026-07-29; `src/core/receipt.mjs`, `bugs/06_DONE` |
 | Runtime deps | two: `exifreader` and `jpeg-js` (BSD-3-Clause, added 2026-07-28 for the pixel search) |
 | Node | ≥ 20 (developed on 24, Windows 11) |
 
@@ -97,7 +98,8 @@ src/meta/      the date pipeline — see below (incl. pixels.mjs, the ONLY modul
 src/dedupe/    groups identical files by sha256; picks the keeper by an explainable total order
 src/plan/      season.mjs · bucket.mjs (one file -> its destination) · suspicious.mjs · plan.mjs (SortPlan + the Russian report)
 src/apply/     backup.mjs · apply.mjs (THE ONLY WRITER) · rollback.mjs · resume.mjs
-src/core/      paths · journal · pool · progress · scan_cache · decisions · inbox   (the bottom layer)
+src/core/      paths · journal · pool · progress · scan_cache · decisions · inbox · words ·
+               receipt · shortcut   (the bottom layer)
 tests/         node --test specs + fixtures/make.mjs (deterministic messy tree + ground truth)
 ```
 

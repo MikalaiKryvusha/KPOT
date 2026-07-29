@@ -97,7 +97,10 @@ export const rootOf = (path) => parse(resolve(path)).root;
 const YEAR_DIR_RE = /^(19|20)\d{2}$/;
 
 /**
- * Has KPOT already sorted this folder? [TESTED: 2026-07-29 · tests/receipt.test.mjs]
+ * Has KPOT already sorted this folder?
+ * [TESTED: 2026-07-29 · tests/ui_folders.test.mjs — year folders without a receipt are NOT a
+ * library, the receipt makes them one, deleting it by hand fails safe, and an undone sort takes it
+ * away again; verified by restoring the old rule, which turns both specs red]
  *
  * The owner's design turns on this one question: «Пока библиотека не собрана, человека ведут по
  * шагам. Как только собрана, мастер уступает место пульту». A wizard is right exactly once; after
