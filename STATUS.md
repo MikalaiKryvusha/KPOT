@@ -480,6 +480,29 @@ wrap up at his hour. Suite 192 → **239**; commits `5aba4ce` · `a1ff719` · `a
   planning a mistyped path used to CREATE that directory. The guard lived in a face; it now lives in
   the engine, and the spec asserts the absence of the side effect rather than an error message.
 
+### Session of 2026-07-29 (late 4) — phase 6.3 closed: the undo button
+The owner asked for a pool of autonomous work until 14:00; the honest pool for 35 minutes was one
+item, and it landed. Commit `c3dac29`; suite 256 → **266**.
+
+- **`src/ui/undo.mjs` + `POST /api/undo`** — the undo mechanism is untouched (`src/apply/rollback.mjs`
+  is old and tested). What is new is that a **run id now arrives from outside**, so three checks
+  stand in front of it, each refusing before anything is read or moved: the run must resolve **by its
+  REAL path** into THIS library (a run id is a path segment, and `..` in it names another archive —
+  the same rule `researches/08` measured for «Открыть»); `listRuns` must already call it `undoable`;
+  and `jobs.mjs` refuses it without an explicit confirmation exactly as it refuses a sort, and
+  refuses it with no run named — «вернуть всё подряд» is deliberately not on offer.
+- **The page** gets the button only on rows the server called undoable, its **own** confirmation
+  dialog (one dialog with two meanings is one wiring mistake away from sorting when someone asked to
+  undo), and re-reads the years and the history afterwards instead of showing yesterday's picture.
+- **Every refusal spec asserts the ABSENCE of an effect** — a sha256 census of the whole tree before
+  and after — rather than the presence of an error message; the success spec compares the census
+  before the sort with the census after the undo. Ten new specs; three guards verified by breaking
+  the code first (**2 / 1 / 1** red), and the confirmation one goes red because the files really did
+  move.
+- **A real defect found while wiring it, in code that had shipped:** the page's fetch helper treated
+  every status but 409 as a transport failure, so the 403 refusal from `/api/reveal` never reached
+  the screen — the «Открыть» refusal has been silent since it shipped. 403 is an answer now.
+
 ---
 
 ## Where we are now
@@ -522,11 +545,11 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
 | # | Item | Why it ranks here | Blocked by |
 |---|------|-------------------|-----------|
 | ✅ | ~~6.0 shared layer · 6.1 server · 6.2 wizard · the jargon debt~~ | **all four done 2026-07-29** — see the session record above | — |
-| 1 | **Фаза 6.3 — the control panel** | The wizard is right exactly once; after the first flight it becomes an interrogation. The panel is what makes the tool usable forever: three re-launchable runs, folder decisions answered in the UI, links into Explorer, run history with a rollback per row | **UNBLOCKED 2026-07-29** — the recon is written (`researches/08`): resolve the real path, then check containment, then launch and ignore the exit code |
-| 2 | **Фаза 6.4 — the `НОВОЕ` top-up** (idea 01) | Without it the tidy-up decays: in a year the archive needs another big sort. Small, because every mechanism it needs already exists | 6.3 |
-| 3 | **Фаза 6.5 — the portable package** | This is what makes the product reachable by anyone but us | **a recon first**: the Mark-of-the-Web on a REAL browser download is unverified and must not be promised before it is measured |
-| 4 | **Фаза 6.6 — the closing language pass** | Now genuinely a gate rather than a workload: the big debt was paid on 2026-07-29 and the wizard's words were written to the rule from the start | 6.3–6.5 |
-| 5 | **A user-facing README for the interface** | The moment someone other than the owner runs `kpot ui`, the current README does not tell them how | 6.5 |
+| ✅ | ~~6.3 — the control panel, incl. the undo button~~ | **done 2026-07-29** (`plans/07_DONE`, commit `c3dac29`) — three re-launchable runs, guarded folder links, history with an undo on every row that can honour one | — |
+| 1 | **Фаза 6.4 — the `НОВОЕ` top-up** (idea 01) | Without it the tidy-up decays: in a year the archive needs another big sort. Small, because every mechanism it needs already exists — the inbox lives INSIDE the library root, is named `НОВОЕ`, and an emptied inbox folder is deleted by the rule already approved for emptied folders | **unblocked** — 6.3 is closed |
+| 2 | **Фаза 6.5 — the portable package** | This is what makes the product reachable by anyone but us | **a recon first**: the Mark-of-the-Web on a REAL browser download is unverified and must not be promised before it is measured |
+| 3 | **Фаза 6.6 — the closing language pass** | Now genuinely a gate rather than a workload: the big debt was paid on 2026-07-29 and the wizard's words were written to the rule from the start | 6.4–6.5 |
+| 4 | **A user-facing README for the interface** | The moment someone other than the owner runs `kpot ui`, the current README does not tell them how | 6.5 |
 
 **Explicitly NOT on this list, and why** — so a future session does not resurrect them:
 - **`plans/02` step 3 (PRNU)** — unstarted and **unauthorised**. It identifies a camera, not a
@@ -706,7 +729,7 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
 > A concrete checklist so the next session (empty context) can start immediately: which files, which
 > commands, what to verify first.
 
-1. Verify the environment: `node -v` (≥20), `npm test` (**must be 256/256**), `git status` (clean),
+1. Verify the environment: `node -v` (≥20), `npm test` (**must be 266/266**), `git status` (clean),
    `gh auth status` (MikalaiKryvusha). Owner-provided paths from this file are PAST observations —
    re-check they still exist before planning around them (EXP-0011: a sample vanished once already).
 2. **Run the whole product once, end to end, before designing on top of it.** It all works now:
@@ -722,9 +745,15 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
    the copy on 2026-07-28). Undo it with
    `node bin/kpot.mjs rollback run-20260728-201538-437c4d D:\work\ai_sandbox\KPOT_SANDBOX`.
    Do not delete it without his word, and never copy more of his photographs without a fresh one.
-3. ⭐ **THE NEXT PIECE OF WORK — phase 6.3, the control panel — and it starts with a RECON, not code.**
-   Phases 6.0, 6.1 and 6.2 are shipped, so the interface already runs: `kpot ui` opens a wizard that
-   can choose a folder, build a plan and sort with one confirmation.
+3. ⭐ **THE NEXT PIECE OF WORK — phase 6.4, the `НОВОЕ` top-up (idea 01).** The whole interface up to
+   6.3 is shipped: `kpot ui` opens a **wizard** on a messy folder and a **control panel** on a
+   library, with three re-launchable runs, a guarded «Открыть», a run history and a **working undo
+   button** on every row that can honour one. Read `ideas/01_inbox_topup_flow.md` first — the owner
+   answered its three forks on 2026-07-28 (inbox INSIDE the library root · named `НОВОЕ` · an
+   emptied inbox folder is deleted) — then the epic's §6.4 acceptance criterion in
+   `plans/03_interface_epic.md`. Nothing about it needs a recon: every mechanism it uses exists.
+   After it, 6.5 — and **6.5 may not be promised before its Mark-of-the-Web recon is measured on a
+   REAL browser download.**
 
    **The recon that gated it is DONE** — `researches/08_open_folder_and_path_safety.md`, measured on
    this machine 2026-07-29. Its three findings, so nobody re-derives them:
@@ -748,17 +777,11 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
    - the panel screen: three re-launchable runs, the attention count, the years newest-first with
      «Открыть» on each, and a sort that still passes the one confirmation and returns to the panel.
 
-   **What is LEFT in 6.3 — one thing, and it was deliberately not rushed:** the **undo BUTTON** on a
-   history row. The history itself is done and read-only (`listRuns` + `GET /api/runs`, shown on the
-   panel, each row honest about whether an undo is still possible). What remains puts the product's most destructive operation behind an
-   the product's most destructive operation behind an HTTP endpoint — not work to squeeze into the
-   end of a session, in a project whose first rule is that safety outranks tidiness. Design it
-   deliberately: the same one-confirmation rule as the sort, the run named in the confirmation, and
-   the server refusing a rollback for a run that does not belong to the library it is pointed at.
-   `listRuns().undoable` already tells you exactly which rows may carry the button — and the whole
-   thing is DESIGNED already: **`plans/07_undo_button.md`**, written 2026-07-29, with the six rules it
-   must hold and its acceptance criteria. Read that first; the remaining work is the confirmation and
-   the endpoint, not the design.
+   **6.3 is CLOSED** (2026-07-29, commit `c3dac29`, `plans/07_DONE_undo_button.md`). The undo button
+   exists and is guarded on the SERVER, not on the page: the run must resolve by its **real path**
+   into this library, `listRuns` must already call it `undoable`, the confirmation names the run and
+   the numbers, and nothing else may be running. Its specs assert the **absence of an effect** (a
+   sha256 census of the tree) on every refusal, and byte-for-byte restoration on the success.
 
    **What the panel must do** (owner's own words, interview #003): re-launch **any of the three runs**
    (scan · plan · sort) with a state on each card · show what needs a decision — folders awaiting an

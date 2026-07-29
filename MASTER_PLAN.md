@@ -173,12 +173,15 @@ Application of `PHILOSOPHY.md` to this project:
   - ✅ **6.2** — the first-flight wizard: four steps, the four `GOAL.md` guarantees always visible,
     a folder chooser (a browser cannot open a real folder dialog, so the server lists folders), one
     deliberate confirmation enforced ON THE SERVER, and every word from an RU/EN dictionary.
-  - 🔧 **6.3 — mostly built:** the recon is written (`researches/08`), folder reveal is checked and
-    guarded, library detection chooses wizard-vs-panel, and the panel screen is live. **Left: the UNDO BUTTON on a
-    history row** — the history itself is done and read-only; the button is deliberately not rushed,
-    because it puts the most destructive operation behind an HTTP endpoint.
+  - ✅ **6.3 — DONE 2026-07-29:** the recon (`researches/08`), the guarded folder reveal, the
+    wizard-vs-panel decision, the panel screen, the read-only history — and, last, the **undo
+    button** (`plans/07_DONE`): it may only name a run this library owns (checked by its REAL path),
+    only one the history already called undoable, only with a deliberate confirmation naming the run
+    and the numbers, and only when nothing else is running. Every refusal is asserted by a sha256
+    census showing **nothing moved**, and the success by the census before the sort equalling the
+    census after the undo.
   - 🔲 **6.4 · 6.5 · 6.6** remain; 6.5 still needs its Mark-of-the-Web recon.
-  Suite 192 → **256**. Plans: `04_DONE`, `05_DONE`, `06`.
+  Suite 192 → **266**. Plans: `04_DONE`, `05_DONE`, `06`, `07_DONE`.
 
 ### Phase N — The goal is reached
 Files are no longer scattered "как попало": the owner opens the library and walks his life by year and
