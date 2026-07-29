@@ -35,6 +35,14 @@
 
 ## Entries
 
+### EXP-0018 · 2026-07-29 · ❌→✅ · #process #git #discipline #layering
+**Context:** end of a long autonomous stretch, adding a small self-contained module (`src/ui/reveal.mjs`) with its own spec file. I ran `node --test tests/ui_reveal.test.mjs` — 7/7 green — then committed and pushed.
+**Tried / did:** ran the FULL suite afterwards, out of habit rather than policy.
+**Result:** ❌ **245/246 — I had pushed a red tree.** The failure was in a different file entirely: the layering guard written earlier the same session, which scans every module in `src/ui/` and had caught the new one importing `../core/paths.mjs` instead of going through `src/app/`. ✅ Fixed by re-exporting the two helpers from the app layer (keeping the rule rather than relaxing it) and pushing green.
+**Lesson:** running the spec file you just wrote is not "running the tests" — it is the weakest possible check, because a new module's blast radius is by definition *elsewhere*. This bites hardest exactly where the project is healthiest: **cross-cutting guards** (layering, no-print, canonical order, encoding) live in files you did not touch and are the whole reason they exist. The rule is mechanical — `npm test` between the last edit and `git push`, no exceptions, and especially not when you feel finished. Second lesson, cheaper to state than to learn: the guard worked perfectly and still did not save me, because a guard only protects you if you *run* it.
+**Repro:** `npm test` immediately before every push; if a commit is already out, fix forward and say so in the message rather than quietly amending. Check what a new file imports against the layer rules first: `grep -n "^import.*from '\.\." src/<layer>/*.mjs`.   → link: tests/ui_server.test.mjs (the layering guard) · src/app/phases.mjs (the re-exports)
+**Not for:** a quick red-green-refactor loop inside one module, where running the single file is exactly the right feedback speed. The rule is about the PUSH, not about every iteration.
+
 ### EXP-0017 · 2026-07-29 · ❌→✅ · #guards #regex #cyrillic #i18n #verification
 **Context:** the web interface (phase 6.2) must contain no jargon — the owner's requirement in capitals, «БЕЗ ЖАРГОНИЗМОВ И СЛЕНГА». I wrote a spec that scans every dictionary string against a list of banned terms: `/\bсканир/i`, `/\bхеш/i`, `/\bSHA/i`, `/\bEXIF\b/i` and so on. It went green immediately.
 **Tried / did:** ran the mandatory break-the-code pass anyway — planted «Сканирование папки, вычисляю хеши» into a real Russian string and expected the guard to go red.

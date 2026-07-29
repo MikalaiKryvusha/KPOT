@@ -8,7 +8,7 @@
 > **Written:** 2026-07-28 at release `v0.1`; **refreshed 2026-07-29 (late)** after the interface
 > epic was designed and its first three phases — the shared layer, the server and the wizard — were
 > built and shipped.
-> **Suite: 239/239 green.** If today is much later than that, re-read `STATUS.md` first — it is
+> **Suite: 247/247 green.** If today is much later than that, re-read `STATUS.md` first — it is
 > maintained continuously, this file is not.
 >
 > **Start here, then:** §6 is the next task — **phase 6.3, the control panel.** It is ready to work
@@ -45,9 +45,9 @@ tool has sorted a real archive sample. Everything below is verified, not claimed
 
 | | |
 |---|---|
-| Test suite | **239/239** green (`npm test`, `node --test`) |
+| Test suite | **247/247** green (`npm test`, `node --test`) |
 | Phases 0–5 | ✅ **all closed** (foundation · research+skeleton · scan/dates · dedupe/plan · safety · first real use) |
-| Phase 6 — the interface | 🔧 under way. Epic: `plans/03_interface_epic.md`. **6.0 · 6.1 · 6.2 done** — `kpot ui` opens a working wizard. **6.3, the control panel, is next** (recon first) |
+| Phase 6 — the interface | 🔧 under way. Epic: `plans/03_interface_epic.md`. **6.0 · 6.1 · 6.2 done** — `kpot ui` opens a working wizard. **6.3, the control panel, is next** — its recon is DONE and its safety piece is built |
 | Open bugs | **none** (four closed, all found by real data — see `bugs/`) |
 | Runtime deps | two: `exifreader` and `jpeg-js` (BSD-3-Clause, added 2026-07-28 for the pixel search) |
 | Node | ≥ 20 (developed on 24, Windows 11) |
@@ -67,7 +67,7 @@ node bin/kpot.mjs ui                       # the window: a local server + a page
 
 ```bash
 node -v                                    # must be >= 20
-npm test                                   # must be 239/239
+npm test                                   # must be 247/247
 git status                                 # must be clean; work on main, no feature branches
 
 # then run the whole product once, end to end, on a throwaway tree:
