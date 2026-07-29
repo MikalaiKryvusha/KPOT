@@ -718,7 +718,7 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
 | ✅ | ~~6.6 — the closing language pass~~ | **done 2026-07-29.** The interface epic is complete. Found by reading, not grepping: the reports had never had the pass at all | — |
 | ✅ | ~~`bugs/06` — a messy folder mistaken for a finished library~~ | **fixed 2026-07-29** by the owner's rule: KPOT leaves a **receipt** and asks it, instead of guessing from a `2013/` folder | — |
 | ✅ | ~~A user-facing README for the interface + download instructions~~ | **done 2026-07-29** (commit `769c627`), in both languages: what the two screens are and why one or the other appears, the receipt file explained to the person who will meet it in their own folder, and the `researches/09` §6.2 obligation discharged — the Windows first-launch dialog named in its own words, with the button to press. (This row appeared TWICE in the table; deduplicated) | — |
-| 1 | **Release 0.2** — the interface, the package, the top-up, the receipt | Everything since `v0.1` is unreleased: a whole interface epic, a portable package and six closed bugs. Needs the owner's word (a release is outward-facing). It also COMPLETES the README above: today the download note says honestly that the ZIP is built from source, because `v0.1` predates the package and linking to it would send a non-technical person to the wrong file | **the owner** |
+| ✅ | ~~**Release 0.2 «Visible KPOT»**~~ | **published 2026-07-29** on the owner's explicit word («НА ВСЁ ДАЮ ДОБРО»). Tag `v0.2`, two artifacts: the 33.2 MB portable ZIP and the 165 KB npm tarball. It closes BOTH honest limits `0.1` declared about itself — «No GUI yet» and «No pixel-level matching yet» | — |
 | 3 | **A square app icon** | The shortcut currently shows its target's icon. Blocked on a BRAND decision, not on work: the logo is a 1734×907 banner and a square mark out of it is the owner's call (EXP-0023). One line once he supplies one | **the owner** |
 
 **Explicitly NOT on this list, and why** — so a future session does not resurrect them:
@@ -915,22 +915,25 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
    the copy on 2026-07-28). Undo it with
    `node bin/kpot.mjs rollback run-20260728-201538-437c4d D:\work\ai_sandbox\KPOT_SANDBOX`.
    Do not delete it without his word, and never copy more of his photographs without a fresh one.
-3. ⭐ **THE NEXT PIECE OF WORK — ask the owner about release 0.2.** There is nothing else ranked
-   above it. The interface epic is COMPLETE (6.0 … 6.6), the portable package is built and verified,
-   `bugs/06` is closed and independently judged, and the user-facing README landed 2026-07-29
-   (`769c627`) — **there are no open defects and no unblocked backlog item left.**
+3. ⭐ **RELEASE 0.2 IS OUT — the backlog is empty of unblocked work.** Published 2026-07-29 as
+   **«Visible KPOT»** (tag `v0.2`) on the owner's explicit authorisation («НА ВСЁ ДАЮ ДОБРО»), with
+   both artifacts attached: `KPOT-0.2.0-win-x64.zip` (33.2 MB portable) and `kpot-0.2.0.tgz`
+   (165 KB). The README's download links are real links now, in both languages.
 
-   Everything since `v0.1` is unreleased: a whole interface, a 33.2 MB portable package, the `НОВОЕ`
-   top-up, the receipt, and six closed bugs. A release is outward-facing, so it needs his word
-   (`AGENT_GUIDE` §Git workflow) — **do not cut one on your own initiative.** Ask it as a question
-   to him, not as a plan: `/interview` if it needs forks (codename, what goes in the notes), a plain
-   chat question if it does not.
+   **What the judge pass corrected before publishing, so nobody repeats it:** the scope was NOT
+   «the interface epic + six bugs». `git log v0.1..HEAD` says two bugs closed since the tag (05 and
+   06) — the other four predate it — and the pixel search (`plans/02` step 2) and the
+   reset-camera-clock rule are ALSO new in 0.2, because `v0.1` was tagged before them. The clean
+   framing that came out of it, and the one the notes use: **0.2 closes both honest limits 0.1
+   declared about itself** — «No GUI yet» and «No pixel-level matching yet».
 
-   **The release is what completes the README.** Its download note currently says, truthfully, that
-   the portable ZIP is built from source with `npm run package` — because `v0.1` predates the
-   package and carries the CLI tarball only, so linking a non-technical person there would send them
-   to a file that cannot do what the paragraph above it describes. The moment 0.2 ships with the ZIP
-   attached, that note becomes a real download link, in both languages.
+   **The next piece of work is genuinely open.** Nothing is ranked and unblocked. Candidates, none
+   started: the clean-machine acceptance of the package (his, `plans/09` §9) · a square app icon
+   (his, a brand decision) · `plans/02` step 3 (PRNU) which is **unstarted and unauthorised** ·
+   whatever the owner finds when he actually uses 0.2 on his archive. **Ask him rather than
+   inventing one** — and note that a first real run of the WINDOW on his 551 GB archive is the most
+   valuable observation available, since every real-data session so far has found defects no
+   fixture could.
 
    `researches/09` §6.2's requirement is already discharged in BOTH places it names — the package's
    own `ЧИТАТЬ.txt` (built by `tools/build_package.mjs`) and the README's download section: the

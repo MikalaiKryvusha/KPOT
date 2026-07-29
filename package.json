@@ -1,6 +1,6 @@
 {
   "name": "kpot",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Turns a chaotic home photo/video collection into a chronological library: scans, dates by metadata, groups duplicates, sorts into year/season folders — with a dry run, a backup commit and rollback.",
   "type": "module",
   "license": "MIT",

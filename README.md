@@ -108,9 +108,11 @@ node bin/kpot.mjs --help
 
 ### Status
 
-🎉 **Release 0.1 “First KPOT”.** Every phase works end to end, and the tool has already sorted real
-archives. Verified by **294 green tests** *and* by two supervised runs on real material taken out of
-a genuinely messy 551 GB collection — a 3 397-file / 13 GB sample, and a fresh 813-file / 943 MB one.
+🎉 **Release 0.2 “Visible KPOT”.** The tool now has a **face**: a window you drive with the mouse,
+a portable package that needs neither Node nor a terminal, and a note it leaves behind saying what
+it did to your folder. Verified by **294 green tests** *and* by two supervised runs on real material
+taken out of a genuinely messy 551 GB collection — a 3 397-file / 13 GB sample, and a fresh
+813-file / 943 MB one.
 
 ```
 kpot scan <dir>               what each file is, and when it was taken — with the evidence
@@ -161,17 +163,30 @@ What is behind that:
   A genuine New Year photograph of exactly the same shape keeps its date; the owner's archive has 13
   of those, and all 13 are untouched.
 - **Idempotent** — sorting an already-sorted library moves nothing.
+- **A window, not a command line** *(new in 0.2)* — `kpot ui` serves a page on `127.0.0.1` only,
+  behind a start-up token and a `Host` whitelist, opened in your browser only after the server is
+  actually listening. A guide for the first flight; a dashboard afterwards, with every run
+  re-launchable, folders opened in Explorer, and an **undo button on each row of the history**.
+  Closing the tab does not stop a sort — a run over 70 000 files must not die with a browser window.
+- **It writes down what it did** *(new in 0.2)* — after a real sort you get a plain readable
+  `KPOT — что здесь сделано.txt` in the folder: which runs are still in effect, when, how many
+  files, and how to undo each. It is also how KPOT knows whether it has been here before, instead of
+  guessing from the shape of your folders — [bugs/06](bugs/06_DONE_messy_tree_looks_like_a_library.md)
+  was exactly that guess going wrong on an archive that merely *looked* tidy.
+- **A `НОВОЕ` folder for what arrives later** *(new in 0.2)* — drop new photographs in, press one
+  button, and they are filed into the library that already exists; a copy already shelved always
+  wins over a freshly-dropped duplicate.
 - Grounded in real chaos: [prior-art research](researches/01_prior_art.md) ·
   [real-archive survey](researches/02_real_archive_survey.md) ·
   [the first real run](researches/03_first_real_run.md), which found four bugs no synthetic fixture
   had · [what a sidecar really contains](researches/04_sidecars.md).
 
-Under way: **the interface** — a local web UI shipped as a portable package (download, unpack,
-done), with a wizard for the first run and a control panel afterwards. Design and delivery are
-settled: [interview 003](interviews/interview_003_interface.md), with
+**Shipped in 0.2: the interface** — a local web UI, delivered as a portable package (download,
+unpack, done), with a wizard for the first run and a control panel afterwards. Design and delivery
+were settled first: [interview 003](interviews/interview_003_interface.md), with
 [clickable mock-ups](interviews/interview_003_designs.html) and the
 [prior-art review](researches/07_local_ui_and_delivery.md) behind them; the plan is the
-[interface epic](plans/03_interface_epic.md). **Most of it has landed** — `kpot ui` starts
+[interface epic](plans/03_interface_epic.md). **All six of its phases are done** — `kpot ui` starts
 a local server and opens a window that walks you through choosing a folder, reading the plan and
 sorting, with the four guarantees on screen the whole time. It calls **the same executor** the
 terminal does (two implementations would let the dry run and the real run drift apart), it refuses to
@@ -181,7 +196,8 @@ that opens each folder in Windows, and a history of what you have run — with *
 every row that can still honour it**, behind a confirmation that names the run and the number of
 files. The panel also carries the **`НОВОЕ` folder** — one legal place to drop new pictures, showing
 how many are waiting, with one button that files them into the library exactly as any other sort
-does. Still ahead: the portable package.
+does. And the package itself is here: a ~33 MB ZIP carrying Node’s own signed binary plus our
+`.mjs`, so no unsigned executable is ever introduced.
 
 Roadmap: `MASTER_PLAN.md` · current state: `STATUS.md`.
 
@@ -294,10 +310,11 @@ node bin/kpot.mjs --help
 
 ### Статус
 
-🎉 **Релиз 0.1 «First KPOT».** Все фазы работают от начала до конца, и инструмент уже разобрал
-настоящие архивы. Проверено **294 зелёными тестами** *и* двумя контролируемыми прогонами на живом
-материале из по-настоящему захламлённой коллекции на 551 ГБ — на выборке 3 397 файлов / 13 ГБ и на
-свежей 813 файлов / 943 МБ.
+🎉 **Релиз 0.2 «Visible KPOT».** У инструмента появилось **лицо**: окно, которым управляют мышью,
+портативный пакет, которому не нужны ни Node, ни командная строка, и записка, которую программа
+оставляет в папке — что именно она с ней сделала. Проверено **294 зелёными тестами** *и* двумя
+контролируемыми прогонами на живом материале из по-настоящему захламлённой коллекции на 551 ГБ —
+на выборке 3 397 файлов / 13 ГБ и на свежей 813 файлов / 943 МБ.
 
 ```
 kpot scan <dir>               что за файл и когда снят — вместе с уликами
@@ -347,17 +364,31 @@ kpot ui                       окно: локальный сервер и ст�
   Настоящая новогодняя фотография точно такой же формы дату сохраняет: в архиве владельца их 13, и
   все 13 не тронуты.
 - **Идемпотентность** — сортировка уже разобранной библиотеки не двигает ничего.
+- **Окно вместо командной строки** *(новое в 0.2)* — `kpot ui` поднимает страницу только на
+  `127.0.0.1`, за стартовым токеном и белым списком `Host`, и открывает браузер лишь после того, как
+  сервер действительно начал слушать. Мастер на первый раз, пульт управления потом: любой прогон
+  можно запустить заново, папки открываются в проводнике, а **у каждой строки истории есть кнопка
+  отмены**. Закрытие вкладки не останавливает сортировку — прогон на 70 000 файлов не должен
+  умирать вместе с окном браузера.
+- **Программа записывает, что сделала** *(новое в 0.2)* — после настоящей сортировки в папке
+  появляется читаемый файл `KPOT — что здесь сделано.txt`: какие прогоны действуют сейчас, когда,
+  сколько файлов и как каждый вернуть назад. По нему же KPOT понимает, был ли он здесь раньше, —
+  вместо того чтобы догадываться по виду папок. [bugs/06](bugs/06_DONE_messy_tree_looks_like_a_library.md)
+  — это как раз та догадка, ошибавшаяся на архиве, который лишь *выглядел* прибранным.
+- **Папка `НОВОЕ` для того, что появится потом** *(новое в 0.2)* — складываете туда свежие снимки,
+  нажимаете одну кнопку, и они встают в уже собранную библиотеку; копия, которая давно лежит на
+  полке, всегда выигрывает у только что принесённого дубликата.
 - Опирается на реальный хаос: [исследование готовых решений](researches/01_prior_art.md) ·
   [обзор реального архива](researches/02_real_archive_survey.md) ·
   [первый настоящий прогон](researches/03_first_real_run.md), который нашёл четыре бага, невидимых
   ни одной синтетической фикстуре · [что на самом деле лежит в сайдкаре](researches/04_sidecars.md).
 
-В работе: **интерфейс** — локальный веб-интерфейс, поставляемый портативным пакетом (скачал,
+**Вышло в 0.2: интерфейс** — локальный веб-интерфейс, поставляемый портативным пакетом (скачал,
 распаковал, готово), с мастером на первый запуск и пультом управления дальше. Дизайн и способ
-поставки согласованы: [интервью 003](interviews/interview_003_interface.md), к нему
+поставки согласовали заранее: [интервью 003](interviews/interview_003_interface.md), к нему
 [кликабельные макеты](interviews/interview_003_designs.html) и
 [разведка готовых решений](researches/07_local_ui_and_delivery.md); план — 
-[эпик интерфейса](plans/03_interface_epic.md). **Бо́льшая его часть уже сделана:** команда `kpot ui`
+[эпик интерфейса](plans/03_interface_epic.md). **Все шесть его фаз готовы:** команда `kpot ui`
 поднимает локальный сервер и открывает окно, которое проводит вас по шагам — выбрать папку,
 прочитать план, разложить, — и все четыре гарантии всё это время на экране. Окно зовёт **тот же самый
 исполнитель**, что и терминал (две реализации означали бы, что сухой прогон и настоящий однажды
@@ -367,7 +398,9 @@ kpot ui                       окно: локальный сервер и ст�
 что вы уже запускали — с кнопкой **«Вернуть как было» в каждой строке, где её ещё можно сдержать**, и
 с подтверждением, которое называет прогон и число файлов. Там же — папка **«НОВОЕ»**: одно законное
 место, куда складывать новые снимки; пульт показывает, сколько их там ждёт, и одна кнопка
-раскладывает их по библиотеке ровно так же, как любая другая сортировка. Впереди: портативный пакет.
+раскладывает их по библиотеке ровно так же, как любая другая сортировка. И сам пакет готов: ZIP
+на ~33 МБ, внутри — подписанный node.exe и наши `.mjs`, так что ни одной неподписанной программы
+мы не приносим.
 
 
 Дорожная карта: `MASTER_PLAN.md` · текущее состояние: `STATUS.md`.
