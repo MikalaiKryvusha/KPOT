@@ -35,6 +35,22 @@
 
 ## Entries
 
+### EXP-0020 · 2026-07-29 · ❌→✅ · #tooling #templates #ui #encoding
+**Context:** editing `src/ui/page.mjs`, whose whole body is ONE template literal — the page's HTML and its browser JavaScript live inside backticks in a `.mjs` file.
+**Tried / did:** added an ordinary documentation comment above a function, in the house style, quoting an identifier the way every other comment in this project quotes one: with backticks.
+**Result:** ❌ `SyntaxError: Unexpected identifier` — the backtick closed the template literal, and the rest of the page became broken JavaScript. Caught immediately by running the spec, not by reading. ✅ the quotes became «guillemets»; `node --check src/ui/page.mjs` now runs before every spec run on that file.
+**Lesson:** inside a template literal, a comment is not inert — backticks, `${`, and unescaped `\` are all live syntax there, and the project's own commenting convention (identifiers in backticks) is exactly what breaks it. Any file that carries a whole other language inside a string needs a stated local rule, and this one is now stated at the top of the file. Generalisation worth keeping: **house style is not automatically portable into embedded content** — the same applies to Cyrillic in regexes (EXP-0017) and to generated sources (EXP-0009).
+**Repro:** `node --check src/ui/page.mjs` after any edit to that file — it fails in under a second and names the line.   → link: src/ui/page.mjs
+**Not for:** ordinary modules, where the convention is right and should stay.
+
+### EXP-0019 · 2026-07-29 · ❌→✅ · #faces #http #verification #blind-spot #ui
+**Context:** wiring «Вернуть как было» (phase 6.3). The undo endpoint answers a refusal with HTTP 403 and a body explaining why, exactly as `/api/reveal` already did — and `/api/reveal`'s refusal had a green endpoint spec proving the status and the sentence.
+**Tried / did:** before writing the page's error branch, read the page's own `api()` helper to see what it does with a 403.
+**Result:** ❌ it threw. `if (!res.ok && res.status !== 409) throw new Error('HTTP ' + res.status)` — so **every 403 refusal became a rejected promise inside a click handler and vanished**. The «Открыть» refusal has been silent on screen since the day it shipped, while its endpoint spec was green the whole time: the spec asked the SERVER and never asked the page. ✅ 403 is treated as an answer now, and the undo's refusals render from the dictionary.
+**Lesson:** an endpoint spec proves the server answered, not that anyone heard. In a server+face product every refusal has TWO halves, and the second one — the face turning a status into a sentence a person reads — is the half no HTTP spec covers and the half that is invisible in review, because a swallowed promise looks exactly like a screen where nothing went wrong. The cheap habit that caught this: **when adding a new status code to a face, read the face's transport helper first** — helpers accumulate special cases (`!== 409` here) that silently define which answers can ever reach the user.
+**Repro:** `grep -n "res.ok\|res.status" src/ui/page.mjs` — enumerate exactly which statuses the helper lets through, and compare against every status the server can return: `grep -n "writeHead([0-9]" src/ui/server.mjs`. Any status in the second list and not the first is an answer nobody will ever see.   → link: src/ui/page.mjs (the `api` helper) · tests/ui_undo.test.mjs
+**Not for:** statuses that genuinely are transport failures (500, a dropped socket) — those SHOULD throw and surface as «Не получилось», not be rendered as if the server had explained itself.
+
 ### EXP-0018 · 2026-07-29 · ❌→✅ · #process #git #discipline #layering
 **Context:** end of a long autonomous stretch, adding a small self-contained module (`src/ui/reveal.mjs`) with its own spec file. I ran `node --test tests/ui_reveal.test.mjs` — 7/7 green — then committed and pushed.
 **Tried / did:** ran the FULL suite afterwards, out of habit rather than policy.

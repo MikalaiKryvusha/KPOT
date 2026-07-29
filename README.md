@@ -77,7 +77,7 @@ node bin/kpot.mjs --help
 ### Status
 
 🎉 **Release 0.1 “First KPOT”.** Every phase works end to end, and the tool has already sorted real
-archives. Verified by **256 green tests** *and* by two supervised runs on real material taken out of
+archives. Verified by **266 green tests** *and* by two supervised runs on real material taken out of
 a genuinely messy 551 GB collection — a 3 397-file / 13 GB sample, and a fresh 813-file / 943 MB one.
 
 ```
@@ -143,9 +143,11 @@ settled: [interview 003](interviews/interview_003_interface.md), with
 a local server and opens a window that walks you through choosing a folder, reading the plan and
 sorting, with the four guarantees on screen the whole time. It calls **the same executor** the
 terminal does (two implementations would let the dry run and the real run drift apart), it refuses to
-sort without your explicit confirmation, and closing the browser does not stop a run. Once a library exists the wizard steps aside for a control panel: three re-launchable runs and
-your years with a link that opens each folder in Windows. Still ahead: the run history with an undo
-on every row, the top-up flow and the portable package.
+sort without your explicit confirmation, and closing the browser does not stop a run. Once a library
+exists the wizard steps aside for a control panel: three re-launchable runs, your years with a link
+that opens each folder in Windows, and a history of what you have run — with **«Вернуть как было» on
+every row that can still honour it**, behind a confirmation that names the run and the number of
+files. Still ahead: the top-up flow for new files and the portable package.
 
 Roadmap: `MASTER_PLAN.md` · current state: `STATUS.md`.
 
@@ -226,7 +228,7 @@ node bin/kpot.mjs --help
 ### Статус
 
 🎉 **Релиз 0.1 «First KPOT».** Все фазы работают от начала до конца, и инструмент уже разобрал
-настоящие архивы. Проверено **256 зелёными тестами** *и* двумя контролируемыми прогонами на живом
+настоящие архивы. Проверено **266 зелёными тестами** *и* двумя контролируемыми прогонами на живом
 материале из по-настоящему захламлённой коллекции на 551 ГБ — на выборке 3 397 файлов / 13 ГБ и на
 свежей 813 файлов / 943 МБ.
 
@@ -294,8 +296,10 @@ kpot ui                       окно: локальный сервер и ст�
 исполнитель**, что и терминал (две реализации означали бы, что сухой прогон и настоящий однажды
 разойдутся), сортировка не начнётся без вашего явного подтверждения, а закрытие браузера не
 останавливает работу. Когда библиотека уже собрана, мастер уступает место пульту управления: три
-прогона, которые можно запустить заново, и ваши годы со ссылкой «Открыть» на каждый. Впереди:
-история прогонов с откатом в каждой строке, доливка новых файлов и портативный пакет.
+прогона, которые можно запустить заново, ваши годы со ссылкой «Открыть» на каждый и история того,
+что вы уже запускали — с кнопкой **«Вернуть как было» в каждой строке, где её ещё можно сдержать**, и
+с подтверждением, которое называет прогон и число файлов. Впереди: доливка новых файлов и
+портативный пакет.
 
 
 Дорожная карта: `MASTER_PLAN.md` · текущее состояние: `STATUS.md`.
