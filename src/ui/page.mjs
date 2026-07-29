@@ -247,10 +247,33 @@ function viewPanel() {
     + '<h2 style="font-size:1.05rem">' + t('panelYears') + '</h2>'
     + (years.length ? '<ul class="folders">' + yearRows + '</ul>'
                     : '<p class="help">' + t('panelNoYears') + '</p>')
+    + '<h2 style="font-size:1.05rem">' + t('panelHistory') + '</h2>'
+    + historyRows()
     + '<div class="row"><button data-reveal=".">' + t('panelOpen') + '</button>'
     + '<span class="spacer"></span>'
     + '<button data-rechoose="1">' + t('panelBackToWizard') + '</button></div>'
     + (error ? '<p class="err">' + t('failed') + ': ' + escapeHtml(error) + '</p>' : '');
+}
+
+/**
+ * Past runs, newest first. There is deliberately NO undo button here yet: listing what happened is
+ * safe, and performing an undo is the most destructive thing this program can do — it gets its own
+ * design, with the same deliberate confirmation the sort has. What each row already says honestly is
+ * whether an undo is still POSSIBLE, so the button, when it arrives, cannot promise what it cannot
+ * keep.
+ */
+function historyRows() {
+  const runs = panel?.runs ?? [];
+  if (!runs.length) return '<p class="help">' + t('panelHistoryNone') + '</p>';
+  return '<ul class="folders">' + runs.map((r) => {
+    const when = String(r.startedAt ?? '').replace('T', ' ').slice(0, 16);
+    const what = r.dryRun
+      ? t('panelHistoryDry')
+      : t('panelHistoryMoved') + ' ' + r.moved + ' — '
+        + (r.undoable ? t('panelHistoryUndoable') : t('panelHistoryNotUndoable'));
+    return '<li><button disabled style="opacity:1;cursor:default">' + escapeHtml(when)
+      + ' — ' + escapeHtml(what) + '</button></li>';
+  }).join('') + '</ul>';
 }
 
 /**
@@ -260,7 +283,11 @@ function viewPanel() {
  */
 async function enter() {
   panel = await api('/api/library?root=' + encodeURIComponent(folder));
-  if (panel.isLibrary) { step = 0; return render(); }
+  if (panel.isLibrary) {
+    panel.runs = (await api('/api/runs?root=' + encodeURIComponent(folder))).runs;
+    step = 0;
+    return render();
+  }
   return startPlan();
 }
 
@@ -356,6 +383,7 @@ events.addEventListener('job-finished', async (e) => {
     // of a first flight, not of every routine top-up. The year list is re-read because it changed.
     if (panel?.isLibrary) {
       panel = await api('/api/library?root=' + encodeURIComponent(folder));
+      panel.runs = (await api('/api/runs?root=' + encodeURIComponent(folder))).runs;
       step = 0;
     } else {
       step = 4;

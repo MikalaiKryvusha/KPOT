@@ -117,3 +117,59 @@ export function renderUnfinishedWarning(root, runs) {
   L.push('дерева, и вернуться к исходному состоянию одной командой стало бы невозможно.');
   return L.join('\n');
 }
+
+/**
+ * Every run this tree remembers — finished, unfinished and rehearsed alike. [NOT-TESTED]
+ *
+ * The control panel shows this as a history, so the shape is what a PERSON needs to recognise their
+ * own run: when it happened, how much moved, whether it was only a rehearsal, and whether it can
+ * still be undone. Nothing here performs anything: it reads journals and reports.
+ *
+ * `undoable` deliberately means "a real run, finished, with a backup on disk". A dry run moved
+ * nothing, and a run whose manifest is gone cannot be rolled back honestly — offering an undo button
+ * for either would be a promise the product could not keep.
+ *
+ * Never throws, for the same reason `findUnfinishedRuns` does not: a half-written run directory is
+ * an unreadable row, not a reason to fail the screen someone is looking at.
+ *
+ * @param {string} root absolute path of the archive
+ * @returns {Promise<Array<{runId, startedAt, moved, planned, dryRun, finished, hasBackup,
+ *                          undoable}>>} newest first — the order a person looks for a recent run in
+ */
+export async function listRuns(root) {
+  const runsDir = join(root, RUNS_DIR_NAME);
+  let entries;
+  try {
+    entries = await readdir(runsDir, { withFileTypes: true });
+  } catch {
+    return [];
+  }
+
+  const runs = [];
+  for (const e of entries) {
+    if (!e.isDirectory()) continue;
+    const dir = join(runsDir, e.name);
+    let files;
+    try { files = await readdir(dir); } catch { continue; }
+    const journalName = files.find((f) => f.endsWith('.jsonl') && f !== MANIFEST_NAME);
+    if (!journalName) continue;
+    try {
+      const { header, records } = await readRunJournal(join(dir, journalName));
+      const dryRun = header.meta?.dryRun === true;
+      const finished = records.some((r) => r.kind === 'done');
+      const hasBackup = files.includes(MANIFEST_NAME);
+      runs.push({
+        runId: header.runId,
+        startedAt: header.startedAt,
+        moved: records.filter((r) => r.kind === 'moved').length,
+        planned: header.meta?.operations ?? 0,
+        dryRun,
+        finished,
+        hasBackup,
+        undoable: !dryRun && finished && hasBackup,
+      });
+    } catch { /* unreadable — not a row we can show honestly */ }
+  }
+  runs.sort((a, b) => (a.startedAt < b.startedAt ? 1 : a.startedAt > b.startedAt ? -1 : 0));
+  return runs;
+}

@@ -91,6 +91,12 @@ export const STRINGS = Object.freeze({
     panelAttention: 'Требует вашего внимания',
     panelAttentionNone: 'Ничего не ждёт вашего решения.',
     panelBackToWizard: 'Работать с другой папкой',
+    panelHistory: 'Что вы уже запускали',
+    panelHistoryNone: 'Пока ничего не запускалось.',
+    panelHistoryDry: 'репетиция, ничего не двигалось',
+    panelHistoryMoved: 'перемещено файлов:',
+    panelHistoryUndoable: 'можно вернуть как было',
+    panelHistoryNotUndoable: 'вернуть уже нельзя',
 
     // Shared
     back: 'Назад',
@@ -169,6 +175,12 @@ export const STRINGS = Object.freeze({
     panelAttention: 'Needs your attention',
     panelAttentionNone: 'Nothing is waiting for your decision.',
     panelBackToWizard: 'Work with another folder',
+    panelHistory: 'What you have run so far',
+    panelHistoryNone: 'Nothing has been run yet.',
+    panelHistoryDry: 'a rehearsal, nothing was moved',
+    panelHistoryMoved: 'files moved:',
+    panelHistoryUndoable: 'can be put back',
+    panelHistoryNotUndoable: 'can no longer be put back',
 
     back: 'Back',
     next: 'Next',

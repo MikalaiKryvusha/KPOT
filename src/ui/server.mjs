@@ -35,7 +35,7 @@ import { createJobRunner } from './jobs.mjs';
 import { listFolders, libraryShape } from './folders.mjs';
 import { renderPage } from './page.mjs';
 import { revealFolder, REVEAL_REFUSED } from './reveal.mjs';
-import { renderPlan } from '../app/phases.mjs';
+import { renderPlan, listRuns } from '../app/phases.mjs';
 
 /**
  * The port we ask for first. Arbitrary on purpose, and chosen the way Syncthing chose 8384: high
@@ -285,6 +285,17 @@ export async function startServer({ port = DEFAULT_PORT, token = randomBytes(24)
       res.writeHead(200, { 'content-type': 'application/json; charset=utf-8' });
       res.end(JSON.stringify({ ok: true }));
       close().then(() => onShutdown?.());
+      return;
+    }
+
+    // The run history the panel shows. READ-ONLY: listing what happened is safe, and performing an
+    // undo over HTTP is the most destructive thing this product can do — it gets its own design,
+    // with the same deliberate confirmation the sort has, rather than being tacked on here.
+    if (url.pathname === '/api/runs') {
+      listRuns(url.searchParams.get('root') ?? '').then((runs) => {
+        res.writeHead(200, { 'content-type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ runs }));
+      }).catch(() => deny(res, 400, 'не удалось прочитать историю'));
       return;
     }
 

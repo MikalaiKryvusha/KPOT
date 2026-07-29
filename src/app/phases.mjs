@@ -32,16 +32,11 @@ import { annotateAssets } from '../meta/annotate.mjs';
 import { buildPlan } from '../plan/plan.mjs';
 import { applyPlan } from '../apply/apply.mjs';
 import { rollbackRun } from '../apply/rollback.mjs';
-import { findUnfinishedRuns } from '../apply/resume.mjs';
+import { findUnfinishedRuns, listRuns } from '../apply/resume.mjs';
 import { RUNS_DIR_NAME } from '../core/paths.mjs';
 import { loadScanCache, saveScanCache, rekeyScanCache } from '../core/scan_cache.mjs';
 import { loadDecisions, saveDecisions } from '../core/decisions.mjs';
 
-/**
- * The outcomes of `applyArchive`. The apply phase has four genuinely different endings and the CLI
- * used to distinguish them by which message it printed — which meant a second caller had to
- * re-derive them from prose. Naming them makes each ending a value both faces can branch on.
- */
 /**
  * The owner-facing reports, re-exported so every FACE gets them from one place.
  *
@@ -64,6 +59,14 @@ export { renderPlan, renderApplyReport, renderRollbackReport };
  */
 export { isInside, samePath } from '../core/paths.mjs';
 
+/** The runs an archive remembers — the control panel's history. Read-only; it performs nothing. */
+export { listRuns };
+
+/**
+ * The outcomes of `applyArchive`. The apply phase has four genuinely different endings and the CLI
+ * used to distinguish them by which message it printed — which meant a second caller had to
+ * re-derive them from prose. Naming them makes each ending a value both faces can branch on.
+ */
 export const APPLY_OUTCOME = {
   /** An earlier run stopped half-way. Only the owner may choose between resuming and rolling back. */
   BLOCKED_BY_UNFINISHED: 'blocked-by-unfinished',
