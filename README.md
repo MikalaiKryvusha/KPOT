@@ -5,8 +5,8 @@
 # KPOT — Krinik Photo Organizer Tool
 
 ![License](https://img.shields.io/badge/license-MIT-green)
-![Release](https://img.shields.io/badge/release-0.1%20«First%20KPOT»-blue)
-![Status](https://img.shields.io/badge/status-all%20phases%20work%20·%20sorted%20a%20real%20archive-brightgreen)
+![Release](https://img.shields.io/badge/release-0.2%20«Visible%20KPOT»-blue)
+![Status](https://img.shields.io/badge/status-window%20·%20portable%20package%20·%20sorted%20a%20real%20archive-brightgreen)
 ![Node](https://img.shields.io/badge/node-%E2%89%A520-brightgreen)
 ![Platform](https://img.shields.io/badge/platform-Windows--first-blue)
 ![Framework](https://img.shields.io/badge/powered%20by-KAIF%201.6-purple)
@@ -87,9 +87,10 @@ made on your computer. Press **«Запустить» (Run)**. The package conta
 own text files plus the official `node.exe`, signed by the OpenJS Foundation. KPOT needs no
 internet and sends none of your photographs anywhere.
 
-> **Where to get it.** The portable package (Windows, ~33 MB, no installer, no admin rights — unzip
-> and double-click `KPOT.cmd`) is built from source today with `npm run package`; a ready-made ZIP
-> ships with the next release. Release `v0.1` predates it and contains the command-line tool only.
+> **Where to get it.** 📦 **[KPOT-0.2.0-win-x64.zip](https://github.com/MikalaiKryvusha/KPOT/releases/download/v0.2/KPOT-0.2.0-win-x64.zip)**
+> — Windows, 33 MB, no installer and no administrator rights. Unpack the folder and double-click
+> `KPOT.cmd`; it carries its own Node.js, so nothing else needs installing. All releases:
+> [Releases](https://github.com/MikalaiKryvusha/KPOT/releases).
 
 ### Install (command line)
 
@@ -97,7 +98,7 @@ Node.js ≥ 20, nothing else — no build step, no native modules, two runtime d
 
 ```bash
 # from the release
-npm i -g https://github.com/MikalaiKryvusha/KPOT/releases/download/v0.1/kpot-0.1.0.tgz
+npm i -g https://github.com/MikalaiKryvusha/KPOT/releases/download/v0.2/kpot-0.2.0.tgz
 kpot --help
 kpot ui                 # the same window interface, from a checkout or an install
 
@@ -288,10 +289,10 @@ KPOT **не переместит ни одного файла**, пока не �
 `node.exe`, подписанный OpenJS Foundation. Программе не нужен интернет, и она никуда не отправляет
 ни одной вашей фотографии.
 
-> **Где взять.** Портативный пакет (Windows, ~33 МБ, без установщика и без прав администратора —
-> распаковать и дважды щёлкнуть по `KPOT.cmd`) сейчас собирается из исходников командой
-> `npm run package`; готовый ZIP появится со следующим релизом. Релиз `v0.1` вышел раньше него и
-> содержит только версию для командной строки.
+> **Где взять.** 📦 **[KPOT-0.2.0-win-x64.zip](https://github.com/MikalaiKryvusha/KPOT/releases/download/v0.2/KPOT-0.2.0-win-x64.zip)**
+> — Windows, 33 МБ, без установщика и без прав администратора. Распакуйте папку и дважды щёлкните по
+> `KPOT.cmd`; свой Node.js он несёт с собой, так что больше ничего ставить не нужно. Все релизы:
+> [Releases](https://github.com/MikalaiKryvusha/KPOT/releases).
 
 ### Установка (командная строка)
 
@@ -299,7 +300,7 @@ KPOT **не переместит ни одного файла**, пока не �
 
 ```bash
 # из релиза
-npm i -g https://github.com/MikalaiKryvusha/KPOT/releases/download/v0.1/kpot-0.1.0.tgz
+npm i -g https://github.com/MikalaiKryvusha/KPOT/releases/download/v0.2/kpot-0.2.0.tgz
 kpot --help
 kpot ui                 # тот же интерфейс с окном — из установки или из исходников
 
