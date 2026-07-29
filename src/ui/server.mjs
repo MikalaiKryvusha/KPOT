@@ -34,6 +34,7 @@ import { join } from 'node:path';
 import { createJobRunner } from './jobs.mjs';
 import { listFolders } from './folders.mjs';
 import { renderPage } from './page.mjs';
+import { revealFolder, REVEAL_REFUSED } from './reveal.mjs';
 import { renderPlan } from '../app/phases.mjs';
 
 /**
@@ -284,6 +285,24 @@ export async function startServer({ port = DEFAULT_PORT, token = randomBytes(24)
       res.writeHead(200, { 'content-type': 'application/json; charset=utf-8' });
       res.end(JSON.stringify({ ok: true }));
       close().then(() => onShutdown?.());
+      return;
+    }
+
+    // Show a folder in the file manager. The owner replaced thumbnails with links here
+    // («если нужно отправить человека на просмотр - ссылки на папки»), so this is where the panel
+    // sends someone to look with their own eyes. The path is checked against the library BEFORE
+    // anything is launched — researches/08, and src/ui/reveal.mjs holds the rule.
+    if (url.pathname === '/api/reveal' && req.method === 'POST') {
+      readJsonBody(req).then(async (body) => {
+        const r = await revealFolder(body?.path, body?.root);
+        res.writeHead(r.ok ? 200 : 403, { 'content-type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify(r.ok ? r : {
+          ...r,
+          message: r.reason === REVEAL_REFUSED.NOT_FOUND
+            ? 'Такой папки нет.'
+            : 'Эта папка не относится к вашей библиотеке — открыть её отсюда нельзя.',
+        }));
+      }).catch(() => deny(res, 400, 'не удалось прочитать запрос'));
       return;
     }
 

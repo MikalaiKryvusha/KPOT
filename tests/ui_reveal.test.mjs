@@ -122,3 +122,34 @@ test('a launcher that fails does not fail the request — the path is the useful
     assert.equal(r.launched, false, 'and it says plainly that no window was opened');
   } finally { await rm(base, { recursive: true, force: true }); }
 });
+
+// ─── over HTTP ───────────────────────────────────────────────────────────────────────────────────
+
+test('the reveal endpoint refuses a folder outside the library, in words a person reads', async () => {
+  const { startServer, STATE_FILE } = await import('../src/ui/server.mjs');
+  const { rm: rmf } = await import('node:fs/promises');
+  const { request: httpRequest } = await import('node:http');
+  await rmf(STATE_FILE, { force: true });
+  const { base, library, outside } = await scene();
+  const s = await startServer({ port: 0 });
+  const post = (path, token, body) => new Promise((resolve, reject) => {
+    const payload = JSON.stringify(body);
+    const req = httpRequest({ host: '127.0.0.1', port: s.port, path: `${path}?token=${token}`,
+      method: 'POST', headers: { Host: '127.0.0.1', 'content-type': 'application/json',
+        'content-length': Buffer.byteLength(payload) } }, (res) => {
+      let text = ''; res.on('data', (c) => { text += c; });
+      res.on('end', () => resolve({ status: res.statusCode, body: text }));
+    });
+    req.on('error', reject); req.end(payload);
+  });
+  try {
+    const r = await post('/api/reveal', s.token, { path: outside, root: library });
+    assert.equal(r.status, 403, 'a refusal must not be able to look like success');
+    const parsed = JSON.parse(r.body);
+    assert.equal(parsed.ok, false);
+    assert.match(parsed.message, /библиотек/i, 'and it explains itself without jargon');
+  } finally {
+    await s.close();
+    await rm(base, { recursive: true, force: true });
+  }
+});
