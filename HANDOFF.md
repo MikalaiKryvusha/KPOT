@@ -172,6 +172,11 @@ real run, finished, with its backup on disk. What remains places the product's m
 HTTP endpoint. Design it with the same care the sort got: one deliberate confirmation naming the run,
 and the server refusing a rollback for a run that does not belong to the library it is pointed at.
 
+**It is already DESIGNED — read `plans/07_undo_button.md` first.** It names the six rules the
+button must hold (only `undoable` rows get one; one confirmation naming the run and the numbers; the
+server does not trust the page; the run must belong to this library, checked by REAL path as in
+researches/08; one job at a time; a failure is a state, not an exception) and its acceptance criteria.
+
 **Already built and working, so call it rather than rewrite it:** `src/ui/reveal.mjs` (checked folder
 opening), `libraryShape()` + `GET /api/library` (the question that chooses wizard vs panel), and the
 panel screen itself in `src/ui/page.mjs`, and `listRuns` for the history.

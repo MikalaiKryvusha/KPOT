@@ -755,7 +755,10 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
    end of a session, in a project whose first rule is that safety outranks tidiness. Design it
    deliberately: the same one-confirmation rule as the sort, the run named in the confirmation, and
    the server refusing a rollback for a run that does not belong to the library it is pointed at.
-   `listRuns().undoable` already tells you exactly which rows may carry the button.
+   `listRuns().undoable` already tells you exactly which rows may carry the button — and the whole
+   thing is DESIGNED already: **`plans/07_undo_button.md`**, written 2026-07-29, with the six rules it
+   must hold and its acceptance criteria. Read that first; the remaining work is the confirmation and
+   the endpoint, not the design.
 
    **What the panel must do** (owner's own words, interview #003): re-launch **any of the three runs**
    (scan · plan · sort) with a state on each card · show what needs a decision — folders awaiting an
