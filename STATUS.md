@@ -750,8 +750,13 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
    library, with three re-launchable runs, a guarded «Открыть», a run history and a **working undo
    button** on every row that can honour one. Read `ideas/01_inbox_topup_flow.md` first — the owner
    answered its three forks on 2026-07-28 (inbox INSIDE the library root · named `НОВОЕ` · an
-   emptied inbox folder is deleted) — then the epic's §6.4 acceptance criterion in
-   `plans/03_interface_epic.md`. Nothing about it needs a recon: every mechanism it uses exists.
+   emptied inbox folder is deleted) — and then **`plans/08_novoe_topup.md`, the operational plan,
+   written 2026-07-29**. It already did the reading: the top-up is NOT a new pipeline (the inbox is
+   inside the root and the sort is idempotent, so a normal run already picks it up), and the work is
+   **four places where `НОВОЕ` would misbehave**, each checked against the code rather than recalled
+   — the technical-dirs list, the suspicious-folder rule, the duplicate keeper's `depth` criterion
+   (which today lets a newcomer in `НОВОЕ` evict the copy already shelved in the library), and the
+   emptied-folder cleanup, which must never remove the inbox itself. Nothing about it needs a recon.
    After it, 6.5 — and **6.5 may not be promised before its Mark-of-the-Web recon is measured on a
    REAL browser download.**
 
