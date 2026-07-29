@@ -97,26 +97,53 @@ test('a fresh messy folder is NOT a library — a first-timer must get the wizar
   } finally { await rm(root, { recursive: true, force: true }); }
 });
 
-test('a sorted tree IS a library, and its years come back newest first', async () => {
+// These two specs used to assert the rule the owner replaced on 2026-07-29: that a `<год>` folder
+// or a `ПРОЧЕЕ` bucket proved KPOT had sorted the tree. It did not prove it (`bugs/06`) — plenty of
+// people have a hand-made `2013/` in an untouched heap, the owner among them. His rule now: «KPOT
+// должен оставлять документ-расписку. Его нет — считаем, что беспорядок.» So the same two fixtures
+// now assert the OPPOSITE, which is the whole point of the fix.
+test('YEAR FOLDERS ARE NOT PROOF OF ANYTHING — without the receipt this is still a heap', async () => {
   const { libraryShape } = await import('../src/ui/folders.mjs');
   const root = await mkdtemp(join(tmpdir(), 'kpot-lib-'));
   try {
+    // Exactly the shape that used to fool it: hand-made year/season folders and a ПРОЧЕЕ bucket,
+    // and not one thing KPOT has ever done here.
     for (const y of ['2011', '2014', '2013']) await mkdir(join(root, y, 'Лето'), { recursive: true });
     await mkdir(join(root, 'ПРОЧЕЕ'));
+
     const shape = await libraryShape(root);
-    assert.equal(shape.isLibrary, true);
-    // Newest first: that is the order a person looks for their own photographs in.
-    assert.deepEqual(shape.years, ['2014', '2013', '2011']);
+    assert.equal(shape.isLibrary, false,
+      'the wizard must lead a first flight even when the folder happens to look tidy');
+    assert.equal(shape.sorts, 0);
+    // The years are still reported — that IS a question about the folder, and the panel lists them.
+    assert.deepEqual(shape.years, ['2014', '2013', '2011'], 'newest first — how a person looks');
   } finally { await rm(root, { recursive: true, force: true }); }
 });
 
-test('the global ПРОЧЕЕ bucket alone is enough — a sort happened even if no year survived', async () => {
+test('THE RECEIPT IS WHAT MAKES IT A LIBRARY, and losing it makes it a heap again', async () => {
   const { libraryShape } = await import('../src/ui/folders.mjs');
+  const { recordSort, forgetSort, RECEIPT_NAME } = await import('../src/core/receipt.mjs');
   const root = await mkdtemp(join(tmpdir(), 'kpot-lib2-'));
   try {
-    await mkdir(join(root, 'ПРОЧЕЕ'));
-    const shape = await libraryShape(root);
-    assert.equal(shape.isLibrary, true, 'these are shapes KPOT itself creates, so their presence is evidence');
+    await mkdir(join(root, '2019'));
+    assert.equal((await libraryShape(root)).isLibrary, false);
+
+    await recordSort(root, { runId: 'run-20260729-120000-abc123', moved: 42 });
+    const sorted = await libraryShape(root);
+    assert.equal(sorted.isLibrary, true, 'KPOT wrote down that it sorted this, so it did');
+    assert.equal(sorted.sorts, 1);
+
+    // A person may delete the document — it says so in its own text. That must fail SAFE: back to
+    // the wizard, never to a panel making claims it can no longer support.
+    await rm(join(root, RECEIPT_NAME), { force: true });
+    assert.equal((await libraryShape(root)).isLibrary, false);
+
+    // And an undone sort leaves the receipt the same way, which is `bugs/06` by the other door:
+    // after a full rollback the tree is a heap again and must be treated as one.
+    await recordSort(root, { runId: 'run-20260729-130000-def456', moved: 7 });
+    await forgetSort(root, 'run-20260729-130000-def456');
+    assert.equal((await libraryShape(root)).isLibrary, false,
+      'the last sort in effect was undone — there is no library any more');
   } finally { await rm(root, { recursive: true, force: true }); }
 });
 

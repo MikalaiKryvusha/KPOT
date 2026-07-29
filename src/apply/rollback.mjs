@@ -28,6 +28,7 @@ import { mkdir, readdir, readFile, rename, rmdir, stat } from 'node:fs/promises'
 import { dirname, join } from 'node:path';
 import { readRunJournal } from '../core/journal.mjs';
 import { counted } from '../core/words.mjs';
+import { forgetSort } from '../core/receipt.mjs';
 import { MANIFEST_NAME } from './backup.mjs';
 
 /** Absolute path of a journal-relative ('/'-separated) path inside the root. */
@@ -153,6 +154,17 @@ export async function rollbackRun(runDir, { dryRun = false } = {}) {
         dirsRemoved.push(d);
       }
     } catch { /* already gone, or not empty — both are fine and not worth an error */ }
+  }
+
+  // The receipt lists the sorts that are STILL IN EFFECT, so an undone one leaves it — and when the
+  // last one goes, `forgetSort` removes the document entirely and the folder is a heap again as far
+  // as the interface is concerned. Without this the receipt would keep asserting «здесь порядок»
+  // about a tree that has just been put back the way it was, which is `bugs/06` returning by the
+  // other door. Best-effort, and after the work: the files are already home.
+  if (!dryRun) {
+    try {
+      await forgetSort(root, header.runId);
+    } catch { /* the undo succeeded; the note about it is not worth failing over */ }
   }
 
   return { runId: header.runId, root, restored, alreadyInPlace, failed, dirsRemoved, dirsRestored, errors, truncated };

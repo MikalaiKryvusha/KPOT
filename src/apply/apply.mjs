@@ -27,6 +27,7 @@ import { dirname, join } from 'node:path';
 import { createRunJournal, openRunJournal, newRunId } from '../core/journal.mjs';
 import { RUNS_DIR_NAME } from '../core/paths.mjs';
 import { counted, plural } from '../core/words.mjs';
+import { recordSort } from '../core/receipt.mjs';
 import { createBackup, verifyBackup, runDirFor } from './backup.mjs';
 
 /**
@@ -253,6 +254,21 @@ export async function applyPlan(root, plan, scan, {
   // that the difference between a dry run and a real run is exactly one declared flag — a property
   // the acceptance spec asserts by comparing the journals record for record.
   await journal.append('done', { moved, failed });
+
+  // The receipt: KPOT writing down what it did, so the interface never has to deduce its own past
+  // from the shape of the folder (`bugs/06`, and the owner's rule of 2026-07-29 — «KPOT должен
+  // оставлять документ-расписку»). Only a REAL run that actually moved something is recorded: a
+  // rehearsal moved nothing, and a run that moved nothing has nothing to undo, so neither of them
+  // makes this folder a sorted library.
+  //
+  // Deliberately AFTER the journal's `done` record and outside the loop above: it is a courtesy to
+  // the reader, not part of the safety chain, and a failure to write it must never cost a run whose
+  // files have all arrived safely.
+  if (!dryRun && moved > 0) {
+    try {
+      await recordSort(root, { runId, moved });
+    } catch { /* the sort succeeded; the note about it is not worth failing over */ }
+  }
 
   return {
     runId, dryRun, journalPath: journal.path, backup, moved, failed, dirsCreated, dirsRemoved, errors,

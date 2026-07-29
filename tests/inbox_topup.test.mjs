@@ -29,6 +29,7 @@ import { makeJpeg } from './fixtures/make.mjs';
 import { applyArchive, planArchive, rollbackArchive, APPLY_OUTCOME } from '../src/app/phases.mjs';
 import { inboxState, createInbox } from '../src/core/inbox.mjs';
 import { INBOX_DIR, RUNS_DIR_NAME } from '../src/core/paths.mjs';
+import { RECEIPT_NAME } from '../src/core/receipt.mjs';
 
 /** Phases are composed with the cache and the pixel search off: neither is what these specs test. */
 const PLAIN = { cache: false, pixels: false };
@@ -70,7 +71,9 @@ async function census(root) {
   while (stack.length > 0) {
     const d = stack.pop();
     for (const e of await readdir(d.abs, { withFileTypes: true })) {
-      if (e.name === RUNS_DIR_NAME) continue;
+      // KPOT's own paperwork, both kinds — the run data and the receipt. A top-up rewrites the
+      // receipt by design (it records the new sort), and that is not «a file the owner had moved».
+      if (e.name === RUNS_DIR_NAME || e.name === RECEIPT_NAME) continue;
       const rel = d.rel === '' ? e.name : `${d.rel}/${e.name}`;
       if (e.isDirectory()) stack.push({ abs: join(d.abs, e.name), rel });
       else out.set(rel, createHash('sha256').update(await readFile(join(d.abs, e.name))).digest('hex'));

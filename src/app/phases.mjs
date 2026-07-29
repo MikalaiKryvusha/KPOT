@@ -95,6 +95,14 @@ export { INBOX_DIR } from '../core/paths.mjs';
 export { shortcutState, createShortcut } from '../core/shortcut.mjs';
 
 /**
+ * KPOT's receipt — the document it leaves saying what it did to a folder (the owner's rule of
+ * 2026-07-29; `bugs/06`). Re-exported because the interface asks it ONE question and it is the most
+ * consequential question the interface asks: has this folder been sorted, or is it still a heap?
+ * Reading it is what replaced guessing from the presence of a `2013/` directory.
+ */
+export { readReceipt, RECEIPT_NAME } from '../core/receipt.mjs';
+
+/**
  * The outcomes of `applyArchive`. The apply phase has four genuinely different endings and the CLI
  * used to distinguish them by which message it printed — which meant a second caller had to
  * re-derive them from prose. Naming them makes each ending a value both faces can branch on.

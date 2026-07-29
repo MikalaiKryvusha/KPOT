@@ -17,6 +17,7 @@ import { join } from 'node:path';
 import { pipeline } from 'node:stream/promises';
 import { mapLimit } from '../core/pool.mjs';
 import { RUNS_DIR_NAME } from '../core/paths.mjs';
+import { RECEIPT_NAME } from '../core/receipt.mjs';
 import { cacheLookup } from '../core/scan_cache.mjs';
 import { identify, SNIFF_LENGTH } from './identify.mjs';
 
@@ -59,6 +60,10 @@ async function walk(root) {
       // snapshot is hardlinks to the very files being sorted, every file would appear as its own
       // duplicate. Skipped at the walk, so no downstream phase can ever see it.
       if (entry.isDirectory() && entry.name === RUNS_DIR_NAME) continue;
+      // KPOT's own receipt (`src/core/receipt.mjs`) is a document ABOUT the archive, not a file of
+      // the owner's. Left in the walk it would appear in his plan under «остаётся на месте» — the
+      // tool listing its own paperwork among his photographs.
+      if (entry.isFile() && entry.name === RECEIPT_NAME) continue;
       // rel uses '/' — stable across platforms for reports, journals and tests
       const rel = dir.rel === '' ? entry.name : `${dir.rel}/${entry.name}`;
       const abs = join(dir.abs, entry.name);

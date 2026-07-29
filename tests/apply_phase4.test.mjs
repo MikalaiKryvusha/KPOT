@@ -31,6 +31,7 @@ import { rollbackRun, readManifest } from '../src/apply/rollback.mjs';
 import { createBackup, verifyBackup, probeHardlinkSupport, runDirFor } from '../src/apply/backup.mjs';
 import { readRunJournal } from '../src/core/journal.mjs';
 import { RUNS_DIR_NAME } from '../src/core/paths.mjs';
+import { RECEIPT_NAME } from '../src/core/receipt.mjs';
 
 const execFileP = promisify(execFile);
 const MAKE = fileURLToPath(new URL('./fixtures/make.mjs', import.meta.url));
@@ -62,7 +63,9 @@ async function census(root) {
   while (stack.length > 0) {
     const d = stack.pop();
     for (const e of await readdir(d.abs, { withFileTypes: true })) {
-      if (e.name === RUNS_DIR_NAME) continue;
+      // KPOT's own paperwork, both kinds: the run data and the receipt it leaves saying what it
+      // did here. A census of "did the owner's files change?" must not count either.
+      if (e.name === RUNS_DIR_NAME || e.name === RECEIPT_NAME) continue;
       const rel = d.rel === '' ? e.name : `${d.rel}/${e.name}`;
       const abs = join(d.abs, e.name);
       if (e.isDirectory()) stack.push({ abs, rel });
