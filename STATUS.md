@@ -706,7 +706,7 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
 > A concrete checklist so the next session (empty context) can start immediately: which files, which
 > commands, what to verify first.
 
-1. Verify the environment: `node -v` (≥20), `npm test` (**must be 247/247**), `git status` (clean),
+1. Verify the environment: `node -v` (≥20), `npm test` (**must be 251/251**), `git status` (clean),
    `gh auth status` (MikalaiKryvusha). Owner-provided paths from this file are PAST observations —
    re-check they still exist before planning around them (EXP-0011: a sample vanished once already).
 2. **Run the whole product once, end to end, before designing on top of it.** It all works now:
@@ -738,11 +738,23 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
      launch.** A path that cannot be resolved is refused — `realpath` throws `ENOENT`, which is the
      answer we want anyway.
 
-   **6.3's hardest safety piece is ALREADY BUILT** (2026-07-29): `src/ui/reveal.mjs` +
-   `POST /api/reveal` — resolve the real path, refuse anything outside the library with a plain
-   Russian sentence, then launch and ignore the exit code. Eight specs, including one that **builds
-   a junction escape and proves it refused**, and that skips LOUDLY if `mklink` is unavailable rather
-   than passing quietly. What remains for 6.3 is the panel's own screen and its endpoints.
+   **Most of 6.3 is ALREADY BUILT** (2026-07-29). What exists:
+   - `src/ui/reveal.mjs` + `POST /api/reveal` — resolve the real path, refuse anything outside the
+     library with a plain Russian sentence, then launch and ignore the exit code. Eight specs,
+     including one that **builds a junction escape and proves it refused**, and that skips LOUDLY if
+     `mklink` is unavailable rather than passing quietly;
+   - `libraryShape()` + `GET /api/library` — the question that chooses the face. A folder is a
+     library if it holds a `<год>` directory or `ПРОЧЕЕ`, shapes KPOT itself creates;
+   - the panel screen: three re-launchable runs, the attention count, the years newest-first with
+     «Открыть» on each, and a sort that still passes the one confirmation and returns to the panel.
+
+   **What is LEFT in 6.3 — one thing, and it was deliberately not rushed:** the **run history with a
+   rollback on each row**. It needs a "list past runs" reader over `.kpot-runs/` (only
+   `findUnfinishedRuns` exists today), and it puts the product's most destructive operation behind an
+   HTTP endpoint. That is not work to squeeze into the end of a session — safety outranks tidiness
+   here as everywhere. Design it deliberately: the same one-confirmation rule as the sort, the run
+   named in the confirmation, and the server refusing a rollback for a run that does not belong to
+   the library it is pointed at.
 
    **What the panel must do** (owner's own words, interview #003): re-launch **any of the three runs**
    (scan · plan · sort) with a state on each card · show what needs a decision — folders awaiting an

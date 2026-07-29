@@ -8,7 +8,7 @@
 > **Written:** 2026-07-28 at release `v0.1`; **refreshed 2026-07-29 (late)** after the interface
 > epic was designed and its first three phases — the shared layer, the server and the wizard — were
 > built and shipped.
-> **Suite: 247/247 green.** If today is much later than that, re-read `STATUS.md` first — it is
+> **Suite: 251/251 green.** If today is much later than that, re-read `STATUS.md` first — it is
 > maintained continuously, this file is not.
 >
 > **Start here, then:** §6 is the next task — **phase 6.3, the control panel.** It is ready to work
@@ -45,9 +45,9 @@ tool has sorted a real archive sample. Everything below is verified, not claimed
 
 | | |
 |---|---|
-| Test suite | **247/247** green (`npm test`, `node --test`) |
+| Test suite | **251/251** green (`npm test`, `node --test`) |
 | Phases 0–5 | ✅ **all closed** (foundation · research+skeleton · scan/dates · dedupe/plan · safety · first real use) |
-| Phase 6 — the interface | 🔧 under way. Epic: `plans/03_interface_epic.md`. **6.0 · 6.1 · 6.2 done** — `kpot ui` opens a working wizard. **6.3, the control panel, is next** — its recon is DONE and its safety piece is built |
+| Phase 6 — the interface | 🔧 under way. Epic: `plans/03_interface_epic.md`. **6.0 · 6.1 · 6.2 done** — `kpot ui` opens a working wizard. **6.3 is mostly built** — panel, folder reveal and library detection are in; only the run history with a rollback per row is left |
 | Open bugs | **none** (four closed, all found by real data — see `bugs/`) |
 | Runtime deps | two: `exifreader` and `jpeg-js` (BSD-3-Clause, added 2026-07-28 for the pixel search) |
 | Node | ≥ 20 (developed on 24, Windows 11) |
@@ -67,7 +67,7 @@ node bin/kpot.mjs ui                       # the window: a local server + a page
 
 ```bash
 node -v                                    # must be >= 20
-npm test                                   # must be 247/247
+npm test                                   # must be 251/251
 git status                                 # must be clean; work on main, no feature branches
 
 # then run the whole product once, end to end, on a throwaway tree:
@@ -150,7 +150,7 @@ likely to accidentally re-litigate:
 
 ## 6. The next piece of work
 
-**Phase 6.3 — the CONTROL PANEL, and it starts with a RECON rather than code.**
+**Phase 6.3 — finish the CONTROL PANEL: the RUN HISTORY with a rollback on each row.**
 
 Phases 6.0, 6.1 and 6.2 are shipped (2026-07-29), so the interface already runs: `kpot ui` starts a
 local server and opens a wizard that chooses a folder, builds a plan and sorts with one deliberate
@@ -164,6 +164,16 @@ confirmation. What exists, and what you must CALL rather than re-implement:
   confirmation, checked on the SERVER so a mis-wired button cannot move a file;
 - `src/ui/i18n.mjs` — every interface word, RU/EN. Nothing may be written into markup: a spec fails
   on a Cyrillic character found in the page's HTML.
+
+**What is left is exactly one thing, and it was deliberately not rushed:** the run history with a
+rollback on each row. It needs a "list past runs" reader over `.kpot-runs/` — only
+`findUnfinishedRuns` exists today — and it places the product's most destructive operation behind an
+HTTP endpoint. Design it with the same care the sort got: one deliberate confirmation naming the run,
+and the server refusing a rollback for a run that does not belong to the library it is pointed at.
+
+**Already built and working, so call it rather than rewrite it:** `src/ui/reveal.mjs` (checked folder
+opening), `libraryShape()` + `GET /api/library` (the question that chooses wizard vs panel), and the
+panel screen itself in `src/ui/page.mjs`.
 
 **The recon that gated 6.3 is DONE:** `researches/08_open_folder_and_path_safety.md`, measured on the
 development machine. Read it before writing the «Открыть» control — it contains three facts you would
