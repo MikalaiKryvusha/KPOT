@@ -27,6 +27,7 @@ import { renderApplyReport } from '../src/apply/apply.mjs';
 import { renderRollbackReport } from '../src/apply/rollback.mjs';
 import { renderUnfinishedWarning } from '../src/apply/resume.mjs';
 import { createProgress } from '../src/core/progress.mjs';
+import { startServer, findRunningInstance, openInBrowser } from '../src/ui/server.mjs';
 
 export const EXIT_OK = 0;
 export const EXIT_ERROR = 1;
@@ -44,6 +45,7 @@ Usage:
   kpot plan <dir>               build the pre-sort master plan (+ disputed cases)
   kpot apply [--dry-run] <dir>  execute the plan (--dry-run: full simulation, zero writes)
   kpot rollback <run-id> [dir]  restore the tree from the backup of a previous run
+  kpot ui                       open the program window in your browser (the server keeps running)
 
 Options:
   --json                        plan: emit the machine-readable SortPlan instead of the report
@@ -71,6 +73,7 @@ const PHASES = {
   plan:     { arg: 'dir' },      // runPlan
   apply:    { arg: 'dir' },      // runApply
   rollback: { arg: 'run-id' },   // runRollback
+  ui:       { arg: null },       // runUi — takes no positional: it opens the window, nothing else
 };
 
 /** Read our own version from package.json (single source of truth — no hardcoded copy). */
@@ -120,7 +123,7 @@ export async function run(argv, { out = console.log, err = console.error } = {})
     err(USAGE);
     return EXIT_USAGE;
   }
-  if (!target) {
+  if (phase.arg !== null && !target) {
     err(`kpot: '${command}' requires a <${phase.arg}> argument`);
     return EXIT_USAGE;
   }
@@ -142,6 +145,7 @@ export async function run(argv, { out = console.log, err = console.error } = {})
   // stderr is a terminal, so piping or redirecting output is unaffected and stdout never sees it.
   const progress = createProgress();
 
+  if (command === 'ui') return runUi({ out, err });
   if (command === 'scan') return runScan(target, { out, err, cache, pixels, progress });
   if (command === 'plan') return runPlan(target, { out, err, cache, pixels, progress, json: parsed.values.json === true });
   if (command === 'apply') {
@@ -259,6 +263,44 @@ async function runApply(dir, { out, err, dryRun, allowNoSnapshot, json, cache, p
     + ` · backup ${result.backup.snapshot} (${result.backup.linked}/${result.backup.files} linked)`
     + (dryRun ? ' · NOTHING MOVED (dry run)' : ` · rollback: kpot rollback ${result.runId} ${outcome.root}`));
   return result.failed > 0 ? EXIT_ERROR : EXIT_OK;
+}
+
+/**
+ * `kpot ui` — open the program's window. [NOT-TESTED]
+ *
+ * Two behaviours the owner's server/«морда» split makes mandatory (interview #003 Q6):
+ *  · a SECOND launch must find the running server and open the face on it. Starting a second one
+ *    would collide on the port, and the first double-click of a desktop shortcut is exactly when
+ *    that happens;
+ *  · the browser is opened only AFTER the server is listening — `startServer` resolves on the
+ *    `listening` event, so awaiting it is the guarantee, not a sleep.
+ *
+ * This command deliberately does not return: the server outlives the browser tab, and the process
+ * ends when the person presses «Завершить работу».
+ */
+async function runUi({ out, err, startImpl = startServer, findImpl = findRunningInstance,
+  openImpl = openInBrowser } = {}) {
+  const running = await findImpl();
+  if (running) {
+    err('kpot ui: программа уже работает — открываю её окно.');
+    out(running.url);
+    await openImpl(running.url);
+    return EXIT_OK;
+  }
+  let s;
+  try {
+    s = await startImpl({ onShutdown: () => { process.exitCode = EXIT_OK; } });
+  } catch (e) {
+    err(`kpot ui: ${e.message}`);
+    return EXIT_ERROR;
+  }
+  out(s.url);
+  err('kpot ui: программа запущена. Окно можно закрыть — она продолжит работать.');
+  err('         Чтобы выключить её совсем, нажмите в окне «Завершить работу».');
+  if (!(await openImpl(s.url))) {
+    err('kpot ui: не получилось открыть браузер — откройте ссылку выше вручную.');
+  }
+  return EXIT_OK;
 }
 
 /** The rollback phase — replay a run's journal backwards and put every file back. */

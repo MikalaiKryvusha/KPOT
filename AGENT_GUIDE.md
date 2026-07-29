@@ -200,6 +200,7 @@ back to. Full statement of intent: `GOAL.md` (in Russian, the owner's words — 
 
 ```
 bin/kpot.mjs    ← a FACE: parses argv, calls src/app/, prints. No pipeline logic since phase 6.0
+src/ui/         ← the local web server: token + Host whitelist + one instance (a FACE, prints nothing to disk)
 src/app/        ← the four phases as callable functions: take a dir, return artifacts, PRINT NOTHING
                   (one executor, many faces — the web UI of Phase 6 calls exactly this)
 src/scan/       ← walks the tree, identifies media files, hashes them          (reads user files)
