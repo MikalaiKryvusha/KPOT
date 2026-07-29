@@ -83,3 +83,46 @@ test('isUsableFolder tells a file apart from a folder', async () => {
     assert.equal(await isUsableFolder(null), false);
   } finally { await rm(root, { recursive: true, force: true }); }
 });
+
+// ─── is this already a library? the question that chooses the face ───────────────────────────────
+
+test('a fresh messy folder is NOT a library — a first-timer must get the wizard', async () => {
+  const { libraryShape } = await import('../src/ui/folders.mjs');
+  const root = await tree();
+  try {
+    const shape = await libraryShape(root);
+    assert.equal(shape.isLibrary, false,
+      'dropping someone into a control panel for a library that does not exist is the worse error');
+    assert.deepEqual(shape.years, []);
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test('a sorted tree IS a library, and its years come back newest first', async () => {
+  const { libraryShape } = await import('../src/ui/folders.mjs');
+  const root = await mkdtemp(join(tmpdir(), 'kpot-lib-'));
+  try {
+    for (const y of ['2011', '2014', '2013']) await mkdir(join(root, y, 'Лето'), { recursive: true });
+    await mkdir(join(root, 'ПРОЧЕЕ'));
+    const shape = await libraryShape(root);
+    assert.equal(shape.isLibrary, true);
+    // Newest first: that is the order a person looks for their own photographs in.
+    assert.deepEqual(shape.years, ['2014', '2013', '2011']);
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test('the global ПРОЧЕЕ bucket alone is enough — a sort happened even if no year survived', async () => {
+  const { libraryShape } = await import('../src/ui/folders.mjs');
+  const root = await mkdtemp(join(tmpdir(), 'kpot-lib2-'));
+  try {
+    await mkdir(join(root, 'ПРОЧЕЕ'));
+    const shape = await libraryShape(root);
+    assert.equal(shape.isLibrary, true, 'these are shapes KPOT itself creates, so their presence is evidence');
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test('a folder that cannot be read is not a library, and does not throw', async () => {
+  const { libraryShape } = await import('../src/ui/folders.mjs');
+  const shape = await libraryShape(join(tmpdir(), 'kpot-lib-nope-4d1'));
+  assert.equal(shape.isLibrary, false);
+  assert.deepEqual(shape.years, []);
+});

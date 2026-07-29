@@ -89,3 +89,35 @@ export async function isUsableFolder(path) {
 
 /** The drive/root a path belongs to — used by the page for a readable breadcrumb. */
 export const rootOf = (path) => parse(resolve(path)).root;
+
+/** A year directory, in KPOT's own output shape: exactly four digits. */
+const YEAR_DIR_RE = /^(19|20)\d{2}$/;
+
+/**
+ * Does this folder already look like a KPOT library? [NOT-TESTED]
+ *
+ * The owner's design turns on this one question: «Пока библиотека не собрана, человека ведут по
+ * шагам. Как только собрана, мастер уступает место пульту». A wizard is right exactly once; after
+ * that it becomes an interrogation, asking the same four questions before every routine top-up.
+ *
+ * The test is deliberately structural rather than clever — at least one `<год>` folder, or the
+ * global `ПРОЧЕЕ` bucket. Those are shapes KPOT itself creates, so a "yes" means *we have sorted
+ * this before*, not *this looks tidy*. Being wrong in the cautious direction (showing the wizard to
+ * someone who has a library) merely repeats four questions; being wrong the other way would drop a
+ * first-time user into a control panel for a library that does not exist.
+ *
+ * @returns {Promise<{isLibrary: boolean, years: string[]}>} years sorted newest first — the order
+ *          a person looks for their own photographs in.
+ */
+export async function libraryShape(root) {
+  let entries;
+  try {
+    entries = await readdir(root, { withFileTypes: true });
+  } catch {
+    return { isLibrary: false, years: [] };
+  }
+  const dirs = entries.filter((e) => e.isDirectory()).map((e) => e.name);
+  const years = dirs.filter((n) => YEAR_DIR_RE.test(n)).sort().reverse();
+  const hasGlobalOther = dirs.some((n) => n === 'ПРОЧЕЕ');
+  return { isLibrary: years.length > 0 || hasGlobalOther, years };
+}

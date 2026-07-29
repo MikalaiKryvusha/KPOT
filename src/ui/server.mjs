@@ -32,7 +32,7 @@ import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createJobRunner } from './jobs.mjs';
-import { listFolders } from './folders.mjs';
+import { listFolders, libraryShape } from './folders.mjs';
 import { renderPage } from './page.mjs';
 import { revealFolder, REVEAL_REFUSED } from './reveal.mjs';
 import { renderPlan } from '../app/phases.mjs';
@@ -285,6 +285,16 @@ export async function startServer({ port = DEFAULT_PORT, token = randomBytes(24)
       res.writeHead(200, { 'content-type': 'application/json; charset=utf-8' });
       res.end(JSON.stringify({ ok: true }));
       close().then(() => onShutdown?.());
+      return;
+    }
+
+    // Is this folder already a library? The answer decides which face a person sees — the wizard
+    // that leads a first flight, or the control panel that follows it (interview #003 Q1).
+    if (url.pathname === '/api/library') {
+      libraryShape(url.searchParams.get('root')).then((shape) => {
+        res.writeHead(200, { 'content-type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify(shape));
+      }).catch(() => deny(res, 400, 'не удалось прочитать папку'));
       return;
     }
 

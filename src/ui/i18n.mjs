@@ -75,6 +75,23 @@ export const STRINGS = Object.freeze({
     guaranteeDry: 'Сначала репетиция, без изменений',
     guaranteeUndo: 'Откат: всё возвращается назад',
 
+    // The control panel — what the wizard gives way to once a library exists
+    panelTitle: 'Ваша библиотека',
+    panelHelp: 'Всё уже разложено. Отсюда можно запустить любой прогон заново, посмотреть папки и '
+      + 'при желании вернуть всё назад.',
+    panelRunScan: 'Посмотреть, что в папке',
+    panelRunScanHelp: 'Ничего не меняет: просто заново изучает файлы.',
+    panelRunPlan: 'Составить план',
+    panelRunPlanHelp: 'Покажет, что и куда переехало бы сейчас.',
+    panelRunApply: 'Разложить новое',
+    panelRunApplyHelp: 'Разложит то, что появилось с прошлого раза.',
+    panelYears: 'По годам',
+    panelOpen: 'Открыть',
+    panelNoYears: 'Годов пока не видно — возможно, вы ещё не запускали сортировку.',
+    panelAttention: 'Требует вашего внимания',
+    panelAttentionNone: 'Ничего не ждёт вашего решения.',
+    panelBackToWizard: 'Работать с другой папкой',
+
     // Shared
     back: 'Назад',
     next: 'Дальше',
@@ -136,6 +153,22 @@ export const STRINGS = Object.freeze({
     guaranteeBackup: 'A backup is made before sorting',
     guaranteeDry: 'A rehearsal first, changing nothing',
     guaranteeUndo: 'Undo: everything can be put back',
+
+    panelTitle: 'Your library',
+    panelHelp: 'Everything is already arranged. From here you can run anything again, look at the '
+      + 'folders, and put it all back if you wish.',
+    panelRunScan: 'Look at the folder',
+    panelRunScanHelp: 'Changes nothing: it simply looks at the files again.',
+    panelRunPlan: 'Build a plan',
+    panelRunPlanHelp: 'Shows what would move where right now.',
+    panelRunApply: 'Arrange what is new',
+    panelRunApplyHelp: 'Arranges whatever has appeared since last time.',
+    panelYears: 'By year',
+    panelOpen: 'Open',
+    panelNoYears: 'No years yet — you may not have run the sorting.',
+    panelAttention: 'Needs your attention',
+    panelAttentionNone: 'Nothing is waiting for your decision.',
+    panelBackToWizard: 'Work with another folder',
 
     back: 'Back',
     next: 'Next',

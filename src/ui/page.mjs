@@ -113,8 +113,11 @@ dialog::backdrop { background:rgba(0,0,0,.35) }
 const STRINGS = ${JSON.stringify(STRINGS)};
 const token = new URLSearchParams(location.search).get('token') ?? '';
 let lang = localStorage.getItem('kpot-lang') ?? '${DEFAULT_LANG}';
+// step 0 is the CONTROL PANEL — reached instead of the wizard when the chosen folder is already a
+// library. The owner's rule: «Пока библиотека не собрана, человека ведут по шагам. Как только
+// собрана, мастер уступает место пульту.»
 let step = 1, folder = null, plan = null, applyResult = null, error = null, busyLabel = null,
-    pct = 0, showFull = false;
+    pct = 0, showFull = false, panel = null;
 
 const t = (k, ...a) => (STRINGS[lang][k] ?? k).replace(/%(\\d)/g, (_, i) => a[i - 1] ?? '');
 const el = (id) => document.getElementById(id);
@@ -220,10 +223,68 @@ function viewDone() {
     <p class="path">\${escapeHtml(folder ?? '')}</p>\`;
 }
 
+// ── the control panel: what the wizard gives way to (interview #003 Q1) ──────
+function viewPanel() {
+  const years = panel?.years ?? [];
+  const c = plan?.plan?.counts ?? {};
+  const attention = (c.awaitingDecision ?? 0) + (c.disputed ?? 0);
+  const card = (kind, title, help) =>
+    '<div><b style="font-size:1rem">' + title + '</b><span>' + help + '</span>'
+    + '<div class="row"><button data-panel-run="' + kind + '">' + t('next') + '</button></div></div>';
+  const yearRows = years.map((y) =>
+    '<li><button data-reveal="' + escapeAttr(y) + '">\\u{1F4C1} ' + escapeHtml(y)
+    + ' \\u2014 ' + t('panelOpen') + '</button></li>').join('');
+  return '<h2>' + t('panelTitle') + '</h2>'
+    + '<p class="help">' + t('panelHelp') + '</p>'
+    + '<p class="path">' + escapeHtml(folder ?? '') + '</p>'
+    + '<div class="counts">'
+    + card('scan', t('panelRunScan'), t('panelRunScanHelp'))
+    + card('plan', t('panelRunPlan'), t('panelRunPlanHelp'))
+    + card('apply', t('panelRunApply'), t('panelRunApplyHelp'))
+    + '</div>'
+    + '<h2 style="font-size:1.05rem">' + t('panelAttention') + '</h2>'
+    + '<p class="help">' + (attention > 0 ? attention : t('panelAttentionNone')) + '</p>'
+    + '<h2 style="font-size:1.05rem">' + t('panelYears') + '</h2>'
+    + (years.length ? '<ul class="folders">' + yearRows + '</ul>'
+                    : '<p class="help">' + t('panelNoYears') + '</p>')
+    + '<div class="row"><button data-reveal=".">' + t('panelOpen') + '</button>'
+    + '<span class="spacer"></span>'
+    + '<button data-rechoose="1">' + t('panelBackToWizard') + '</button></div>'
+    + (error ? '<p class="err">' + t('failed') + ': ' + escapeHtml(error) + '</p>' : '');
+}
+
+/**
+ * After a folder is chosen: a library gets the PANEL, anything else gets the wizard.
+ * Asking the server rather than guessing from the name — «is this already sorted?» is a question
+ * about the filesystem, and the answer decides which face the person ever sees.
+ */
+async function enter() {
+  panel = await api('/api/library?root=' + encodeURIComponent(folder));
+  if (panel.isLibrary) { step = 0; return render(); }
+  return startPlan();
+}
+
+async function panelRun(kind) {
+  error = null;
+  // A sort from the panel still goes through the one deliberate confirmation — the server would
+  // refuse it otherwise, and that refusal is the point.
+  if (kind === 'apply') { plan = await api('/api/plan-report'); return askToSort(); }
+  step = 2; pct = 0; render();
+  const r = await api('/api/run', { method: 'POST', body: JSON.stringify({ kind, root: folder }) });
+  if (!r.ok) { error = r.message; render(); }
+}
+
+/** Send the person to look with their own eyes — the owner's replacement for thumbnails. */
+async function reveal(year) {
+  const path = year === '.' ? folder : folder + '/' + year;
+  const r = await api('/api/reveal', { method: 'POST', body: JSON.stringify({ path, root: folder }) });
+  if (!r.ok) { error = r.message; render(); }
+}
+
 function render() {
   chrome();
-  el('card').innerHTML =
-    step === 1 ? viewChoose() : step === 2 ? viewLook() : step === 3 ? viewPlan() : viewDone();
+  el('card').innerHTML = step === 0 ? viewPanel()
+    : step === 1 ? viewChoose() : step === 2 ? viewLook() : step === 3 ? viewPlan() : viewDone();
 }
 
 const escapeHtml = (s) => String(s ?? '').replace(/[&<>"]/g,
@@ -236,10 +297,13 @@ document.addEventListener('click', async (ev) => {
   if (!b) return;
   if (b.dataset.go) return browse(b.dataset.go);
   if (b.dataset.up) return browse(browsing.parent ?? null);
-  if (b.dataset.choose) { folder = browsing.path; return startPlan(); }
+  if (b.dataset.choose) { folder = browsing.path; return enter(); }
   if (b.dataset.full) { showFull = !showFull; return render(); }
   if (b.dataset.retry) { error = null; return startPlan(); }
   if (b.dataset.sort) return askToSort();
+  if (b.dataset.panelRun) return panelRun(b.dataset.panelRun);
+  if (b.dataset.reveal) return reveal(b.dataset.reveal);
+  if (b.dataset.rechoose) { panel = null; folder = null; step = 1; render(); return browse(null); }
   if (b.id === 'lang') { lang = lang === 'ru' ? 'en' : 'ru'; localStorage.setItem('kpot-lang', lang); return render(); }
   if (b.id === 'shutdown') {
     await api('/api/shutdown', { method: 'POST' });
@@ -288,7 +352,14 @@ events.addEventListener('job-finished', async (e) => {
     step = 3;
   } else if (job.kind === 'apply') {
     applyResult = { result: job.result };
-    step = 4;
+    // A sort started FROM the panel returns to the panel — the wizard's «Готово» screen is the end
+    // of a first flight, not of every routine top-up. The year list is re-read because it changed.
+    if (panel?.isLibrary) {
+      panel = await api('/api/library?root=' + encodeURIComponent(folder));
+      step = 0;
+    } else {
+      step = 4;
+    }
   }
   render();
 });
