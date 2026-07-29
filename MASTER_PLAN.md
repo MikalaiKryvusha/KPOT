@@ -189,8 +189,18 @@ Application of `PHILOSOPHY.md` to this project:
     the folder). Measuring first also caught `bugs/05_DONE` — the plan announced FULL folders as
     about to be deleted, which made the rehearsal disagree with the real run (48 vs 1), i.e.
     `GOAL.md` §в. Both fixed; six guards break-verified.
-  - 🔲 **6.5 · 6.6** remain; 6.5 still needs its Mark-of-the-Web recon.
-  Suite 192 → **278**. Plans: `04_DONE`, `05_DONE`, `06`, `07_DONE`, `08_DONE`.
+  - ✅ **6.5 — DONE 2026-07-29** (`plans/09`): the portable package. `npm run package` builds a
+    **33.2 MB** ZIP carrying Node's own signed binary plus our `.mjs`, verifying the vendored
+    archive's SHA-256 against nodejs.org and reading the Authenticode signature on the file that is
+    actually shipping; `npm run package:verify` unzips it into a clean folder and proves the product
+    runs **on its own bundled runtime**. Plus the offered desktop shortcut. Its recon
+    (`researches/09`) discharged the gate by **refuting** the epic: the mark cannot be promised
+    absent on any machine, and this development machine — with both defences disabled by policy —
+    cannot validate the first launch at all. The clean-machine acceptance is the owner's, deferred
+    by him to a friend's PC.
+  - 🔲 **6.6** remains — the closing language pass, and it should be done with the page RENDERED
+    (EXP-0024: six phases of specs never saw that the wizard's step strip was drawn on the panel).
+  Suite 192 → **283**. Plans: `04_DONE`, `05_DONE`, `06`, `07_DONE`, `08_DONE`, `09`.
 
 ### Phase N — The goal is reached
 Files are no longer scattered "как попало": the owner opens the library and walks his life by year and

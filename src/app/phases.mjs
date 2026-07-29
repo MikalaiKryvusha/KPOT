@@ -86,6 +86,15 @@ export { inboxState, createInbox } from '../core/inbox.mjs';
 export { INBOX_DIR } from '../core/paths.mjs';
 
 /**
+ * The desktop shortcut a packaged first run offers to create (phase 6.5).
+ *
+ * Re-exported for the same reason as everything above. Note what `shortcutState` is FOR: it reports
+ * whether the offer may be made at all, so a development checkout never invites anyone to put a
+ * permanent desktop link to a temporary folder.
+ */
+export { shortcutState, createShortcut } from '../core/shortcut.mjs';
+
+/**
  * The outcomes of `applyArchive`. The apply phase has four genuinely different endings and the CLI
  * used to distinguish them by which message it printed — which meant a second caller had to
  * re-derive them from prose. Naming them makes each ending a value both faces can branch on.

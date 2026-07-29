@@ -539,6 +539,45 @@ conclusion, and it found a bug that had shipped in `v0.1`. Commit `abac68a`; sui
   path-normalisation hardening). Plus a live smoke against a REAL server walking the same calls the
   page walks, because an endpoint spec proves the server answered, not that anyone saw it (EXP-0019).
 
+### Session of 2026-07-29 (late 6) — phase 6.5: the portable package, and the first time anyone LOOKED
+The owner said «делаем». The gate came first and paid for itself immediately; the package was built
+and verified; and then his own suggestion about the browser found two UI defects six phases of specs
+had never been able to see. Commits `80d6a3a` · `7f7f52a` + this one; suite 279 → **283**.
+
+- **The recon gate is discharged, and it REFUTED the epic** (`researches/09_mark_of_the_web.md`).
+  A genuine Edge download produced **no mark at all** — because this machine has both defences
+  switched off (`SaveZoneInformation=1`; `.cmd`/`.exe` in `LowRiskFileTypes`). So **this machine
+  cannot validate the first launch**, and every «всё тихо» observation on it is void. Sourced from
+  the literature instead: Explorer's own extractor DOES propagate the mark, and the prompt fires on
+  SHELL invocation. Conclusion: **silence cannot be promised on any machine**, so the product stops
+  promising it and tells the person in advance what Windows may show. The epic's «ярлык метки не
+  имеет, значит дальше чисто» is recorded as an **open question** — the shell executes the target,
+  not the shortcut.
+- **The package exists**: `npm run package` → **33.2 MB**, and `npm run package:verify` unzips it
+  into a clean folder and proves it runs **on its own bundled runtime** (`process.execPath` inside
+  the unpacked tree), then drives the real product through it: plan → apply → a second plan with 0
+  operations → rollback with 0 failures, plus `KPOT.cmd` starting the server and shutting down.
+  Every build step is a check: the vendored archive's SHA-256 against nodejs.org's published list,
+  the Authenticode signature read **on the file that is shipping** (Valid, CN=OpenJS Foundation),
+  and an allow-list audit of the staged tree.
+- **The desktop shortcut** (`src/core/shortcut.mjs` + `GET/POST /api/shortcut`): offered, never
+  created unasked; shown ONLY in a packaged run, never in a checkout; targets `cmd.exe` with our
+  launcher as an argument (`researches/09` §4); and asks Windows where the desktop actually is,
+  because OneDrive redirects it on a great many machines. Verified in both directions on real runs.
+- **The owner's own suggestion closed a six-phase blind spot** (EXP-0024): «может тебе нужно было
+  Chrome с dev портом открывать?» — yes. Driving our own headless Edge over the DevTools Protocol
+  rendered the page for the first time in this project's history and immediately showed two defects
+  no spec of ours could fail on: the wizard's four-step strip was still drawn **on the control
+  panel**, and all three run cards said «Дальше». Both fixed; scripts kept in the session scratchpad.
+- **An icon was attempted three times and deliberately NOT shipped** (EXP-0023): PNG entries render
+  as noise in some readers, hand-written DIB entries do not load at all, and the platform's own
+  `GetHicon` yields a 16-colour file. Stopped by the three-attempt rule — and underneath it sat a
+  decision that is not the agent's: a square app mark out of a 1734×907 banner is a **brand** choice.
+  **Open for the owner:** supply a square logo and the icon is one line (`$s.IconLocation`).
+- **Owner's answer recorded:** the clean-machine acceptance happens at a friend's, «сильно позже».
+  Deferred with a known owner, not forgotten (`plans/09` §9 carries the exact steps, including
+  printing the two policy values first so the result is readable).
+
 ---
 
 ## Where we are now
@@ -587,9 +626,10 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
 | ✅ | ~~6.0 shared layer · 6.1 server · 6.2 wizard · the jargon debt~~ | **all four done 2026-07-29** — see the session record above | — |
 | ✅ | ~~6.3 — the control panel, incl. the undo button~~ | **done 2026-07-29** (`plans/07_DONE`, commit `c3dac29`) — three re-launchable runs, guarded folder links, history with an undo on every row that can honour one | — |
 | ✅ | ~~6.4 — the `НОВОЕ` top-up~~ | **done 2026-07-29** (`plans/08_DONE`, commit `abac68a`) — four misbehaviours removed rather than a pipeline added; it also caught `bugs/05_DONE`, a false deletion warning shipped in `v0.1` | — |
-| 1 | **Фаза 6.5 — the portable package** | This is what makes the product reachable by anyone but us | **a recon first**: the Mark-of-the-Web on a REAL browser download is unverified and must not be promised before it is measured |
-| 2 | **Фаза 6.6 — the closing language pass** | Now genuinely a gate rather than a workload: the big debt was paid on 2026-07-29 and the wizard's words were written to the rule from the start | 6.5 |
-| 3 | **A user-facing README for the interface** | The moment someone other than the owner runs `kpot ui`, the current README does not tell them how | 6.5 |
+| ✅ | ~~6.5 — the portable package~~ | **done 2026-07-29** (`plans/09`, 33.2 MB, built + verified on its own runtime). Its recon refuted the epic; the clean-machine acceptance is deferred by the owner to a friend's PC | — |
+| 1 | **Фаза 6.6 — the closing language pass** | The last phase of the interface epic. Now genuinely a gate rather than a workload: the big debt was paid on 2026-07-29 and the wizard's words were written to the rule from the start | **unblocked** |
+| 2 | **A user-facing README for the interface + the download instructions** | The moment someone other than the owner runs KPOT, nothing tells them how — and the download page must carry the sentence about what Windows may show on the first launch (`researches/09` §6.2) | — |
+| 3 | **A square app icon** | The shortcut currently shows its target's icon. Blocked on a BRAND decision, not on work: the logo is a 1734×907 banner and a square mark out of it is the owner's call (EXP-0023). One line once he supplies one | **the owner** |
 
 **Explicitly NOT on this list, and why** — so a future session does not resurrect them:
 - **`plans/02` step 3 (PRNU)** — unstarted and **unauthorised**. It identifies a camera, not a
@@ -769,7 +809,7 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
 > A concrete checklist so the next session (empty context) can start immediately: which files, which
 > commands, what to verify first.
 
-1. Verify the environment: `node -v` (≥20), `npm test` (**must be 278/278**), `git status` (clean),
+1. Verify the environment: `node -v` (≥20), `npm test` (**must be 283/283**), `git status` (clean),
    `gh auth status` (MikalaiKryvusha). Owner-provided paths from this file are PAST observations —
    re-check they still exist before planning around them (EXP-0011: a sample vanished once already).
 2. **Run the whole product once, end to end, before designing on top of it.** It all works now:
@@ -785,22 +825,25 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
    the copy on 2026-07-28). Undo it with
    `node bin/kpot.mjs rollback run-20260728-201538-437c4d D:\work\ai_sandbox\KPOT_SANDBOX`.
    Do not delete it without his word, and never copy more of his photographs without a fresh one.
-3. ⭐ **THE NEXT PIECE OF WORK — phase 6.5, the portable package.** The whole interface through 6.4
-   is shipped: `kpot ui` opens a **wizard** on a messy folder and a **control panel** on a library,
-   with three re-launchable runs, a guarded «Открыть», a run history with a **working undo button**,
-   and the **`НОВОЕ` inbox block** (what is waiting · «Открыть» · the same sort behind the same
-   confirmation · an offer to create the folder). Read `plans/03_interface_epic.md` §6.5.
+3. ⭐ **THE NEXT PIECE OF WORK — phase 6.6, the closing language pass**, the last phase of the
+   interface epic. Everything before it is shipped: `kpot ui` opens a **wizard** on a messy folder
+   and a **control panel** on a library (three re-launchable runs · a guarded «Открыть» · a run
+   history with a working undo · the **`НОВОЕ` inbox block** · a desktop-shortcut offer), and
+   `npm run package` produces the **33.2 MB portable ZIP** that `npm run package:verify` proves works
+   on its own bundled runtime.
 
-   **6.5 IS GATED, and the gate is not optional** (canon step 9b): the Mark-of-the-Web on a REAL
-   browser download is unverified and **may not be promised before it is measured**. What the epic
-   already settled, so nobody re-derives it: the package carries Node's OWN Authenticode-signed
-   binary (measured: Valid, OpenJS Foundation, 87.4 MB → **32.7 MB zipped**) plus our `.mjs`, so we
-   introduce **no unsigned executable at all** and SmartScreen's unknown-publisher prompt has
-   nothing to fire on. The single-exe (SEA) route would re-create exactly that problem, since
-   injecting code invalidates the signature. What the recon must actually measure: files unzipped
-   from a genuinely downloaded archive inherit the Mark-of-the-Web, and the Attachment Manager may
-   warn once on a `.cmd` launcher — while a locally-created shortcut carries no such mark. Download
-   it in a real browser and look; do not reason about it.
+   **Before touching the wording, LOOK at it.** The tooling now exists and it is the single most
+   valuable thing this session added: drive a headless browser you control (`--headless=new
+   --remote-debugging-port=N --user-data-dir=<temp>`), navigate, click, read `innerText`, screenshot
+   — scripts `ui_shot.mjs` / `ui_drive.mjs` in the 2026-07-29 scratchpad. Six phases of specs never
+   noticed that the wizard's step strip was drawn on the control panel or that every run card said
+   «Дальше»; one screenshot did (EXP-0024). A language pass done by grepping the dictionary will
+   miss exactly that class of thing.
+
+   **Two items are open for the owner, not blocking:** the clean-machine acceptance of the package
+   (he chose to do it at a friend's, «сильно позже» — exact steps in `plans/09` §9, and it MUST
+   print the two attachment-policy values first or the result is unreadable), and a square app icon
+   (a brand decision — EXP-0023).
 
    **Phase 6.4 is CLOSED** (2026-07-29, commit `abac68a`, `plans/08_DONE_novoe_topup.md`). Two
    things from it a next session should not have to rediscover: the plan document's own refutation

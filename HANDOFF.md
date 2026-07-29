@@ -8,7 +8,7 @@
 > **Written:** 2026-07-28 at release `v0.1`; **refreshed 2026-07-29** after phase 6.4 closed — the
 > interface now has both faces (the first-flight wizard and the control panel), the panel can undo a
 > past run, and the `НОВОЕ` inbox has its block on it.
-> **Suite: 278/278 green.** If today is much later than that, re-read `STATUS.md` first — it is
+> **Suite: 283/283 green.** If today is much later than that, re-read `STATUS.md` first — it is
 > maintained continuously, this file is not.
 >
 > **Start here, then:** §6 is the next task — **phase 6.5, the portable package**, and it is GATED:
@@ -46,9 +46,9 @@ tool has sorted a real archive sample. Everything below is verified, not claimed
 
 | | |
 |---|---|
-| Test suite | **278/278** green (`npm test`, `node --test`) |
+| Test suite | **283/283** green (`npm test`, `node --test`) |
 | Phases 0–5 | ✅ **all closed** (foundation · research+skeleton · scan/dates · dedupe/plan · safety · first real use) |
-| Phase 6 — the interface | 🔧 under way. Epic: `plans/03_interface_epic.md`. **6.0 · 6.1 · 6.2 · 6.3 · 6.4 done** — `kpot ui` opens a wizard on a messy folder and a control panel on a library: three re-launchable runs, guarded folder links, a run history with a working undo behind its own confirmation, and the `НОВОЕ` inbox block. **6.5 · 6.6 remain** |
+| Phase 6 — the interface | 🔧 under way. Epic: `plans/03_interface_epic.md`. **6.0 · 6.1 · 6.2 · 6.3 · 6.4 · 6.5 done** — `kpot ui` opens a wizard on a messy folder and a control panel on a library (three re-launchable runs, guarded folder links, a run history with a working undo, the `НОВОЕ` inbox block, a desktop-shortcut offer), and `npm run package` builds the **33.2 MB portable ZIP** that `npm run package:verify` proves runs on its own bundled runtime. **6.6 remains** |
 | Open bugs | **none** (five closed — four found by real data, one by a probe run for another reason; see `bugs/`) |
 | Runtime deps | two: `exifreader` and `jpeg-js` (BSD-3-Clause, added 2026-07-28 for the pixel search) |
 | Node | ≥ 20 (developed on 24, Windows 11) |

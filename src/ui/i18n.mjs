@@ -113,6 +113,14 @@ export const STRINGS = Object.freeze({
     inboxFailed: 'Папку создать не удалось. Проверьте, что выбрана та самая папка с вашей '
       + 'библиотекой, и попробуйте ещё раз.',
 
+    // The desktop shortcut — offered, never created on its own
+    shortcutOffer: 'Положить значок программы на рабочий стол? Так её будет проще запускать в '
+      + 'следующий раз.',
+    shortcutCreate: 'Положить на рабочий стол',
+    shortcutDone: 'Готово: значок лежит на рабочем столе.',
+    shortcutFailed: 'Не получилось положить значок. Программа от этого работать не перестанет — '
+      + 'запускайте её так же, как запустили сейчас.',
+
     // «Вернуть как было» — the second deliberate confirmation, and the one that names the run
     undoAction: 'Вернуть как было',
     undoTitle: 'Вернуть файлы на прежние места?',
@@ -222,6 +230,13 @@ export const STRINGS = Object.freeze({
     inboxCreated: 'The «НОВОЕ» folder is ready. Put new pictures into it.',
     inboxFailed: 'The folder could not be created. Check that you chose the folder holding your '
       + 'library, and try again.',
+
+    shortcutOffer: 'Put an icon for the program on your desktop? It makes starting it next time '
+      + 'easier.',
+    shortcutCreate: 'Put it on the desktop',
+    shortcutDone: 'Done: the icon is on your desktop.',
+    shortcutFailed: 'The icon could not be placed. The program still works — start it the same way '
+      + 'you started it this time.',
 
     undoAction: 'Put it back',
     undoTitle: 'Put the files back where they were?',

@@ -36,7 +36,8 @@ import { listFolders, libraryShape } from './folders.mjs';
 import { renderPage } from './page.mjs';
 import { revealFolder, REVEAL_REFUSED } from './reveal.mjs';
 import { checkUndoable, UNDO_REFUSED } from './undo.mjs';
-import { renderPlan, listRuns, inboxState, createInbox } from '../app/phases.mjs';
+import { renderPlan, listRuns, inboxState, createInbox, shortcutState, createShortcut }
+  from '../app/phases.mjs';
 
 /**
  * The port we ask for first. Arbitrary on purpose, and chosen the way Syncthing chose 8384: high
@@ -363,6 +364,24 @@ export async function startServer({ port = DEFAULT_PORT, token = randomBytes(24)
         .then((body) => createInbox(body?.root ?? ''))
         .then(answer)
         .catch(() => deny(res, 400, 'не удалось создать папку «НОВОЕ»'));
+      return;
+    }
+
+    // The desktop shortcut (phase 6.5). GET reports whether it can be offered and whether it is
+    // already there; POST creates it, and only ever because someone pressed the button. Like the
+    // inbox, this writes exactly one thing and never touches a photograph.
+    if (url.pathname === '/api/shortcut') {
+      const answer = (state) => {
+        res.writeHead(200, { 'content-type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify(state));
+      };
+      if (req.method !== 'POST') {
+        shortcutState().then(answer).catch(() => deny(res, 400, 'не удалось проверить рабочий стол'));
+        return;
+      }
+      createShortcut()
+        .then(async (r) => answer({ ...(await shortcutState()), created: r.ok, reason: r.reason ?? null }))
+        .catch(() => deny(res, 400, 'не удалось создать ярлык'));
       return;
     }
 

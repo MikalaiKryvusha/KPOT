@@ -77,7 +77,7 @@ node bin/kpot.mjs --help
 ### Status
 
 🎉 **Release 0.1 “First KPOT”.** Every phase works end to end, and the tool has already sorted real
-archives. Verified by **278 green tests** *and* by two supervised runs on real material taken out of
+archives. Verified by **283 green tests** *and* by two supervised runs on real material taken out of
 a genuinely messy 551 GB collection — a 3 397-file / 13 GB sample, and a fresh 813-file / 943 MB one.
 
 ```
@@ -230,7 +230,7 @@ node bin/kpot.mjs --help
 ### Статус
 
 🎉 **Релиз 0.1 «First KPOT».** Все фазы работают от начала до конца, и инструмент уже разобрал
-настоящие архивы. Проверено **278 зелёными тестами** *и* двумя контролируемыми прогонами на живом
+настоящие архивы. Проверено **283 зелёными тестами** *и* двумя контролируемыми прогонами на живом
 материале из по-настоящему захламлённой коллекции на 551 ГБ — на выборке 3 397 файлов / 13 ГБ и на
 свежей 813 файлов / 943 МБ.
 

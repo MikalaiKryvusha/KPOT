@@ -250,7 +250,10 @@ function viewDone() {
     <h2>\${t('doneTitle')}</h2>
     <p class="help">\${t('doneHelp')}</p>
     <div class="counts"><div><b>\${moved}</b><span>\${t('doneMoved')}</span></div></div>
-    <p class="path">\${escapeHtml(folder ?? '')}</p>\`;
+    <p class="path">\${escapeHtml(folder ?? '')}</p>
+    \${shortcutBlock()}
+    \${notice ? \`<p class="notice">\${escapeHtml(notice)}</p>\` : ''}
+    \${error ? \`<p class="err">\${escapeHtml(error)}</p>\` : ''}\`;
 }
 
 // ── the control panel: what the wizard gives way to (interview #003 Q1) ──────
@@ -286,8 +289,24 @@ function viewPanel() {
     + '<div class="row"><button data-reveal=".">' + t('panelOpen') + '</button>'
     + '<span class="spacer"></span>'
     + '<button data-rechoose="1">' + t('panelBackToWizard') + '</button></div>'
+    + shortcutBlock()
     + (notice ? '<p class="notice">' + escapeHtml(notice) + '</p>' : '')
     + (error ? '<p class="err">' + t('failed') + ': ' + escapeHtml(error) + '</p>' : '');
+}
+
+/**
+ * The desktop-shortcut offer (phase 6.5).
+ *
+ * Shown ONLY when the server says it can be honoured — that is, when this is the packaged product
+ * and no shortcut exists yet. A development checkout is deliberately excluded: a permanent desktop
+ * link to a working copy is litter. And it is an OFFER; nothing appears on anyone's desktop because
+ * they opened the program.
+ */
+function shortcutBlock() {
+  const s = panel?.shortcut;
+  if (!s || !s.supported || s.exists) return '';
+  return '<p class="help" style="margin-top:1rem">' + t('shortcutOffer') + '</p>'
+    + '<div class="row"><button data-shortcut="1">' + t('shortcutCreate') + '</button></div>';
 }
 
 /**
@@ -375,8 +394,26 @@ async function loadPanel() {
   const shape = await api('/api/library?root=' + encodeURIComponent(folder));
   shape.runs = (await api('/api/runs?root=' + encodeURIComponent(folder))).runs;
   shape.inbox = await api('/api/inbox?root=' + encodeURIComponent(folder));
+  shape.shortcut = await api('/api/shortcut');
   panel = shape;
   return shape;
+}
+
+/**
+ * Put the shortcut on the desktop, because somebody asked for it.
+ * The result is re-read from the server rather than assumed: the block must disappear afterwards,
+ * and it disappears because the server now says the shortcut EXISTS, not because we hid it.
+ */
+async function makeShortcut() {
+  error = null; notice = null;
+  try {
+    const s = await api('/api/shortcut', { method: 'POST', body: '{}' });
+    if (panel) panel.shortcut = s;
+    notice = s.exists ? t('shortcutDone') : t('shortcutFailed');
+  } catch {
+    error = t('shortcutFailed');
+  }
+  render();
 }
 
 /**
@@ -438,6 +475,7 @@ document.addEventListener('click', async (ev) => {
   if (b.dataset.sort) return askToSort();
   if (b.dataset.panelRun) return panelRun(b.dataset.panelRun);
   if (b.dataset.inboxCreate) return createInbox();
+  if (b.dataset.shortcut) return makeShortcut();
   if (b.dataset.undo) return askToUndo(b.dataset.undo, b.dataset.moved, b.dataset.when);
   if (b.dataset.reveal) return reveal(b.dataset.reveal);
   if (b.dataset.rechoose) { panel = null; folder = null; step = 1; render(); return browse(null); }
