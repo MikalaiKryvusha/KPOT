@@ -41,7 +41,7 @@ KPOT has no commit tool. Use plain git, on `main` (no feature branches):
 Message style (from `AGENT_GUIDE.md`): `feat:` / `fix:` / `docs:` / `refactor:` / `ci:` + one line.
 End the message with:
 ```
-Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>
+Co-Authored-By: <the model actually doing the work> <noreply@anthropic.com>
 ```
 
 ## Step 5. Report

@@ -668,6 +668,57 @@ CLAIMS were wrong. Suite **286 → 294**.
 
 ---
 
+### Session of 2026-07-30 — release 0.2 shipped, two PROCESS bugs the owner caught, and the README rebuilt as a manual
+
+The session that took the product out of the workshop. It also produced the two most useful defects
+of the project so far, and neither of them is in the code.
+
+- **Release 0.2 «Obvius KPOT» published** (tag `v0.2`) with both artifacts. Verified before
+  publishing, not after: 294/294 · `npm run package` with the vendored runtime matched against the
+  SHA-256 on nodejs.org and the Authenticode signature read on the shipping file · ALL CHECKS PASSED
+  from `package:verify`, which drives plan → sort → idempotent re-plan → rollback **on the package's
+  own bundled runtime** · `npm pack` installed into an empty prefix and run from outside the
+  development tree · both download URLs fetched and confirmed 200.
+- **The mandatory judge pass corrected the release scope before a word of the notes was written.**
+  «Six closed bugs» was wrong: `git log v0.1..HEAD` says TWO since the tag (05, 06); the other four
+  predate it. It also found that `v0.1` was tagged BEFORE the pixel search and the reset-clock rule,
+  so both are new in 0.2 as well. That produced the framing the notes actually use, and it is true:
+  **0.2 closes both honest limits 0.1 declared about itself** — «No GUI yet» and «No pixel-level
+  matching yet».
+- **`bugs/07` — a BRAND decision was taken without the owner.** He pre-authorised the operation
+  («НА ВСЁ ДАЮ ДОБРО, МЕНЯ МОЖЕШЬ НЕ СПРАШИВАТЬ»); the agent read that as covering the release
+  CODENAME and invented one. The rule existed, was read in-session (canon puts brand FIRST on the
+  do-not-decide list; `/release` Step 0 said «ask the human for it») and was recalled correctly ONE
+  MESSAGE TOO LATE. **A rule remembered after the fact is not a gate.** Fixed as mechanism: the
+  act-vs-authorship distinction is now in `AGENT_GUIDE.md`, Step 0 is a hard stop with three legal
+  outcomes (he names it · he picks from 2–3 · ship with NO codename), and a name must carry its
+  source. The bug was held OPEN until he named it — renaming it unilaterally, even more modestly,
+  would have been the same defect twice. He named it **«Obvius»**.
+- **`bugs/08` — the release notes were nearly a copy of the README** (34 KB). The cause was the
+  SKILL TEMPLATE, which asked for a «what X is» paragraph and a full Get-started section — in a
+  project whose README has both, that is an instruction to duplicate. Rewritten to 12 KB of delta;
+  Step 6 now carries the two-document rule, the different sources of inspiration, and one mechanical
+  check: *if a paragraph could be pasted into the README unchanged, it belongs in the README*.
+- **The README was rebuilt as a USER MANUAL** on his verdict «текущий README считаем устаревшим
+  фродом» — it still opened by calling KPOT a CLI tool and hid the non-technical path in a
+  blockquote under a command-line heading. Ten numbered sections per language, academic register
+  from his stylometric portrait, no history of the project. **Every statement re-derived from the
+  code**, which caught a fresh falsehood mid-writing: the `НА_РАЗБОР` decision file is
+  `.kpot-runs/папки-на-согласование.txt`, not a file in that directory. Confirmed afterwards by a
+  real end-to-end run.
+- **The repository description** now says what the product is: a friendly tool with a graphical
+  window interface and a CLI, for ordinary PC users. His wording, his instruction.
+- **Reported upstream to KAIF** at his instruction: `ideas/19_kaif_2.1_scope.md` items **7)**
+  (blanket approval vs identity), **8)** (notes vs README, with the different sources of
+  inspiration) and **9)** (Windows + non-ASCII through command-line arguments), plus the field
+  report `ideas/ai_agents_reports/20_…`, plus two Unliminium reports copied in as 21 and 22 and
+  item 3 repointed at the local copies. **Not committed — that repository is the owner's.**
+- **EXP-0026** (the two process defects) and **EXP-0027** (four Windows tooling failures in one
+  session, of which the expensive one was SILENT: a backtick inside a double-quoted shell string was
+  eaten as command substitution and corrupted a canon document while the script printed `ok`).
+  `AGENT_GUIDE.md` §Build now records both the rule — text travels through FILES, not through
+  command-line arguments — and that **`npm run package` runs only from PowerShell**.
+
 ## Where we are now
 
 **Phases 0–4 are CLOSED and Phase 5 is well under way.** `kpot scan` walks a tree and dates every
@@ -686,9 +737,23 @@ photo's original is now found by its pixels when it exists.
 under supervision — 813 files, 0 failures, the SHA-256 multiset unchanged, rollback rehearsed.
 **README + the tagged release are DONE** (`v0.1`, 2026-07-28).
 
-**Phase 6 — the interface — is through 6.4** (2026-07-29): `kpot ui` opens a wizard on a messy
-folder and a control panel on a library, with three re-launchable runs, guarded folder links, a run
-history with a working undo, and the `НОВОЕ` inbox block. **6.5 and 6.6 remain.** Suite **278/278**.
+**Phase 6 — the interface — is COMPLETE** (6.0 … 6.6, 2026-07-29): `kpot ui` opens a guide on a
+messy folder and a dashboard on a library, with three re-launchable runs, guarded folder links, a
+run history with a working undo, the `НОВОЕ` inbox block, a portable package and the plain-language
+pass over everything the program says. Suite **294/294**.
+
+**RELEASE 0.2 «Obvius KPOT» IS PUBLISHED** (2026-07-29, tag `v0.2`) with both artifacts —
+`KPOT-0.2.0-win-x64.zip` (33.2 MB, portable) and `kpot-0.2.0.tgz` (165 KB).
+
+**⭐ THE PRODUCT IS IN FIELD TEST WITH REAL PEOPLE.** On 2026-07-30 the owner sent 0.2 to friends:
+«отправил на тесты друзьям». This is the first time KPOT has been used by anyone who did not build
+it, on machines nobody here has seen, against archives nobody here has surveyed. **Their reports
+outrank every item in the backlog below** — see §Where to continue next session.
+
+**The README is a USER MANUAL** (2026-07-30), rewritten in the owner's academic register after his
+verdict on the old one: «текущий README считаем устаревшим фродом». Ten numbered sections in both
+languages, describing the program as it is rather than how it came to be, with every statement
+checked against the code and against a real end-to-end run.
 
 | Phase | Status | What's there |
 |-------|--------|--------------|
@@ -915,10 +980,30 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
    the copy on 2026-07-28). Undo it with
    `node bin/kpot.mjs rollback run-20260728-201538-437c4d D:\work\ai_sandbox\KPOT_SANDBOX`.
    Do not delete it without his word, and never copy more of his photographs without a fresh one.
-3. ⭐ **RELEASE 0.2 IS OUT — the backlog is empty of unblocked work.** Published 2026-07-29 as
-   **«Obvius KPOT»** (tag `v0.2`) on the owner's explicit authorisation («НА ВСЁ ДАЮ ДОБРО»), with
-   both artifacts attached: `KPOT-0.2.0-win-x64.zip` (33.2 MB portable) and `kpot-0.2.0.tgz`
-   (165 KB). The README's download links are real links now, in both languages.
+3. ⭐ **THE PRODUCT IS OUT WITH FRIENDS FOR TESTING — THEIR REPORTS COME FIRST.** On 2026-07-30 the
+   owner wrote «отправил на тесты друзьям». Until his feedback arrives, **do not start a new
+   feature.** Ask him what came back, and be ready to act on it.
+
+   **Why this outranks everything below.** Every defect this project has ever found that mattered
+   came from contact with reality, not from the suite: `bugs/01`–`04` from the first real run,
+   `bugs/05` from measuring the inbox, `bugs/06` from finally RENDERING the page after six phases of
+   green specs. A friend's machine adds three things no fixture here has: **a clean Windows** (this
+   development machine has both relevant defences disabled by policy, which is why the first-launch
+   warning is still unverified — §10.2 of the README says so out loud), **an archive nobody
+   surveyed**, and **a person who has not read a single document of ours**. Expect the failures to
+   be in the first sixty seconds — download, unpack, the security warning, the first screen — not in
+   the date logic.
+
+   **When a report arrives, do this:** reproduce it on a FIXTURE first, never on their photographs;
+   file it with `/report-bug` (the backlog is `bugs/`, numbering continues from 08); if it is a
+   first-launch or packaging problem, remember the package is built **only from PowerShell**
+   (EXP-0027). If a friend's archive must be examined, that needs the owner's explicit word and
+   their own — the standing rule about his photographs applies to theirs with more force, not less.
+
+   **Release 0.2 as shipped:** published 2026-07-29 as **«Obvius KPOT»** (tag `v0.2`) on the owner's
+   explicit authorisation («НА ВСЁ ДАЮ ДОБРО»), with both artifacts attached:
+   `KPOT-0.2.0-win-x64.zip` (33.2 MB portable) and `kpot-0.2.0.tgz` (165 KB). The README's download
+   links are real links, in both languages, and were verified to return 200.
 
    **What the judge pass corrected before publishing, so nobody repeats it:** the scope was NOT
    «the interface epic + six bugs». `git log v0.1..HEAD` says two bugs closed since the tag (05 and
