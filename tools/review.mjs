@@ -101,6 +101,20 @@ const SAPI_VOICE = process.env.KPOT_SAPI_VOICE || 'Microsoft Irina Desktop';
 const VOICE_TOOL = opt('--voice-tool', process.env.KPOT_VOICE_TOOL || 'F:\\KLAS\\tools\\voice-say.mjs');
 const TIMEOUT_MIN = Number(opt('--timeout', '30'));
 
+/**
+ * Which project is asking. The owner runs several projects at once, and each of them can call him
+ * with a page that looks the same by design — so the page must say WHOSE question this is before he
+ * reads a word of it (his instruction, 2026-08-02, from a sibling project's contour: «я понимаю, по
+ * какому проекту меня спрашивают, и сколько вопросов в этом интервью в каком статусе»).
+ *
+ * The name is KPOT's canonical spelling from `AGENT_GUIDE.md` §Project identity — not a new brand
+ * decision, just the existing one used. A fork overrides it with `KPOT_PROJECT` instead of editing code.
+ */
+const PROJECT = process.env.KPOT_PROJECT || 'KPOT';
+
+/** «02.08.2026, 00:20:15» — the moment this page was built, in the owner's locale. */
+const stamp = () => new Date().toLocaleString('ru-RU');
+
 // ─────────────────────────────────────────────────────────────────────────────
 // THE PAGE
 // ─────────────────────────────────────────────────────────────────────────────
@@ -161,6 +175,21 @@ th{background:var(--code-bg)}
 	border:1px solid var(--line);color:var(--dim)}
 .tag.open{color:var(--warn);border-color:var(--warn)}
 .tag.ok{color:var(--ok);border-color:var(--ok)}
+/* The header block: WHO is asking, WHEN, and the state of the interview in two glanceable pills.
+   The owner runs several projects that all call him with a page of this same design, so the page
+   has to identify itself before he reads anything. The pills are FILLED, not outlined, because
+   their job is to be read from across the room; a count of ZERO goes quiet instead — the eye then
+   lands on the number that actually matters. Both themes carry them: the fill is a theme variable
+   and the text is the card colour, so contrast holds when the OS flips. */
+.asks{color:var(--dim);font-size:.85rem;margin-bottom:6px}
+.asks b{color:var(--ink)}
+.pills{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 2px}
+.pill{font-size:.8rem;font-weight:600;padding:3px 11px;border-radius:99px;border:1px solid transparent;
+	white-space:nowrap}
+.pill.wait{background:var(--warn);color:var(--card)}
+.pill.done{background:var(--ok);color:var(--card)}
+.pill.art{background:var(--accent);color:var(--accent-ink)}
+.pill.zero{background:transparent;color:var(--dim);border-color:var(--line);font-weight:400}
 .opts{display:flex;flex-direction:column;gap:8px;margin:12px 0}
 .opt{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border:1px solid var(--line);
 	border-radius:10px;cursor:pointer;background:transparent}
@@ -391,6 +420,7 @@ export function buildPage({ docPath, live }) {
 	}
 
 	const open = parsed.questions.filter((q) => !q.answered).length;
+	const answered = parsed.questions.length - open;
 
 	const page = `<!doctype html>
 <html lang="ru"><head><meta charset="utf-8">
@@ -400,11 +430,14 @@ export function buildPage({ docPath, live }) {
 <body data-doc="${esc(relPath)}" data-kind="${esc(meta.kind)}">
 <div class="wrap">
 	<header class="top">
+		<div class="asks">Спрашивает ИИ-агент <b>${esc(PROJECT)}</b> · ${esc(stamp())}</div>
 		<h1>${esc(meta.title)}</h1>
-		<div class="meta">
-			${esc(relPath)} · ${parsed.questions.length} вопрос(ов), ждут вас ${open}
-			${meta.artifacts.length ? ` · артефактов на одобрение: ${meta.artifacts.length}` : ''}
+		<div class="pills">
+			<span class="pill ${open ? 'wait' : 'zero'}">ждут вас: ${open}</span>
+			<span class="pill ${answered ? 'done' : 'zero'}">отвечено: ${answered}</span>
+			${meta.artifacts.length ? `<span class="pill art">на одобрение: ${meta.artifacts.length}</span>` : ''}
 		</div>
+		<div class="meta">${esc(relPath)}</div>
 		${parsed.statusRaw ? `<div class="meta">${mdToHtml(parsed.statusRaw)}</div>` : ''}
 	</header>
 
@@ -948,13 +981,29 @@ async function cmdBatch() {
 			})
 			.join('\n');
 
+		// Batch-wide counts, so the pills mean the same thing here as on a single document.
+		let openAll = 0;
+		let answeredAll = 0;
+		for (const i of live) {
+			const iv = parseInterview(join(ROOT, i.doc), readMd(join(ROOT, i.doc)));
+			const o = iv.questions.filter((x) => !x.answered).length;
+			openAll += o;
+			answeredAll += iv.questions.length - o;
+		}
+
 		return `<!doctype html><html lang="ru"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Накопилось: ${live.length}</title><style>${STYLE}
 a.card-link{display:block;text-decoration:none;color:inherit}
 a.card-link:hover{border-color:var(--accent)}
 </style></head><body><div class="wrap">
-<header class="top"><h1>Накопилось ${live.length} ${plural(live.length, 'документ', 'документа', 'документов')}</h1>
+<header class="top">
+<div class="asks">Спрашивает ИИ-агент <b>${esc(PROJECT)}</b> · ${esc(stamp())}</div>
+<h1>Накопилось ${live.length} ${plural(live.length, 'документ', 'документа', 'документов')}</h1>
+<div class="pills">
+	<span class="pill ${openAll ? 'wait' : 'zero'}">ждут вас: ${openAll}</span>
+	<span class="pill ${answeredAll ? 'done' : 'zero'}">отвечено: ${answeredAll}</span>
+</div>
 <div class="meta">Пока вы были заняты, агент работал и складывал сюда всё, что решать не вправе.
 Нажмите карточку — откроется сам документ.</div>
 </header>${cards}</div></body></html>`;

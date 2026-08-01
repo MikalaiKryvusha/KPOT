@@ -125,6 +125,32 @@ test('contour: every local asset a live interview links is EMBEDDED, never silen
 	console.log(`   встроено живых макетов: ${embedded}`);
 });
 
+test('contour: the header says WHO is asking and shows the state as two pills', async (t) => {
+	const { buildPage } = await import('../tools/review.mjs');
+	const { root, doc } = makeTempProject();
+	t.after(() => rmSync(root, { recursive: true, force: true }));
+
+	// The fixture is deliberately mixed: Q1 unanswered, Q2 answered.
+	const html = buildPage({ docPath: doc, live: false });
+
+	// WHO and WHEN. The owner runs several projects whose pages look the same by design, so the page
+	// must identify itself before he reads a word (his instruction, 2026-08-02).
+	assert.match(html, /Спрашивает ИИ-агент <b>KPOT<\/b> · \d{2}\.\d{2}\.\d{4}, \d{2}:\d{2}:\d{2}/,
+		'нет строки «кто спрашивает и когда»');
+
+	// The pills carry the counts AND their loudness: a real count is filled, a zero goes quiet, so
+	// the eye lands on the number that matters. Assert the CLASS, not just the text — the colour is
+	// half the message.
+	assert.match(html, /<span class="pill wait">ждут вас: 1<\/span>/, 'пилюля ожидания не горит при 1 без ответа');
+	assert.match(html, /<span class="pill done">отвечено: 1<\/span>/, 'пилюля отвеченного не горит при 1 отвеченном');
+
+	// And the other way round: with nothing waiting, the wait pill must go QUIET rather than shout 0.
+	writeFileSync(doc, readFileSync(doc, 'utf8').replace('**Ответ:**\n', '**Ответ:** A\n'), 'utf8');
+	const closed = buildPage({ docPath: doc, live: false });
+	assert.match(closed, /<span class="pill zero">ждут вас: 0<\/span>/, 'нулевая пилюля не гаснет');
+	assert.match(closed, /<span class="pill done">отвечено: 2<\/span>/);
+});
+
 // ─────────────────────────────────────────────────────────────────────────────
 // 3. End-to-end over HTTP in a temp root
 // ─────────────────────────────────────────────────────────────────────────────
