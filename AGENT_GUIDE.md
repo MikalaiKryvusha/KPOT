@@ -147,6 +147,37 @@ These three skills are vendored verbatim from [fable-method](https://github.com/
 (Sahir619, MIT) — see their headers for the sync ritual; the project's sphere library plays the role of
 their domain adapters.
 
+### Planning discipline — the task ladder (`/plan-task` · `/plan-epic`)
+
+Nearly everything in this industry has golden standards, best practices, published research — or at
+least documented practitioner lore. **A major epic feature therefore starts with a web recon of the
+industry's golden practices and a research doc in `researches/`** — this extends "recon before code"
+(checklist step 9) from *external truth* to *industry knowledge*: the state of the art is an external
+truth too, and a session that skips the sweep re-invents solved problems badly.
+
+**The heaviness test** (checkable, not taste). A task is HEAVY when **≥2** of these hold:
+touches ≥3 subsystems or canon documents · rests on an external truth or an industry standard ·
+does not fit one session · changes shipped composition or public contracts · needs owner-level
+decisions. Otherwise it is ordinary.
+
+- **Ordinary → `/plan-task`:** ONE operational plan — goal, done-criteria, steps with checkboxes,
+  verification-by-observation, risks. Small enough? The plan lives as a section right inside the
+  idea/bug document itself. Ceremony must never outweigh the work.
+- **Heavy → `/plan-epic`** — the full ladder, each rung an artifact:
+  1. **Research** — industry sweep (web) + local recon + the project's requirements, synthesized
+     into a research doc in `researches/`. No code, no meta-plan before it exists.
+  2. **Meta-plan** — one epic plan in `plans/`: phases, order, gates, acceptance criteria;
+     vision-level forks go to `/interview` (work on unblocked phases proceeds meanwhile).
+  3. **Operational plans per phase** — R&D · testing · mock-ups · development · debugging ·
+     acceptance. Detail ONLY the next phase; the plan for phase N+1 is written when phase N closes —
+     never all upfront (they would be fiction by the time you reach them).
+  4. **Trace** — every operational step cites its meta-plan anchor line (the citing rule of
+     checklist step 8); a step you cannot anchor is scope drift caught before the diff.
+
+The ladder is not ceremony for its own sake: research is where the epic gets its evidence base,
+the meta-plan is where the owner sees the whole shape once, and phase-by-phase operational plans are
+what keeps a context-losing session executing the RIGHT next step instead of re-deriving the epic.
+
 ### Languages — two audiences, two languages
 
 Agent-internal documents (this guide, `PHILOSOPHY.md`, `BUG_FIXING_FRAMEWORK.md`, `STATUS.md`,
@@ -344,6 +375,47 @@ No commit/version tool yet: commit with plain `git`. If a release tool appears (
 `gh release`), document it here and in the Tools table — and note that `/release` is the skill that
 drives it.
 
+## Document & text hygiene (field-paid rules)
+
+**Each document answers its own question — and takes its shape from its own kin.** README: *"what
+is this and how do I use it"* (the product, present tense). Release notes: *"what changed in THIS
+version, do I upgrade"* (strictly the delta; anything general is a LINK to the README — the
+mechanical check: a paragraph pasteable into the README unchanged belongs in the README).
+`STATUS.md`: *"where are we now"*. `EXPERIENCE.md` and the knowledge dirs: *"why / how it went"*.
+Updating the README — draw on the current README and the owner's other repo storefronts (one
+storefront handwriting, not the agent's); updating the notes — draw on THIS project's previous
+notes (`gh release view <prev>`). Mixing these scopes is a defect, not a style choice.
+
+**TEXT TRAVELS THROUGH FILES, NEVER THROUGH COMMAND-LINE ARGUMENTS.** Feeding a tool Cyrillic (or
+any non-ASCII), curly quotes, emoji, multi-line content, markdown, JSON? Write a UTF-8 file and
+pass the PATH. No `python -c "…text…"`, no `-m "…"`, no `echo "…" > file` with non-ASCII. One
+class, four unlike faces — recognize it BY SYMPTOM, they hit every Windows project (and face 3
+reproduces in JS/JSON/YAML anywhere):
+
+1. `python -c` + non-ASCII → `SyntaxError: (unicode error)` — or WORSE, silent mojibake written to
+   the file (the console encoding corrupts the argument before the program sees it);
+2. backticks inside double quotes → the shell's command substitution eats chunks of text, prints
+   "ok", and the document gets HOLES — no error at all; caught only by reading the result back;
+3. Windows paths inside strings → `truncated \uXXXX escape` (`\w`, `\u` read as escapes);
+4. different shells are different worlds: GNU tar takes `D:\…` for a remote host while bsdtar
+   doesn't; a Git-Bash `/tmp` file is invisible to Windows Python; PowerShell 5 `Set-Content`
+   writes ANSI by default. Know WHICH shell you are in; before running a foreign script on
+   Windows, check what `tar`/`curl`/`find` actually resolve to in the current PATH; record in the
+   project docs which shell the build runs from.
+
+Companions: after ANY machine edit of a non-ASCII document — READ THE RESULT BACK (face 2 cannot be
+caught otherwise); prefer the file tools (Write/Edit) over the shell for editing text — the shell
+runs processes, it does not carry content.
+
+**The truth↔mirror pairs registry.** The costliest field defects were not complex code but DRIFT
+between a source of truth and its mirror: a deploy manifest pinning an old engine version while
+prod ran a newer one, a comment contradicting the compose file it describes, a producer's contract
+diverging from its consumer. A weak session updates the side it SEES and does not know the other
+side exists. Keep a light registry — a table, one row per pair:
+`truth → mirror(s) → the one-line check command`. `/end-chat` and `/release` run the registry's
+commands and stop on drift; any new "X must match Y" enters the registry the day it is born.
+Drift is caught only by CHECKING PAIRS — never by reading one file, however carefully.
+
 ## Push / GitHub authentication
 
 Authentication is the **`gh` CLI** (v2.95+), logged in as `MikalaiKryvusha` with the token in the OS
@@ -395,6 +467,15 @@ ideas/07_dev_menu.md      →  ideas/07_DONE_dev_menu.md
   from the vision costs one line to fix instead of a rework — and it is the best generator of the
   owner's next questions. Unsettled assumptions (fable `PENDING:` lines) are settled here too: each one
   *confirmed / refuted / asked*, never silently dropped.
+
+**Owner's drive-by notes mid-task go to the backlog, not into a task switch** (idea 17 §2). When the
+owner tosses an idea/improvement/bug into the chat while you are working on something ELSE: capture it
+as a document right away (`/propose-idea` → `ideas/`, `/report-bug` → `bugs/` — note the source in the
+header: "tossed by the owner mid-task, <date>"), confirm in one chat line ("recorded in ideas/NN —
+continuing the current task") and return to the interrupted work. Do not drop the current task for the
+note, and do not hold it in your head until the session ends — a session's head is the worst storage
+there is. Classify first: the note CONCERNS the current task → it is a clarification, apply it; it is
+vision-level → `/fix-vision`; it is an explicit "switch to this" → switch.
 
 **A batch of bugs from the owner is one process incident.** When the owner's manual test pass brings a
 WAVE of bugs at once, the wave itself is a symptom that the process leaked — worth more than any bug in

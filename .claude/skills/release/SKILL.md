@@ -14,6 +14,32 @@ show the error, do NOT continue blindly.
 > = a public tag and Release, unpleasant to roll back. **In autonomous mode (`/autoloop`/loops) do NOT
 > publish a release.**
 
+## Step 0. Decide the bump type and the codename (an IDENTITY stop, not a formality)
+
+Confirm with the human (or confirm the default): patch / minor / major. State the current → new version.
+
+**Every release normally gets a short codename** (a memorable one- or two-word name for the theme, e.g.
+*Anonymous*, *Slim*, *Savvied*). The codename drives the release **title** and headline — see Step 6.
+
+**The codename is IDENTITY, and identity is authored by the owner — never by the agent, under ANY
+breadth of approval.** A blanket "ship it, don't ask me" removes confirmation FRICTION on actions;
+it does not transfer AUTHORSHIP of how the product presents itself (field incident: under a literal
+"I APPROVE EVERYTHING, don't ask" an agent invented a release codename, and the owner met their
+product's name as a fait accompli). This hard stop has exactly three legal outcomes:
+
+1. **the owner names it** (or picks from candidates you offer);
+2. **you do EVERYTHING else and ask ONE pointed question about the name** — one question inside
+   already-authorized work costs nothing and is not what "don't ask" was about;
+3. **release UNNAMED** under the neutral factual title (`<PROJECT> X.Y`) — the ALWAYS-AVAILABLE
+   fallback: when the owner is unreachable, the release is never blocked forever, and only the
+   owner may name it, retroactively if need be. Never a placeholder name: a placeholder is still a
+   name someone must later un-decide.
+
+**The shipped name carries a SOURCE artifact** — a line in the release notes/plan:
+`codename: <owner · channel · date>` — the way a research claim carries its citation; a name
+without an author must be impossible to miss. And if a shipped name proves wrong, the agent does
+not rename on its own initiative — fixing a brand mistake is a brand decision too.
+
 ## Step 0. Decide the bump type and the codename
 
 Confirm with the human (or confirm the default): patch / minor / major. State the current → new version.
@@ -54,6 +80,10 @@ gh auth status              # gh logged in (needed for the GitHub Release)
 ```
 If the tree is dirty — commit/sort it out first (`/pause` or your commit tool).
 
+If the project keeps a **truth↔mirror pairs registry** (`AGENT_GUIDE.md` → Document & text
+hygiene), run every row's check command now — a release shipped over a drifted pair pins the drift
+into the delivery. Red row = stop and reconcile before proceeding.
+
 ## Step 2. Refresh README (all languages)
 
 Bring `README.md` in line with reality: phase status, working features, instructions. If bilingual, keep
@@ -82,10 +112,8 @@ downloads.)
 
 ## Step 5. Commit the doc/build changes (before the release)
 
-Commit the README/docs updates so the `release: X.Y` commit is a clean version bump:
-```bash
-git add -A && git commit -m "<msg>" && git push "docs: README for release X.Y"
-```
+Commit the README/docs updates so the `release: X.Y` commit is a clean version bump: run
+`git add -A && git commit -m "<msg>" && git push` with `<msg>` = `docs: README for release X.Y`.
 
 ## Step 6. Publish (after the human's confirmation)
 
