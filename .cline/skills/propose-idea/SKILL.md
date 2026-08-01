@@ -14,6 +14,10 @@ status "awaiting approval" and is **NOT implemented until the human approves it*
 
 - An idea arises that moves the project toward the goals in `MASTER_PLAN.md`/`PHILOSOPHY.md` and doesn't
   contradict the human's vision.
+- **The OWNER tossed an idea into the chat mid-task** (drive-by, idea 17 §2): file it immediately with
+  the source noted in the header ("tossed by the owner, <date>"), confirm in one chat line, return to
+  the interrupted task. An owner-tossed idea needs no approval gate (it IS the owner's) — but it waits
+  its turn in the backlog unless the owner explicitly says "switch to it now".
 - NOT for small technical decisions within an already-approved task (decide those yourself and just do them).
 - NOT for questions needing the human's INPUT on work already in progress — that's `/interview` (a
   question), not an idea. The difference: `/interview` = "I need your answer to continue";
@@ -53,11 +57,13 @@ status "awaiting approval" and is **NOT implemented until the human approves it*
 
 4. **Mark for review and do NOT implement:**
    - A line in `STATUS.md`: "❓ awaiting human review: idea NN — <one line>".
-   - Commit the document (`git add -A && git commit -m "<msg>" && git push "docs(ideaNN): proposal — …"`).
+   - Commit the document: run `git add -A && git commit -m "<msg>" && git push` with `<msg>` = `docs(ideaNN): proposal — …`.
    - **Do NOT start implementing** until the human explicitly approves. In an autoloop — continue with OTHER tasks.
 
 5. **After the human reacts:**
-   - Approved → take it into work (technical decisions inside — yours). After implementing: status ✅ +
+   - Approved → take it into work (technical decisions inside — yours). An EPIC-scale idea (the
+     heaviness test of `/plan-task`) is planned by the full ladder first — `/plan-epic`: research →
+     meta-plan → phased operational plans. After implementing: status ✅ +
      date, and by the DONE-tag convention — `git mv` with the `DONE` tag and a status section inside.
    - Rejected/reframed → reflect their decision in the document (or delete the idea if rejected).
 

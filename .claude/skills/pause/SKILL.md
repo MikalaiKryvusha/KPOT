@@ -3,6 +3,12 @@ name: pause
 description: SOFT-PARK the current chat — a temporary pause with the intent to CONTINUE IN THIS SAME CHAT. Bring the task in flight to a logical stopping point, verify the tree is green, park neatly WITHOUT the heavy wrap-up (no push, no STATUS/README ceremony) and post a precise parking note in the chat. Use when the human says "pause", "park it", "hold on, back soon", "пауза", "припаркуйся", "прервёмся ненадолго". For the FULL session closure (STATUS, commits, pushes, handoff to other chats) use /end-chat instead. Trigger aliases (ru): «пауза», «сделаем паузу», «припаркуйся», «прервёмся ненадолго»
 ---
 
+# /pause — soft-park the chat (we continue HERE later)
+
+A temporary pause, not a goodbye: the human intends to come back to THIS chat and continue. The whole
+point is a **cheap, precise parking** — no heavyweight rituals. The heavy closure — `STATUS.md`,
+commits, pushes, handing the baton to other agents — is `/end-chat`, a different skill.
+
 ## Step 1. Reach a logical stopping point — never park mid-surgery
 
 Finish the smallest coherent unit of the work in flight: the tree must **build green and pass its
@@ -28,30 +34,9 @@ Post one compact note in the chat:
 
 Then stop. No further actions, no background work.
 
-# /pause — end the work session
-
-The human is pausing. Run the wrap-up routine **in order**. Narrate each step briefly in the chat.
-Don't skip steps. If a step fails — stop, tell the human, don't continue blindly.
-
-## Step 3. (Re)build / regenerate artifacts
-
-`<Run the project build and any artifact regeneration (e.g. a rendered README.pdf). For this framework's
-own project: `node tools/build-framework.mjs` regenerates KAIF.md, and `node tools/readme-pdf.mjs`
-regenerates README.pdf.>`
-
-**For KPOT:** there is no build step and no rendered artifact to regenerate. Run `npm test` — it must
-pass. If it fails, stop and show the errors — don't commit broken state.
-
-## Step 4. Commit and push
-
-KPOT has no commit tool. Use plain git, on `main` (no feature branches):
-`git add -A && git commit -m "..." && git push origin main`.
-
-Message style (from `AGENT_GUIDE.md`): `feat:` / `fix:` / `docs:` / `refactor:` / `ci:` + one line.
-End the message with:
-```
-Co-Authored-By: <the model actually doing the work> <noreply@anthropic.com>
-```
+**For KPOT specifically:** "green" in step 1 means `npm test` passes — there is no build step (pure
+Node ESM), so `npm run build` does not exist and must not be invented. That is the whole gate for a
+soft park; everything heavier (README, `STATUS.md`, the push) belongs to `/end-chat`.
 
 ## Notes
 

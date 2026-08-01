@@ -19,6 +19,9 @@ can be returned to (or handed to `/bug-research`).
   capture the forensics/postmortem).
 - A bug needs to be deferred (take another task) without losing it.
 - The human asks to file a bug.
+- **The owner mentioned a bug in passing while you worked on something else** (drive-by, idea 17 §2):
+  file it with the source noted ("tossed by the owner, <date>"), confirm in one line, return to the
+  current task.
 - NOT for a "stuck-from-misunderstanding" stall (that's `PHILOSOPHY.md`) and not instead of fixing a trivial typo.
 
 ## What to do
@@ -66,7 +69,7 @@ can be returned to (or handed to `/bug-research`).
 
 4. **Record in the backlog/process:**
    - If important/blocking — a short line in `STATUS.md`.
-   - Commit (in autoloops, by the usual discipline): `git add -A && git commit -m "<msg>" && git push "docs(bugNN): …"`.
+   - Commit (in autoloops, by the usual discipline): run `git add -A && git commit -m "<msg>" && git push` with `<msg>` = `docs(bugNN): …`.
 
 5. **Lifecycle:** while open — file WITHOUT `DONE`. When CONFIRMED closed (fixed and verified) — rename
    `git mv bugs/NN_x.md bugs/NN_DONE_x.md` and append a `## ✅ STATUS: DONE (date)` section (what was

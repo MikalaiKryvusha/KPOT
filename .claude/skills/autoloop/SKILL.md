@@ -57,7 +57,9 @@ without those resources.
 2. **Understand it simply** (PHILOSOPHY) — state it in 1–2 sentences. For bugs — open/create a `bugs/` doc.
 3. **Implement** in a targeted way, with comments. Don't over-complicate. Execute the item by the fable
    loop (`/fable-method`; `/fable-loop` for substantive items) — its gates and forced artifacts
-   (`INTENT`/`AUTH`/`TWINS`/`PENDING`) apply inside the cycle too.
+   (`INTENT`/`AUTH`/`TWINS`/`PENDING`) apply inside the cycle too. A HEAVY item with no plan yet →
+   build the ladder first (`/plan-epic`: recon → research doc → meta-plan), then execute phase by
+   phase; an ordinary one gets a single operational plan (`/plan-task`).
 4. **Build** — KPOT has NO build step (pure Node ESM); `npm run build` does not exist. The equivalent
    gate is `npm test`. If it fails — fix it, don't commit broken state.
 5. **Deploy/run** as your project requires: `node bin/kpot.mjs <phase> <dir>` against a fixture tree.

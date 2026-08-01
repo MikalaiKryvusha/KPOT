@@ -56,7 +56,9 @@ without those resources.
 2. **Understand it simply** (PHILOSOPHY) — state it in 1–2 sentences. For bugs — open/create a `bugs/` doc.
 3. **Implement** in a targeted way, with comments. Don't over-complicate. Execute the item by the fable
    loop (`/fable-method`; `/fable-loop` for substantive items) — its gates and forced artifacts
-   (`INTENT`/`AUTH`/`TWINS`/`PENDING`) apply inside the cycle too.
+   (`INTENT`/`AUTH`/`TWINS`/`PENDING`) apply inside the cycle too. A HEAVY item with no plan yet →
+   build the ladder first (`/plan-epic`: recon → research doc → meta-plan), then execute phase by
+   phase; an ordinary one gets a single operational plan (`/plan-task`).
 4. **Build** — KPOT has NO build step (pure Node ESM); `npm run build` does not exist. The equivalent
    gate is `npm test`. If it fails — fix it, don't commit broken state.
 5. **Deploy/run** as your project requires: `node bin/kpot.mjs <phase> <dir>` against a fixture tree.
@@ -84,10 +86,17 @@ without those resources.
 - If you need to "continue on a timer", use the harness's loop mechanism (`ScheduleWakeup`/`/loop`) with
   a reasonable interval, passing this same skill back so the cycle resumes.
 
+> 📥 **The human wrote mid-loop — classify first** (idea 17 §2): a drive-by idea/bug not about the
+> current task goes to `ideas/`/`bugs/` (source noted) with a one-line confirmation, and the loop
+> CONTINUES; only a direct interactive request or an explicit "stop/switch" interrupts the series.
+
 ## When to STOP the loop (and report to the human)
 
 - The autonomous pool is exhausted (everything left needs the human/resources).
-- A serious UI/UX/brand/architecture fork the agent must NOT decide alone → file an `/interview` and pause.
+- A serious UI/UX/brand/architecture fork the agent must NOT decide alone → file an `/interview` and
+  pause. (A project running the `/owner-reviews` contour queues the interview to its "N accumulated"
+  batch page instead — invariant I7 — and moves on to unblocked work; the loop pauses only when
+  nothing unblocked remains.)
 - Something destructive/irreversible (a release, a deletion, a force-push) — don't do it alone, ask.
 
 At the end of the loop — a summary: what got done across the series (list of commits), what was deferred

@@ -40,13 +40,6 @@ product's name as a fait accompli). This hard stop has exactly three legal outco
 without an author must be impossible to miss. And if a shipped name proves wrong, the agent does
 not rename on its own initiative — fixing a brand mistake is a brand decision too.
 
-## Step 0. Decide the bump type and the codename
-
-Confirm with the human (or confirm the default): patch / minor / major. State the current → new version.
-
-**Every release gets a short codename** (a memorable one- or two-word name for the theme, e.g. *Anonymous*,
-*Slim*, *Savvied*). The codename drives the release **title** and headline — see Step 6.
-
 > 🛑 **HARD STOP — THE CODENAME IS NEVER THE AGENT'S TO INVENT.** It is a BRAND decision, and
 > `AGENT_GUIDE.md` §Decisions the agent must NOT make alone puts brand first on the list of what an
 > agent may not decide alone. Exactly one of these may happen:
@@ -127,16 +120,23 @@ gh release create vX.Y --title "<PROJECT> X.Y — <Codename>" --notes-file <NOTE
 ```
 
 > 📛 **Release title — FIXED FORMAT (CANON):** `<PROJECT> X.Y — <Codename>` — the project name, the
-> `major.minor` version, an em dash `—`, then the Step-0 codename. Examples: `KAIF 1.2 — Anonymous KAIF`,
-> `KAIF 1.3 — Slim KAIF`, `KAIF 1.4 — Savvied KAIF`. **Not** `vX.Y`, no guillemets, no quotes. Keep it
-> consistent with every prior release (check `gh release list`).
+> `major.minor` version, an em dash `—`, then the Step-0 codename. Examples: `KPOT 0.1 — First KPOT`,
+> `KPOT 0.2 — Obvius`, `KAIF 1.4 — Savvied KAIF`. **Not** `vX.Y`, no guillemets, no quotes. Keep it
+> consistent with every prior release (check `gh release list`). **On Step 0's legal UNNAMED outcome
+> the title is the neutral `KPOT X.Y`** — factual, complete, and never an invented brand claim.
 >
 > 📝 **Release notes — BILINGUAL and about the DELTA (do NOT `--generate-notes`).** Write real notes and
-> mirror **every language the README ships in**, with in-page language anchors/toggles, matching the house
-> style of previous releases (check the last release's body with `gh release view <prev> --json body -q .body`
-> and follow its shape). Structure per language: a header line (release date · place), a one-paragraph
-> "what this release is", **a LINK to the README** for what the product is, the attached artifacts, a
-> **✨ What's new** section, and a short **🚀 Get started**. Write the notes to a file and pass `--notes-file`.
+> mirror **every language the README ships in**, with in-page language anchors/toggles. Structure per
+> language: a header line (release date · place), a one-paragraph "what this release is", **a LINK to
+> the README** for what the product is, the attached artifacts, a **✨ What's new** section, an
+> **⬆️ Upgrading** note when the version needs one, and a short **🚀 Get started**. Write the notes to
+> a file and pass `--notes-file`.
+>
+> 💧 **Different documents draw from DIFFERENT WELLS.** The notes take their shape from THIS project's
+> PREVIOUS release notes (`gh release view <prev> --json body -q .body` — follow the house style you
+> already established); the README takes its shape from the current README and the owner's OTHER repo
+> storefronts (one storefront handwriting across his repos, not the agent's). Drawing from the wrong
+> well is exactly how the two documents collapse into each other — see the field record below.
 >
 > 🚫 **THE NOTES ARE NOT A COPY OF THE README.** They answer *«what changed, and should I update?»*;
 > the README answers *«what is this and how do I use it?»*. When both need the same paragraph — the

@@ -4,6 +4,13 @@ description: Respectfully update & migrate the KAIF framework deployed in this p
 
 # /kaif-update — respectful migration update from origin
 
+> ⚙️ **The current mechanical command comes FIRST:** `npm run kaif:update`
+> (`node .kaif/kaif-core.mjs update`). If this file's prose disagrees with the machinery, trust the
+> machinery and the origin release notes: an ADOPTED local copy of this skill freezes at an older
+> version's procedure and silently leads the updater off the mechanical path (field-caught — it cost
+> a project a full manual migration and stale snapshots; lifecycle skills are exactly the class of
+> file whose staleness breaks the update itself).
+
 A newer KAIF version exists upstream (see `/kaif-version`). Since KAIF 1.5 the heavy lifting is
 **mechanical**: the machinery (`.kaif/kaif-core.mjs`) knows what was deployed and which files were never
 touched since (content snapshots in `.kaif/deploy-manifest.json`), so it replaces the untouched framework
@@ -19,7 +26,18 @@ diverged places. Your cognitive work is that task, not the migration.
 1. **Pre-flight.** Working tree clean (commit/stash first). Read `.kaif/kaif.json`: if `tracking` is
    `fork`, confirm the human really wants to pull from the official origin.
 
-2. **Route by what the project has:**
+2. **Predict the pass BEFORE touching the tree** (both moves are cheap; the field proved both):
+   - `node .kaif/kaif-core.mjs diff --source <url|dir>` — a per-module preview of what the new
+     version would change *here*. Works even on a v1 manifest: the machinery builds a synthetic
+     baseline of your CURRENT version (`--baseline <dir|url>` points it at saved artifacts when
+     the origin release is unreachable).
+   - The **sandbox copy** — not a model of the pass but the pass itself: export the tree
+     (`git archive HEAD | tar -x -C <tmpdir>`), `git init` there, run the REAL update/bootstrap in
+     the copy and read its diff. A minute and a few MB buy a byte-accurate preview — in the field
+     the live pass matched the sandbox byte for byte. Prefer this on the first-ever update and on
+     any deployment with heavy localization.
+
+3. **Route by what the project has:**
    - **`.kaif/kaif-core.mjs` exists (KAIF ≥ 1.5):** run `node .kaif/kaif-core.mjs update`
      (or `npm run kaif:update`). It fetches the latest machinery from origin (sha256-verified),
      replaces every framework file that is byte-identical to its install snapshot, adds new files,
@@ -31,15 +49,15 @@ diverged places. Your cognitive work is that task, not the migration.
      KEPT, new entities added, owner-level fields of the marker preserved, and `KAIF_UPDATE_TASK.md`
      replaces the usual adaptation task.
 
-3. **Work `KAIF_UPDATE_TASK.md`** — the only cognitive part: merge the template news into the files the
+4. **Work `KAIF_UPDATE_TASK.md`** — the only cognitive part: merge the template news into the files the
    machinery could not touch (they carry your local edits), review what's new, run
    `node .kaif/kaif-core.mjs check`, and finish with a `/fable-judge` pass over the update. Tick each
    item AND append its `KAIF-UPDATE: <id> done` checkpoint.
 
-4. **Verify & self-clean:** `node .kaif/kaif-core.mjs update-verify` — it greps the checkpoints and
+5. **Verify & self-clean:** `node .kaif/kaif-core.mjs update-verify` — it greps the checkpoints and
    removes the transient installer files.
 
-5. **Report & commit.** Summarize: replaced/added/kept counts, what you merged by hand, anything left
+6. **Report & commit.** Summarize: replaced/added/kept counts, what you merged by hand, anything left
    for the human. Commit `chore: update KAIF to X.Y`.
 
 ## Notes

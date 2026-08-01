@@ -16,7 +16,10 @@ time and on the human appearing**, and **self-restart via `ScheduleWakeup`**.
 Stop the loop ONLY if one of:
 1. **It is ≥ the wake time** (default 09:00 local; set it when starting the loop). ⏰ Check the time
    (`date "+%H:%M"`) PERIODICALLY — don't miss the wake hour. The human comes online in the morning.
-2. **The human wrote in the chat.** Any new user message = exit, switch to them. The loop interrupts immediately.
+2. **The human wrote in the chat — classify before you switch** (idea 17 §2): a direct request →
+   exit, switch to them immediately; a **drive-by idea/bug not about the current task** → capture it
+   (`/propose-idea` / `/report-bug`, source: "tossed by the owner"), confirm in one line and
+   CONTINUE the night; vision-level → `/fix-vision`, then continue.
 3. **ONLY a truly critical error** that can't be worked around autonomously and makes continuing
    impossible in principle. RARE.
    ❗ **Non-critical errors are NOT a stop condition — just keep working:** failed build (fix), flaky
@@ -40,7 +43,9 @@ Until one fires — don't stop, don't wait for confirmations, work.
 3. **Do it**: code → gate (no build step — run `npm test`) → run → test on the harness (`npm test` + `node bin/kpot.mjs <phase>` over `tests/fixtures/`),
    verify objectively. High-level harness commands first; if missing, do it low-level then ADD the command.
    Execute the item by the fable loop (`/fable-method`; `/fable-loop` for substantive items) — its gates
-   and forced artifacts (`INTENT`/`AUTH`/`TWINS`/`PENDING`) apply inside the cycle too.
+   and forced artifacts (`INTENT`/`AUTH`/`TWINS`/`PENDING`) apply inside the cycle too. A HEAVY item
+   with no plan yet → `/plan-epic` first (research → meta-plan), then execute phase by phase; an
+   ordinary one gets a single operational plan (`/plan-task`).
 4. **Judge pass — MANDATORY before "done"**: run `/fable-judge` over the finished item — re-run the
    claimed checks, diff what actually changed against the item's scope. REFUTED → back to work (step 3),
    not to "done"; after 3 failed fix-judge cycles, record it honestly in `STATUS.md`/`bugs/` and take

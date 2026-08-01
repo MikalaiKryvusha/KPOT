@@ -11,7 +11,8 @@ relies entirely on this document to get to work.
 
 > 🤖 **AUTONOMOUS MODE.** When the human has stepped away / granted autonomy and there is no active
 > interactive task, and `STATUS.md` has an open autonomous backlog — the agent SHOULD, on its own
-> initiative, enter the appropriate loop skill (`/autoloop`, `/dayloop`, or `/nightloop`) and grind the
+> initiative, enter the appropriate loop skill (`/autoloop`, `/dayloop`, `/nightloop` — or
+> `/guarded-loop` when the owner asked for a watchdog-protected run) and grind the
 > backlog, committing progress and self-restarting after each task. Stop only on the skill's stop
 > conditions. Do not enter a loop if the human just gave a specific interactive task.
 
@@ -27,7 +28,7 @@ relies entirely on this document to get to work.
 5. Read MEMORY.md (if present)    # user profile, key decisions
 6. Load ONLY the relevant slice   # use the Context router below — read the required minimum + task-type docs, not everything
 7. Execute by the fable loop      # /fable-method: gates + forced artifacts (INTENT/AUTH/TWINS/PENDING); /fable-loop to orchestrate; /fable-judge before claiming done
-8. Read the relevant plan         # plans/<feature>.md, if the task touches a specific feature. Code by citing the plan: before implementing a step, QUOTE the anchor line you are doing right now — if you can't name the line, that's scope drift caught BEFORE the diff
+8. Read the relevant plan         # plans/<feature>.md, if the task touches a specific feature. Code by citing the plan: before implementing a step, QUOTE the anchor line you are doing right now — if you can't name the line, that's scope drift caught BEFORE the diff. A HEAVY task with no plan yet → build the ladder FIRST (Planning discipline below: /plan-task for ordinary work, /plan-epic for epics)
 9. Recon before code — TWO gates, in this order. Both write into researches/, both replace invention with reading, and both are reused by every future session (researches/01…04):
    (a) EPIC feature? → FIRST a PRIOR-ART REVIEW, web-searched, never recalled: what the industry and the literature already settled about this problem. "Almost everything in the industry has golden standards and scientific papers" (owner, 2026-07-28). DESIGN is forbidden until it exists — deciding the approach IS the thing this gate protects
    (b) Rests on an external truth (a file-format spec, a third-party lib's real behavior, the owner's real archive, another tool's semantics)? → a RECON DOC describing how that truth ACTUALLY works, read from the live source. CODE is forbidden until it exists; then code by the document, not from recall
@@ -51,6 +52,10 @@ relies entirely on this document to get to work.
     structured format for AI consumption (the human's voice and every thought preserved; their original
     wording stays reachable in git history). After implementing from such a document, write the status
     and the implementation date back into it.
+19. Writing into the owner's artifact?   # text the owner signs or reads as his own (GOAL.md, the READMEs,
+    release notes, the Russian owner-facing report text) → open his voice portrait if one is taken
+    (/owner-voice) and run its checklist before handover; no portrait after a SECOND style rejection →
+    propose taking one. KPOT has no portrait yet — his register lives in GOAL.md and the 0.1/0.2 notes.
 ```
 
 → **`STATUS.md`** is the master state file. Update it after every significant task.
@@ -67,7 +72,8 @@ Don't read every document "just in case" — that fills the context you're tryin
 | Testing / verifying anything | `TESTING_FRAMEWORK.md` (the 7 principles · `[NOT-TESTED]`/`[TESTED]` markers) · the sphere's verification sections |
 | Feature / idea     | `ideas/<this>` · `MASTER_PLAN.md` · the relevant `plans/<this>`        |
 | Refactor / edit    | `AGENT_GUIDE.md` · the two maps (blast radius)                         |
-| Planning           | `MASTER_PLAN.md` · `GOAL.md` · open backlog                            |
+| Planning           | `MASTER_PLAN.md` · `GOAL.md` · open backlog · the Planning-discipline section (heavy → `/plan-epic`) |
+| Writing into the owner's artifact (text he signs or reads as his own) | his voice portrait, if one is taken (`/owner-voice`) · `GOAL.md` for his register |
 | **Epic feature** (named algorithm · new dependency or `src/` subsystem · a new promise to the owner · its own `plans/NN` · you can't explain it in one sentence) | the **prior-art review** in `researches/` — **web-search and write it FIRST**; designing before it exists is the violation (checklist step 9a) |
 | External truth involved (file-format spec / third-party lib / the real archive / another tool) | the recon doc in `researches/` — **create it first** if it doesn't exist (checklist step 9b) |
 
@@ -133,6 +139,12 @@ observation (a session that "remembers" a domain invents it):
   judged BY THE ROWS, not by impression. A recon doc *describes*; the inventory *counts* — a session can
   read a description and still invent, but it cannot argue with a row. `tests/fixtures/expected.json` is
   this project's executable parity inventory: every planted case is a row.
+
+Adjacent, but **NOT a fifth type**: the **owner's voice portrait** (`/owner-voice`). It replaces the same
+kind of invention with observation — the owner's own texts instead of a session "remembering" his style —
+but it is a CANON document he accepts, and it is routed by task type ("writing into the owner's artifact",
+checklist step 19), not by external truth. KPOT has none yet; until it exists, `GOAL.md` and the 0.1/0.2
+release notes are the closest thing to a sample of his register.
 
 ### Task execution discipline — the fable loop
 
@@ -509,6 +521,38 @@ and report in the chat.
 Rule of thumb: *is it cheap to reverse?* If yes — decide yourself. If it shapes brand/architecture/UX
 for the long term — interview.
 
+**THE PLACE OF QUESTIONS — A HARD RULE** (KAIF 2.1 canon; on KPOT it is the mechanized form of the
+owner's own instruction of 2026-07-29, «и общение со мной - через ИНТЕРВЬЮ, не через эпики»).
+Everything the agent wants FROM the owner — a fork, a review, an approval, an answer — lives ONLY in
+`interviews/` (or an explicitly named decision-queue document), never in the tail of a plan, a
+research doc or a bug file. The one exception stays: the single pointed task-level question in chat
+(bottom of this section). Why it is a rule and not a preference: **this rule gets broken by agents
+that KNOW it** — chat is cheaper in the moment, and a question buried in a 250-line plan is a
+question that does not get asked. In the field a mechanical guard over exactly this surfaced two
+questions nobody had seen, hanging **5 and 13 days**. So a project that adopts the practice keeps a
+guard ("no unanswered question outside `interviews/`; every interview carries a status") and a
+ritual carrying the **executable command that shows violations** — a tool counts as ADOPTED only
+when a ritual runs it. Expect ~10 false hits per real one from any text-rule guard; exceptions are
+explicit, with the reason written on the line.
+
+The optional interactive contour on top — an interview rendered as a local HTML page with one-click
+decisions recorded back into the md — is **`/owner-reviews`**. It is sugar, never a duty: an
+answer's force NEVER depends on its transport. **HTML = md = chat**, all three are the owner's word,
+and whichever arrives is recorded into the md document with `by` (who decided) and `at` (when) —
+that pair is what makes the archive readable months later.
+
+**The taste class — a criterion the agent cannot measure.** Between measurable criteria (verify by
+observation, `TESTING_FRAMEWORK.md`) and vision forks (`/interview`) lies a third class: the
+acceptance criterion is a PERCEPTION adjective — «красиво», «приятно», «удобно», "feels right",
+"reads well". It is grep-detectable in the ask. There the agent does NOT conclude; it produces a
+**MOCK-UP and files homework**: find the live candidates → mock them QUICKLY on OUR OWN material →
+hand the owner an ARTIFACT to perceive (never a link, never someone else's benchmark — a human
+judging a look needs the look, not a description of it; in the field both suggested demo URLs turned
+out dead) → record his verdict as canon, never re-litigated by the agent. Comparison contract: all
+candidates on ONE and the same material, blind labels, the key stored beside them. Precedent on
+KPOT: `interviews/interview_003_designs.html` is exactly this artifact — the clickable mock-up that
+settled the interface, and the reason the owner's answers there are decisions rather than opinions.
+
 **A BLANKET AUTHORISATION GRANTS EXECUTION, NEVER AUTHORSHIP OF IDENTITY** (added 2026-07-29 after
 `bugs/07`, which is exactly this mistake). When the owner says «на всё даю добро», «не спрашивай»,
 «делай что нужно», he is removing the *confirmation friction* on an action — publish, push, tag,
@@ -535,6 +579,13 @@ too late*. It did not fail from ignorance — it failed because a blanket approv
 covering it. A rule that fires only after the fact is not a gate, which is why this paragraph exists
 next to it rather than as a lesson somewhere else.
 
+**Every shipped name carries a SOURCE artifact** (KAIF 2.1): a line recording *owner · channel ·
+date* beside the name — `codename: owner, chat, 2026-07-29` — exactly the way a research claim
+carries its link. A name without an author must be impossible to miss, and `/fable-judge` hunts a
+shipped name that has none. The corollary bites in the other direction too: **if a shipped name
+turns out wrong, the agent does not rename on its own initiative** — un-naming is a brand decision
+as much as naming was.
+
 **Write-gate on the owner's canon artifacts** (`GOAL.md`, the interview answers, the `MASTER_PLAN.md`
 decision log, the READMEs the owner reads — anything where the owner's word IS the content): **new
 entities** (mechanics, facts, decisions) enter only through a draft to the owner (interview/chat) and
@@ -552,8 +603,25 @@ agent NEVER unmarks its own text. One mechanism buys three things: *trust* (the 
 is theirs vs. generated — proofreading becomes scanning marks, not rereading everything), *rollback*
 (an unaccepted block is safe to remove), and *safety for future agents* (never take unaccepted `[AI]`
 text for the owner's canon). The check is grep-cheap: AI text in a canon artifact without a mark — or a
-mark removed without the owner's word — is a fraud `/fable-judge` hunts. Mark at write time; tooling
-may mechanize the check later, the convention does not depend on it.
+mark removed without the owner's word — is a fraud `/fable-judge` hunts. Mark at write time. **The
+check IS mechanized now** (optional module, shipped with KAIF 2.1): declare the canon in
+`.kaif/kaif.json` (`"canonArtifacts": ["GOAL.md", "interviews/", …]`) and wire
+`node .kaif/tools/kaif-provenance.mjs check` into the gates — it verifies pair integrity and that
+marks appear only inside the declared canon; `report` lists the blocks awaiting acceptance;
+`accept <file>` strips the marks into a registry and carries THE OWNER'S WORD only. Not wired on
+KPOT yet — a candidate for the backlog, not a silent assumption.
+
+**Strictness modes — slow is fine when it is visible.** Name the mode a piece of writing runs under:
+- **draft** — fast, OUTSIDE the owner's canon: research notes, `plans/`, `bugs/`, spikes. No
+  styleguide, no provenance marks, no linter — cheap by design. A draft never silently becomes canon.
+- **canon** — anything entering the owner's artifacts (`GOAL.md`, the READMEs, release notes, the
+  interview answers, the `MASTER_PLAN.md` decision log) walks the full pipeline: approved styleguide
+  (`/derive-styleguide`) → write with provenance marks → linter green → the owner's acceptance.
+
+Model split, worth marking in skills and task items: **mechanical** steps — running linters and
+gates, renames, arithmetic, re-syncs — any model; **judgment** steps — deriving the styleguide,
+canon wording, acceptance calls — a strong model only. Everything machine-checkable is checked by
+CODE; the LLM keeps the judgment.
 
 Task-level ambiguity (which of two deliverables did the human mean *right now*) is NOT an interview:
 per fable-method Step 0, ask exactly **one pointed question** in the chat that states your recommended

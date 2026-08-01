@@ -44,7 +44,9 @@ Until one fires — don't stop, don't wait for confirmations, work.
 3. **Do it**: code → gate (no build step — run `npm test`) → run → test on the harness (`npm test` + `node bin/kpot.mjs <phase>` over `tests/fixtures/`),
    verify objectively. High-level harness commands first; if missing, do it low-level then ADD the command.
    Execute the item by the fable loop (`/fable-method`; `/fable-loop` for substantive items) — its gates
-   and forced artifacts (`INTENT`/`AUTH`/`TWINS`/`PENDING`) apply inside the cycle too.
+   and forced artifacts (`INTENT`/`AUTH`/`TWINS`/`PENDING`) apply inside the cycle too. A HEAVY item
+   with no plan yet → `/plan-epic` first (research → meta-plan), then execute phase by phase; an
+   ordinary one gets a single operational plan (`/plan-task`).
 4. **Judge pass — MANDATORY before "done"**: run `/fable-judge` over the finished item — re-run the
    claimed checks, diff what actually changed against the item's scope. REFUTED → back to work (step 3),
    not to "done"; after 3 failed fix-judge cycles, record it honestly in `STATUS.md`/`bugs/` and take
