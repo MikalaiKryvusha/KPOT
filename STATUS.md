@@ -75,6 +75,13 @@ fresh session must know, because they change how you WORK rather than what the p
   `node tools/review.mjs open interviews/<doc>.md` asks him with one click, records the answer in
   three places, and TERMINATES — that termination is what wakes you. Retelling a question in chat
   after this exists is the rake agents who know the rule still step on.
+  **The page's look is HIS, settled by his own instructions — do not redesign it.** Header:
+  «Спрашивает ИИ-агент KPOT · дата, время» plus two filled pills, `ждут вас` / `отвечено`, with a
+  zero count going QUIET so the eye lands on the number that matters (he runs several projects whose
+  pages look alike by design, so the page must identify itself first). Also his, from the sibling
+  project: a second click clears a chosen option · no «who is answering» field · three beeps
+  880/660/990 and the `eugene` voice · auto-close 2 s in an app window · the state-coloured left
+  stripe on a question card. Each is guarded by a spec; changing one is a question for HIM.
 - **Publishing a release is gated by machine now** (his decision, interview #004 Q1 = B): `/release`
   Step 5.5 puts the notes body up for approval, and `gh release create` is blocked on
   `node tools/review-gate.mjs` exiting 0. Editing the notes after his click voids the approval.
