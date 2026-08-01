@@ -23,6 +23,16 @@ in this chat, capture it in `EXPERIENCE.md` (skill: `/experience`) before the ba
 If the project keeps a **truth↔mirror pairs registry**, run its check commands before passing the
 baton — a handoff over a drifted pair hands the next session a lie.
 
+**Run the owner's-queue check before the baton leaves:**
+
+```bash
+npm run review:guard      # new place-of-questions violations · who waits · STALE statuses
+```
+
+A baton handed over an unanswered question nobody noticed, or over a document whose status lies
+about waiting, is a baton that costs the next session days. Anything waiting → raise it as a page
+(`node tools/review.mjs open <doc>`) before you close, or say plainly in the handoff that it waits.
+
 **The bonsai trim (STATUS is a summary, not a chronicle):** entries that stopped being "now" —
 closed phases, finished sessions, shipped releases — move VERBATIM into `PROJECT_HISTORY.md`
 (newest on top; move, don't rewrite). Then re-read what remains of `STATUS.md` with the two tests

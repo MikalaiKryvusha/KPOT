@@ -44,3 +44,9 @@ KAIF_ADAPTATION_TASK.md
 KAIF_UPDATE_TASK.md
 KAIF_UPDATE_TASK.superseded.md
 .kaif/heartbeat.log
+
+# Rendered owner-review pages (the /owner-reviews contour). HTML is DERIVED from the md documents
+# (contour invariant I1) — it is rebuilt on demand and must never become a second source of truth
+# in git. The DECISIONS (interviews/decisions/) are the opposite: they are the owner's word and ARE
+# versioned. Written before the first page existed, per AGENT_GUIDE §git hygiene.
+/test-results/

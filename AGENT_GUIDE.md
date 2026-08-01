@@ -450,6 +450,10 @@ The project has **no custom tooling yet** — only the KAIF handles the installe
 | `npm test` | The correctness gate (`node --test`). See the harness section above. |
 | `npm run package` | Builds the portable Windows ZIP (phase 6.5): verifies the vendored Node archive against the SHA-256 nodejs.org published, reads the Authenticode signature **on the file that is actually shipping**, stages the tree, audits it against an allow-list, and zips it. Needs `vendor/node-<ver>-win-x64.zip` — gitignored, 35 MB, download it from nodejs.org. |
 | `npm run package:verify` | The acceptance run for that ZIP: unzips into a clean folder and proves the product works there **on its own bundled runtime** (plan → apply → idempotent re-plan → rollback), that `KPOT.cmd` really starts the server, and that nothing of ours came along for the ride. Refuses loudly if no package is built. Sets `KPOT_NO_BROWSER=1`, so it never opens a window on anyone's desktop. |
+| `npm run review:guard` | **The place-of-questions guard** (`tools/questions-guard.mjs`). Two halves: a question queue living OUTSIDE `interviews/` (fails only on NEW violations — inherited debt is snapshotted in `tools/questions-baseline.json` and its count must go down), and inside `interviews/` the waiting list plus the **stale-status** detector (the document still shouts «ЖДЁТ» while the answers are already in it). Run it in `/resume` and `/end-chat`. `--selftest` proves every guard can fire. |
+| `npm run review:list` | Every interview waiting for the owner, with the command to open each. The executable command of the ritual — a tool counts as ADOPTED only when a ritual runs it. |
+| `node tools/review.mjs open <doc.md>` | **The review contour** (skill: `/owner-reviews`): renders the document as a local page, opens it as an app window, calls the owner (three beeps + voice), records his one-click decision into THREE places (the md itself with `by`/`at` · `interviews/decisions/<doc>.decision.json` · an archive copy) and **terminates** — that termination is what wakes the waiting agent. Also `render` (a self-contained offline snapshot), `queue`/`batch` (accumulate for autonomous loops), `--selftest`. |
+| `node tools/review-gate.mjs <doc.md> <artifact-id>` | The fail-closed send gate: refuses unless the owner approved THIS artifact and the body still hashes to what he approved. **Armed but unused** — KPOT sends nothing on the owner's behalf yet. |
 | `npm run kaif:version` | Prints the deployed KAIF version / sphere / language (skill: `/kaif-version`). |
 | `npm run kaif:check` | Checks the origin for a newer KAIF release. |
 | `npm run kaif:update` | Updates the KAIF framework files in place (skill: `/kaif-update`). |
@@ -540,6 +544,16 @@ decisions recorded back into the md — is **`/owner-reviews`**. It is sugar, ne
 answer's force NEVER depends on its transport. **HTML = md = chat**, all three are the owner's word,
 and whichever arrives is recorded into the md document with `by` (who decided) and `at` (when) —
 that pair is what makes the archive readable months later.
+
+**On KPOT the contour is BUILT and the guard is the ritual's executable command** (2026-08-01):
+`npm run review:guard` (both halves) · `npm run review:list` (who waits) ·
+`node tools/review.mjs open interviews/<doc>.md` (ask him with one click). It paid for itself before
+its first page existed: the guard found interviews **#002 and #003** still shouting «❓ ОЖИДАЕТ
+ОТВЕТА ВЛАДЕЛЬЦА» six and three days after he had answered them in chat — a stale status makes the
+next empty-context session wait for what was given long ago. The eighth invariant, which the skill
+does not yet carry: **saving WAKES the waiting agent** — an agent learns of an event when a process
+it started TERMINATES, so any recorded decision closes the contour, and re-opening the page for
+whatever is still unanswered is the AGENT's duty, never the owner's.
 
 **The taste class — a criterion the agent cannot measure.** Between measurable criteria (verify by
 observation, `TESTING_FRAMEWORK.md`) and vision forks (`/interview`) lies a third class: the

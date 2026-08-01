@@ -26,6 +26,19 @@ hole exactly there; owners kept having to re-order the full pass by hand (idea 1
 If relevant to open questions:
 - `bugs/` — `ls bugs/`, open the non-`DONE` bugs
 
+**Then RUN the owner's-queue check — a command, not a glance:**
+
+```bash
+npm run review:guard      # both halves: new place-of-questions violations · who waits · STALE statuses
+```
+
+This is what makes the place-of-questions rule a gate instead of a paragraph. It exists because the
+rule is broken by agents who KNOW it, and because a document whose status still shouts «ЖДЁТ» after
+the owner answered makes the next session wait for what was given days ago — which is exactly what
+it found on this project the day it was written (interviews #002 and #003, six and three days
+stale). Anything waiting → open it as a PAGE (`node tools/review.mjs open <doc>`), never as a
+retelling in chat.
+
 > `PROJECT_HISTORY.md` (the chronicle) is deliberately NOT in this set — it is the project's past,
 > not its now. Open it on demand when you need the archaeology of a decision or an old phase.
 

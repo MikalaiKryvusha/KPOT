@@ -31,6 +31,36 @@ green — scan · dating · dedupe · plan · backup/dry-run/apply/rollback · t
 (wizard + control panel) · the portable Windows ZIP. Release 0.2 «Obvius» is public. The suite is
 the gate (`npm test`), and it has never been red at a commit.
 
+## Session of 2026-08-01 — KAIF 1.6 → 2.1, and the owner-review contour
+
+Two things the owner ordered in one line: «тогда делай обновление KAIF до версии 2.1 из origin.
+потом контур вычитки по опыту NDim проекта». Both done; suite 294 → **300**.
+
+- **KAIF 2.1 «Strong KAIF» is deployed** (bootstrap route, predicted on a sandbox copy that matched
+  the live pass exactly). Owner documents and product code: zero changes. Skills 26 → 34. STATUS
+  1204 → ~470 lines — the chronicle moved verbatim into the new `PROJECT_HISTORY.md`. Full record:
+  `KAIF_FRAMEWORK.md` §Обновление 1.6 → 2.1. **This was a one-time order, not a licence** — his
+  standing «я сам веду обновления КАИф» still holds.
+- **The owner-review contour is BUILT** — `/owner-reviews`, ported from the field-proven NDim
+  implementation on his instruction («точно так же сделать») and to the executable contract in
+  `d:\work\ai_sandbox\ndim\researches\28_owner_reviews_contour_field_report.md`:
+  - `tools/lib/review-core.mjs` — one normalization/hash contract for page and gate, the document
+    parser, decisions written to THREE places, quiet hours, a 45-check self-test;
+  - `tools/review.mjs` — the page (both OS themes, state-coloured stripe, «ждёт вас»/«отвечено»
+    tags, second click clears a choice, embedded audio/images/live mock-ups, auto-close 2 s in an
+    app window), the localhost server, the signal (three beeps 880/660/990 + Silero voice borrowed
+    from KLAS, SAPI fallback), `queue`/`batch` for autonomous loops;
+  - `tools/questions-guard.mjs` — the place-of-questions guard with a **baseline ratchet** (debt 2,
+    must go down) and the **stale-status** detector;
+  - `tools/review-gate.mjs` — the fail-closed send gate. **Armed but unused: KPOT has no outbound
+    routine.** Wiring it into `/release` is a backlog candidate, not a done thing.
+  - **It paid for itself before its first page existed:** the guard found interviews **#002 and
+    #003** still marked «❓ ОЖИДАЕТ ОТВЕТА ВЛАДЕЛЬЦА» six and three days after the owner had
+    answered them in chat. Both statuses corrected.
+  - **Honest gap:** no browser-driven QA run (that would need Playwright — a dependency this project
+    does not have). Covered instead by 6 specs incl. an end-to-end over HTTP; NOT covered by machine:
+    the click mechanics and the two themes as PIXELS. Those await the owner's eyes.
+
 ## Where we are now
 
 **Phases 0–4 are CLOSED and Phase 5 is well under way.** `kpot scan` walks a tree and dates every

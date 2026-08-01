@@ -85,13 +85,26 @@ The default, autonomy-friendly method: the owner answers **right in the md docum
 Sequence:
 - Compose `interviews/interview_NNN_<topic>.md` with questions and "**Answer:**" fields.
 - Write ONE paragraph in the chat: what you found, the forks, and a link to the document.
-- **Optional render step** — if the project has the `/owner-reviews` contour: render the document
-  to its HTML page and open it to the owner, signaling AFTER the page is up (contour invariant I5).
-  No contour → nothing changes; the md document alone is the full-fledged path.
+- **Render and ASK — on KPOT the contour is BUILT, so this step is not optional, it is the default:**
+
+  ```bash
+  node tools/review.mjs open interviews/interview_NNN_<topic>.md
+  ```
+
+  It raises the page as an app window, calls the owner (three beeps + voice — suppressed in quiet
+  hours 23:00–09:00), and **terminates the moment he saves**, which is what wakes you. His answer
+  lands in three places by itself. Flags when you need them: `--no-signal` · `--no-open` ·
+  `--timeout <min>` · `render` for a self-contained offline snapshot.
+
+  🔴 **DO NOT RETELL THE QUESTIONS IN CHAT AFTER BUILDING THIS.** That is the rake agents who KNOW
+  the rule still step on — chat is cheaper in the moment, and the sibling project's agent did it
+  ten minutes after finishing its own contour («ты издеваешься? мы только что сделали инструмент»).
+  The owner's queue opens as a PAGE, not as a paragraph. One chat line pointing at it is enough.
 - **Pause** the work (so the owner is signaled to come and fill in the answers). Don't guess for them and
-  don't proceed blindly on UI/UX/brand/architecture questions. **In an autonomous loop** with the
-  contour present: don't stand at the open page — queue the interview for the "N accumulated" batch
-  page (contour invariant I7) and move to unblocked work.
+  don't proceed blindly on UI/UX/brand/architecture questions. **In an autonomous loop**: never stand
+  at an open page — `node tools/review.mjs queue <doc>` parks it, `batch` raises ONE «накопилось N»
+  page for everything accumulated (invariant I7), and you move to unblocked work. A batch page dies
+  on the first save too; re-raising it for whatever is left is YOUR job, not his (invariant I8).
 
 ### Step 5. After the answers
 - **Answer equivalence:** an answer given on the rendered HTML page = an answer written into the md
