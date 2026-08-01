@@ -31,44 +31,6 @@ green — scan · dating · dedupe · plan · backup/dry-run/apply/rollback · t
 (wizard + control panel) · the portable Windows ZIP. Release 0.2 «Obvius» is public. The suite is
 the gate (`npm test`), and it has never been red at a commit.
 
-## Session of 2026-08-01 — KAIF 1.6 → 2.1, and the owner-review contour
-
-Two things the owner ordered in one line: «тогда делай обновление KAIF до версии 2.1 из origin.
-потом контур вычитки по опыту NDim проекта». Both done; suite 294 → **300**.
-
-- **KAIF 2.1 «Strong KAIF» is deployed** (bootstrap route, predicted on a sandbox copy that matched
-  the live pass exactly). Owner documents and product code: zero changes. Skills 26 → 34. STATUS
-  1204 → ~470 lines — the chronicle moved verbatim into the new `PROJECT_HISTORY.md`. Full record:
-  `KAIF_FRAMEWORK.md` §Обновление 1.6 → 2.1. **This was a one-time order, not a licence** — his
-  standing «я сам веду обновления КАИф» still holds.
-- **The owner-review contour is BUILT** — `/owner-reviews`, ported from the field-proven NDim
-  implementation on his instruction («точно так же сделать») and to the executable contract in
-  `d:\work\ai_sandbox\ndim\researches\28_owner_reviews_contour_field_report.md`:
-  - `tools/lib/review-core.mjs` — one normalization/hash contract for page and gate, the document
-    parser, decisions written to THREE places, quiet hours, a 45-check self-test;
-  - `tools/review.mjs` — the page (both OS themes, state-coloured stripe, «ждёт вас»/«отвечено»
-    tags, second click clears a choice, embedded audio/images/live mock-ups, auto-close 2 s in an
-    app window), the localhost server, the signal (three beeps 880/660/990 + Silero voice borrowed
-    from KLAS, SAPI fallback), `queue`/`batch` for autonomous loops;
-  - `tools/questions-guard.mjs` — the place-of-questions guard with a **baseline ratchet** (debt 2,
-    must go down) and the **stale-status** detector;
-  - `tools/review-gate.mjs` — the fail-closed send gate, **wired into `/release`**: the notes body
-    is an artifact the owner approves on the page, and `gh release create` is blocked on the gate's
-    exit 0. An edit to the notes after his click voids the approval automatically.
-  - **It paid for itself before its first page existed:** the guard found interviews **#002 and
-    #003** still marked «❓ ОЖИДАЕТ ОТВЕТА ВЛАДЕЛЬЦА» six and three days after the owner had
-    answered them in chat. Both statuses corrected.
-  - **The first full cycle passed with ZERO clarifying questions in chat** — the acceptance
-    criterion of `/owner-reviews`. Interview **#004** was opened by the contour, answered by one
-    click per question, recorded in three places with `by`/`at`, and the contour TERMINATED, which
-    is what woke the agent (invariant I8, working in the field on the first try). His answers:
-    Q1 = B (wire the gate into `/release` — done) · Q2 = A (close the place-of-questions debt in
-    place — done, 2 → 0) · Q3 = A (keep the three beeps and the `eugene` voice — unchanged).
-  - **Honest gap:** no browser-driven QA run (that would need Playwright — a dependency this project
-    does not have). Covered instead by 6 specs incl. an end-to-end over HTTP; NOT covered by machine:
-    the click mechanics and the two themes as PIXELS. The owner has now used the page for real, so
-    the click mechanics are field-confirmed; the themes as pixels remain unverified.
-
 ## Where we are now
 
 **Phases 0–4 are CLOSED and Phase 5 is well under way.** `kpot scan` walks a tree and dates every
@@ -90,7 +52,7 @@ under supervision — 813 files, 0 failures, the SHA-256 multiset unchanged, rol
 **Phase 6 — the interface — is COMPLETE** (6.0 … 6.6, 2026-07-29): `kpot ui` opens a guide on a
 messy folder and a dashboard on a library, with three re-launchable runs, guarded folder links, a
 run history with a working undo, the `НОВОЕ` inbox block, a portable package and the plain-language
-pass over everything the program says. Suite **294/294**.
+pass over everything the program says. Suite **300/300** (294 product + 6 for the review contour).
 
 **RELEASE 0.2 «Obvius KPOT» IS PUBLISHED** (2026-07-29, tag `v0.2`) with both artifacts —
 `KPOT-0.2.0-win-x64.zip` (33.2 MB, portable) and `kpot-0.2.0.tgz` (165 KB).
@@ -104,6 +66,20 @@ outrank every item in the backlog below** — see §Where to continue next sessi
 verdict on the old one: «текущий README считаем устаревшим фродом». Ten numbered sections in both
 languages, describing the program as it is rather than how it came to be, with every statement
 checked against the code and against a real end-to-end run.
+
+**The framework is KAIF 2.1 «Strong KAIF» and the OWNER-REVIEW CONTOUR is live** (2026-08-01/02, by
+his direct order — the full record is in `PROJECT_HISTORY.md` and `KAIF_FRAMEWORK.md`). Two things a
+fresh session must know, because they change how you WORK rather than what the product does:
+- **Questions to the owner go through a page, not through chat.** `npm run review:guard` shows
+  violations and stale statuses · `npm run review:list` shows who waits ·
+  `node tools/review.mjs open interviews/<doc>.md` asks him with one click, records the answer in
+  three places, and TERMINATES — that termination is what wakes you. Retelling a question in chat
+  after this exists is the rake agents who know the rule still step on.
+- **Publishing a release is gated by machine now** (his decision, interview #004 Q1 = B): `/release`
+  Step 5.5 puts the notes body up for approval, and `gh release create` is blocked on
+  `node tools/review-gate.mjs` exiting 0. Editing the notes after his click voids the approval.
+- `/pause` is now a SOFT PARK; the heavy closure is `/end-chat`. `PROJECT_HISTORY.md` is the
+  chronicle and is deliberately NOT in `/resume`'s reading set.
 
 | Phase | Status | What's there |
 |-------|--------|--------------|
@@ -245,76 +221,19 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
 
 ---
 
-## ❓ Awaiting human review (interviews / homework)
-
-> Decisions the agent must not make alone (brand/UX/architecture), or actions only the human can do
-> (test on real hardware, external accounts). Filed in `interviews/` and `plans/homework_*.md`.
-
-- ✅ **Interview #001 ANSWERED 2026-07-24** — all five forks decided (pure-JS extraction · five
-  seasons with month boundaries · audio → `<год>/<сезон>/аудио/` · junk → quarantine with provenance ·
-  other files stay + report; custom parent dirs preserved as nesting). Decisions recorded in the
-  `MASTER_PLAN.md` decision log. Season mapping is UNBLOCKED.
-- ✅ Video subdir confirmed in chat 2026-07-24: photos at season root, video → `видео/`, audio →
-  `аудио/` inside each season dir.
-- 🧰 Homework (owner only): provide a *copy* of a small, real, messy sample directory for realism
-  checks — never the original archive, and never committed to the repo.
-- ✅ **Two layout forks ANSWERED 2026-07-26** (in chat): duplicates → `ПРОЧЕЕ/_дубликаты/` with
-  provenance; custom parent dirs → preserve all except technical. Both recorded in the
-  `MASTER_PLAN.md` decision log. Phase 3 is UNBLOCKED and closed.
-- ✅ **Interview #002 ANSWERED 2026-07-26** (in chat) — the backup is a **manifest + hardlink
-  snapshot** (answer Б). Recorded in the `MASTER_PLAN.md` decision log; Phase 4 is closed. The
-  interview document keeps the measurements the decision rests on.
-- ✅ **The interface — FULLY ANSWERED 2026-07-28** (`ideas/02_electron_gui.md`; question 1 was
-  answered 2026-07-26 with «после Фазы 5»). It is a **local Web UI**, not Electron and not Tauri,
-  **plus an installer that puts a desktop shortcut** which starts it and opens the browser. Full
-  scope (scan → plan → apply → rollback), planned **epic → phases → operational plans**. Audience:
-  the owner AND inexperienced PC users, so UI, installer and every printed string must be friendly,
-  foolproof and free of jargon and slang. Needs a `/revision` for an interface phase and an epic
-  document before any code.
-- ✅ **Russian device-folder names — ANSWERED 2026-07-26** by the owner's choice of the "unclear
-  name" criterion: they are neither silently dropped as technical nor silently preserved, but put on
-  the owner's table via the decisions file.
-- ✅ **Empty source folders — ANSWERED 2026-07-26** (in chat): KPOT may delete the folders its sort
-  emptied, provided their paths are in the backup so a rollback recreates them. Implemented; see the
-  decision log and `tests/empty_dirs.test.mjs`.
-- ✅ **"1 January 00:25" EXIF dates — ANSWERED 2026-07-28** (in chat): «сброшенным часам камеры не
-  доверять, если это факт, что они сброшены». Implemented the same session with the owner's condition
-  AS the mechanism: such a date is refused only when the collection itself contradicts it (its year
-  is below the archive's earliest trustworthy capture year); a real New Year photograph of the same
-  shape is untouched. `src/meta/resolve.mjs` rule 5, `tests/meta_reset_clock.test.mjs`, fixture v6.
-- 🔎 **plans/02 is now COMPLETE through step 2, and the result is worth the owner's glance**
-  (2026-07-28): step 1 stripped 199 of 201 false years; step 2 then searched for those photos'
-  originals by their pixels and found **one** — because the others are not in the archive (their best
-  candidates are 182–376 apart of 1024, where a true pair is 4–89). So the 83 «фоты на альб» pictures
-  will stay in `ПРОЧЕЕ` with a ceiling, and that is the honest answer, not a gap to close. Step 3
-  (PRNU) remains unstarted and unauthorised — it names a camera, not a photograph.
-- ✅ **Idea 01 ANSWERED 2026-07-28** — `ideas/01_inbox_topup_flow.md`: the inbox lives **inside the
-  library root**, its default name is **`НОВОЕ`**, and a processed inbox folder is deleted once it is
-  empty and done. The fourth fork (how far one click goes unattended) dissolved into the UI decision:
-  the shortcut opens the Web UI, so the confirmation is a button. NOT yet implemented — it belongs
-  with the interface epic, after Phase 5.
-- ✅ **Logo source PNGs — SETTLED** (this entry was stale; corrected 2026-07-28). Both design
-  sources and `KPOT.jpg` live in `assets/` and are tracked (commit `581ca6b`). Nothing is awaiting
-  a decision here.
-- ✅ **THM placement — ANSWERED 2026-07-28** (in chat): «В мусорный карантин». A `.thm` is camera
-  litter like `Thumbs.db`, so it is kind `junk` → `ПРОЧЕЕ/_мусор` with provenance, never in the
-  library, deleted never. Implemented the same session; it keeps dating its video twin. Verified on
-  real data: 34 thumbnails now carry no verdict, and 25/25 videos stay `dated` by `sidecar`.
-  Recorded in the `MASTER_PLAN.md` decision log.
-- ✅ **plans/02 step 2 (pixels) — AUTHORISED by the owner 2026-07-28** (in chat, answering the
-  resume question): «Да, ищи оригинал по пикселям». This REVERSES the standing «пиксели не надо»
-  for step 2 only. It unblocks perceptual-hash search for the actual original (`plans/02` §Шаг 2),
-  including the one small pure-JS decode dependency that step names (`jpeg-js`, MIT, no native
-  build) — a decision-log row, not a new interview. Step 3 (PRNU) stays unstarted and unauthorised.
-
----
-
 ## Where to continue next session
 
 > A concrete checklist so the next session (empty context) can start immediately: which files, which
 > commands, what to verify first.
 
-1. Verify the environment: `node -v` (≥20), `npm test` (**must be 294/294**), `git status` (clean),
+0. **FIRST, before anything else — run the owner's-queue check.** It is one command and it is what
+   makes the place-of-questions rule a gate rather than a paragraph:
+   ```
+   npm run review:guard     # new violations · who waits · STALE statuses · the debt number
+   ```
+   Anything waiting → open it as a PAGE (`node tools/review.mjs open interviews/<doc>.md`), never
+   as a retelling in chat. As of 2026-08-02: **0 waiting · 0 new violations · debt 0**.
+1. Verify the environment: `node -v` (≥20), `npm test` (**must be 300/300**), `git status` (clean),
    `gh auth status` (MikalaiKryvusha). Owner-provided paths from this file are PAST observations —
    re-check they still exist before planning around them (EXP-0011: a sample vanished once already).
 2. **Run the whole product once, end to end, before designing on top of it.** It all works now:

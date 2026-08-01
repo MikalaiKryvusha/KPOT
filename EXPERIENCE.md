@@ -47,6 +47,33 @@
 
 ## Entries
 
+### EXP-0030 · 2026-08-01 · ❌→✅ · #js #template-strings #syntax #html-generation
+**Context:** generating an HTML page from a JS template literal (`tools/review.mjs`), with an inline `<script>` whose comments explain the click mechanics.
+**Tried / did:** wrote a normal code comment inside that script: `// The \`by\` field itself did not go anywhere`.
+**Result:** ❌ `SyntaxError: Unexpected identifier 'by'` — the module would not even load. A backtick inside a template literal ENDS the string, no matter that it sits in what looks like a comment: the comment is not a comment yet, it is string content. The neighbouring project's field report warns about exactly this and I did it anyway, one hour after reading the warning. ✅ Fixed by using guillemets («») in every comment inside the template.
+**Lesson:** **Inside a template literal there are no comments — only text.** A backtick, a `${`, or an unescaped brace in "comment" text is live syntax. When a file builds HTML/SQL/markup from a template string, ban backticks from its whole body and use «» or '' instead. The failure is loud here, which is lucky; the same class in a shell double-quoted string is SILENT and eats text (EXP-0027 face 2).
+**Repro:** `node --check` a file containing ``const s = `x // \`y\` z`;`` → syntax error. Guard: `node --check <file>` after every edit to a template-literal-heavy module; it costs milliseconds and catches this class completely.
+**Trigger:** writing or editing a module that builds markup from a template literal → run `node --check` before running anything else, and grep the template body for backticks.
+**Not for:** ordinary modules with no template literals — there a backtick in a comment is harmless.   → link: `tools/review.mjs` · ndim `researches/28` §15
+
+### EXP-0029 · 2026-08-01 · ✅ · #kaif #migration #prediction #sandbox #framework
+**Context:** updating the deployed framework KAIF 1.6 → 2.1 on the owner's order — two versions at once, on a manifest the new machinery calls legacy.
+**Tried / did:** did NOT run the update on the live tree first. Exported the repo (`git archive HEAD --format=zip` → `Expand-Archive` → `git init` → baseline commit) into a scratch dir and ran the REAL bootstrap there, then read its diff.
+**Result:** ✅ The sandbox pass equalled the live pass exactly — same counters (18/24/13/31/6), identical changed-file set. And it earned its cost before the live run: it showed that applying the new templates wholesale would DELETE four pieces of this project's canon (the prior-art 9a rule, the blanket-authorisation block from `bugs/07`, `/release` Step 0, the "no build step" adaptation), so the hand-merges were planned instead of discovered.
+**Lesson:** **For a migration you cannot dry-run, the sandbox copy IS the dry run** — not a model of the pass but the pass itself, on a throwaway tree. A minute and a few MB buy a byte-accurate preview plus the list of places where the upstream template would overwrite local canon. Do this on any FIRST update, any multi-version jump, and any deployment with heavy local edits. Windows note: use `git archive --format=zip` + PowerShell, not `git archive | tar` — GNU tar reads `D:\…` as a remote host (EXP-0027 face 4).
+**Repro:** `git archive HEAD --format=zip -o <tmp>.zip` · `Expand-Archive` · `git -C <dir> init && git add -A && git commit -m baseline` · run the migration there · `git -C <dir> diff --cached --stat`. Compare the receipt's counters with the live run afterwards; they must match.
+**Trigger:** about to run a framework/dependency migration on the live tree → build the sandbox copy and run it there first.
+**Not for:** migrations that are already reversible by one command and touch nothing hand-edited — the ceremony would outweigh the work.   → link: `KAIF_FRAMEWORK.md` §Обновление 1.6 → 2.1 · ndim `ideas/ai_agents_reports/23`
+
+### EXP-0028 · 2026-08-01 · ❌→✅ · #rendering #links #live-data #fixtures #silent-failure
+**Context:** the owner-review contour embeds a document's linked assets (mock-ups, images, sound) into the page so it opens offline as one file. Fixtures were green.
+**Tried / did:** resolved link paths from the PROJECT ROOT and matched links with a pattern that assumed a plain-text label.
+**Result:** ❌ Both wrong on the very first real document. A path in a document is relative to **the document's folder** (`interviews/interview_003_interface.md` links `interview_003_designs.html` beside itself), and a real label is markup — the owner writes ``[`file.html`](file.html)``, which renders as `<a …><code>…</code></a>`. The 81 KB mock-up was silently NOT embedded: a 48 KB page instead of 146 KB, no error anywhere, and the owner would simply have found the mock-up missing. ✅ Fixed by resolving beside-the-document first and by matching labels that contain markup.
+**Lesson:** **A fixture is written clean; a live document is not** — and the defects that only live data produces are the SILENT ones. Two habits close the class: resolve a document's relative links against the DOCUMENT, never the root; and never assume a link's label is plain text. Above all, assert the RESULT is present (the embed exists), not that the render did not throw — «it rendered» goes green while content quietly disappears.
+**Repro:** `node --test tests/review_contour.test.mjs` — the spec «every local asset a live interview links is EMBEDDED» counts embeds over ALL live documents. Break it by resolving only from ROOT and it goes red naming the exact file (verified by mutation 2026-08-01).
+**Trigger:** writing anything that renders or copies documents with links → run it over EVERY live document, not a fixture, and assert the embedded result by COUNT.
+**Not for:** absolute URLs and links the renderer deliberately leaves alone.   → link: `tools/review.mjs` · `tests/review_contour.test.mjs`
+
 ### EXP-0027 · 2026-07-29 · ❌→✅ · #windows #encoding #shell #tooling #data-loss
 **Context:** editing Russian-language canon documents (MASTER_PLAN decision log, KAIF scope docs) from Git Bash on Windows, using `python -c` and shell one-liners to insert prepared text.
 **Tried / did:** passed the content as a command-line ARGUMENT. Four distinct failures in one session, and the owner's reaction is why this entry exists: «вот это меня бесит. Все мои проекты на это напарываются постоянно и повторяют эти ошибки из раза в раз.»
