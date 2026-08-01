@@ -107,15 +107,70 @@ downloads.)
 Commit the README/docs updates so the `release: X.Y` commit is a clean version bump: run
 `git add -A && git commit -m "<msg>" && git push` with `<msg>` = `docs: README for release X.Y`.
 
-## Step 6. Publish (after the human's confirmation)
+## Step 5.5. The owner APPROVES the notes on a page — and the gate makes it mechanical
+
+> Owner's decision, interview #004 Q1 = **B** (2026-08-01): the release-notes body becomes an
+> artifact he approves, so his "yes" stops being a sentence in the chat and becomes **a record
+> bound to the bytes**. Publishing without that record is now impossible by machine, not by
+> discipline.
+
+1. Write the notes to a file and declare them as an approvable artifact:
+
+   ```bash
+   mkdir -p test-results/release
+   # …write the notes body to test-results/release/notes-vX.Y.md…
+   ```
+
+   Create `interviews/release_vX.Y.md` — one document per release, so its decision and archive
+   names derive correctly and no later release overwrites this one's record:
+
+   ````markdown
+   ```yaml
+   title: Релиз KPOT X.Y — тело нот на одобрение
+   kind: outbound
+   artifacts:
+     - {id: notes, target: "GitHub Releases · MikalaiKryvusha/KPOT", format: markdown, body_file: test-results/release/notes-vX.Y.md}
+   ```
+
+   # Релиз KPOT X.Y — что уходит в мир
+   ````
+
+   **The body goes in BY REFERENCE, never pasted** — the page shows exactly the bytes that will be
+   published and hashes those same bytes. A pasted copy is a second truth and voids the binding.
+
+2. Ask him with one click — and do NOT retell the notes in chat:
+
+   ```bash
+   node tools/review.mjs open interviews/release_vX.Y.md
+   ```
+
+   He gets the industrial four (Одобрить / Отклонить / Поправить / Ответить) over the full payload.
+   The contour records his decision in three places and terminates, which is what wakes you.
+
+3. **The gate, fail-closed — run it and READ the exit code:**
+
+   ```bash
+   node tools/review-gate.mjs interviews/release_vX.Y.md notes   # exit 0 = may publish
+   ```
+
+   It refuses when there is no decision, when the status is not `approved`, when the artifact was
+   never declared, when the body file vanished, or when **the text drifted after approval** — an
+   edit to the notes after his click voids the approval, by design. Any doubt is a refusal, and a
+   request never approves itself by timeout. **A non-zero exit BLOCKS Step 6.** Do not "just
+   publish anyway": that is the exact failure this step exists to prevent, and `bugs/07` is what it
+   costs.
+
+## Step 6. Publish (after the human's confirmation AND a green gate)
 
 `<Run your release flow. If you have a release tool (e.g. tools/release.mjs that bumps the version,
 builds, renames the artifact, commits "release: X.Y", tags vX.Y, pushes, and runs gh release create),
 run it. Otherwise, do it explicitly:>`
 ```bash
+# The gate is a PRECONDITION, not a formality — publish only on its exit 0:
+node tools/review-gate.mjs interviews/release_vX.Y.md notes || exit 1
 # bump version (in version.json or your manifest), then:
 git commit -am "release: X.Y" && git tag vX.Y && git push && git push --tags
-gh release create vX.Y --title "<PROJECT> X.Y — <Codename>" --notes-file <NOTES.md> <ARTIFACT(S) if any>
+gh release create vX.Y --title "KPOT X.Y — <Codename>" --notes-file test-results/release/notes-vX.Y.md <ARTIFACT(S) if any>
 ```
 
 > 📛 **Release title — FIXED FORMAT (CANON):** `<PROJECT> X.Y — <Codename>` — the project name, the

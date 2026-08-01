@@ -52,14 +52,22 @@ Two things the owner ordered in one line: «тогда делай обновле
     from KLAS, SAPI fallback), `queue`/`batch` for autonomous loops;
   - `tools/questions-guard.mjs` — the place-of-questions guard with a **baseline ratchet** (debt 2,
     must go down) and the **stale-status** detector;
-  - `tools/review-gate.mjs` — the fail-closed send gate. **Armed but unused: KPOT has no outbound
-    routine.** Wiring it into `/release` is a backlog candidate, not a done thing.
+  - `tools/review-gate.mjs` — the fail-closed send gate, **wired into `/release`**: the notes body
+    is an artifact the owner approves on the page, and `gh release create` is blocked on the gate's
+    exit 0. An edit to the notes after his click voids the approval automatically.
   - **It paid for itself before its first page existed:** the guard found interviews **#002 and
     #003** still marked «❓ ОЖИДАЕТ ОТВЕТА ВЛАДЕЛЬЦА» six and three days after the owner had
     answered them in chat. Both statuses corrected.
+  - **The first full cycle passed with ZERO clarifying questions in chat** — the acceptance
+    criterion of `/owner-reviews`. Interview **#004** was opened by the contour, answered by one
+    click per question, recorded in three places with `by`/`at`, and the contour TERMINATED, which
+    is what woke the agent (invariant I8, working in the field on the first try). His answers:
+    Q1 = B (wire the gate into `/release` — done) · Q2 = A (close the place-of-questions debt in
+    place — done, 2 → 0) · Q3 = A (keep the three beeps and the `eugene` voice — unchanged).
   - **Honest gap:** no browser-driven QA run (that would need Playwright — a dependency this project
     does not have). Covered instead by 6 specs incl. an end-to-end over HTTP; NOT covered by machine:
-    the click mechanics and the two themes as PIXELS. Those await the owner's eyes.
+    the click mechanics and the two themes as PIXELS. The owner has now used the page for real, so
+    the click mechanics are field-confirmed; the themes as pixels remain unverified.
 
 ## Where we are now
 

@@ -12,14 +12,18 @@
  * page, the gate and the sender — the rules' most expensive rake was two hash implementations
  * drifting apart with both self-tests green.
  *
- * ⚠️ HONEST SCOPE — READ THIS BEFORE TRUSTING THE GATE. **KPOT has no outbound-send routine today.**
- * It sends nothing on the owner's behalf: no messages, no tickets, no posts. So this gate is ARMED
- * BUT UNUSED, and the field report is blunt that a gate with no real consumer is decoration. It is
- * shipped anyway because the machinery is already written and tested inside the core, and because
- * the one genuinely irreversible external act this project does have — publishing a GitHub release
- * — is a natural first consumer. Wiring it into `/release` is a BACKLOG item, not something this
- * tool may claim. Until that happens, treat a green gate as «the mechanism works», never as
- * «something was sent safely».
+ * ITS REAL CONSUMER: **`/release`**. The owner chose that himself — interview #004, Q1 = **B**
+ * (2026-08-01): the release-notes body is declared as an artifact in `interviews/release_vX.Y.md`,
+ * he approves it with one click on the contour's page, and `/release` Step 6 refuses to run
+ * `gh release create` unless this gate exits 0. His "yes" stopped being a sentence in the chat and
+ * became a record bound to the bytes — and an edit to the notes after his click voids the approval
+ * automatically. That mattered here: `bugs/07` is a release that shipped under a name he first saw
+ * as a fait accompli.
+ *
+ * ⚠️ Honest scope: publishing a release is the ONLY route wired to this gate, because it is the only
+ * irreversible outward act KPOT performs — it sends no messages, files no tickets, posts nothing on
+ * the owner's behalf. A green gate means «this artifact is approved and unchanged», never «the
+ * project sends things safely in general».
  *
  * Usage:
  *   node tools/review-gate.mjs <document.md> <artifact-id>     exit 0 = may send, 1 = refused
