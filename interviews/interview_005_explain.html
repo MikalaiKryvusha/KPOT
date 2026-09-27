@@ -1,0 +1,154 @@
+<!doctype html>
+<!-- KAIF EXPLANATION PAGE (2.8) for interview #005 — built from .kaif/_explain-page-template.html. Self-contained: no request leaves the machine.
+     Every number on this page comes from researches/10_google_photos_optimizer_prior_art.md (sources opened 2026-09-27) or from a measurement
+     on this machine; nothing is invented. The four-line scenario is the caption under each picture. -->
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KPOT · Оптимизатор Google Фото — картинки к интервью #005</title>
+<style>
+  :root { --bg:#16171b; --card:#202127; --ink:#ececf0; --muted:#a0a0a8; --line:#3a3a42;
+    --none:#22c55e; --improve:#f59e0b; --bug:#f87171; --accent:#60a5fa; --user:#c084fc; }
+  @media (prefers-color-scheme: light) {
+    :root { --bg:#f7f7f5; --card:#ffffff; --ink:#1d1d1f; --muted:#6b6b70; --line:#d9d9de;
+      --none:#16a34a; --improve:#d97706; --bug:#dc2626; --accent:#2563eb; --user:#9333ea; } }
+  * { box-sizing:border-box }
+  html { zoom:1.4 }
+  body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.55 system-ui, "Segoe UI", sans-serif }
+  header { padding:14px 20px; border-bottom:1px solid var(--line); background:var(--card) }
+  header strong { color:var(--accent) } header .sum { color:var(--muted); margin-left:8px }
+  main { max-width:980px; margin:0 auto; padding:16px 20px 48px }
+  section.q { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px 18px; margin:18px 0 }
+  h2 { font-size:18px; margin:4px 0 12px }
+  .tag { font-size:12px; font-weight:600; padding:2px 8px; border-radius:999px; vertical-align:middle; color:#0b1020; background:var(--improve) }
+  h3 { font-size:13px; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); margin:16px 0 8px }
+  .pair { display:grid; grid-template-columns:1fr 1fr; gap:12px }
+  .pair figure { margin:0; border:1px solid var(--line); border-radius:10px; padding:10px 12px; text-align:left }
+  .pair figcaption { font-size:13px; color:var(--muted); margin-top:6px; text-align:center }
+  .pair ul { margin:6px 0 0; padding-left:18px } .pair li { margin:2px 0 }
+  .good { color:var(--none); font-weight:600 } .bad { color:var(--bug); font-weight:600 } .warn { color:var(--improve); font-weight:600 }
+  svg.timeline { width:100%; height:auto; display:block }
+  svg.timeline text { fill:var(--ink); font:12px system-ui, sans-serif } svg.timeline .muted { fill:var(--muted) }
+  .tree .root { border:1px solid var(--line); border-radius:10px; padding:8px 12px; margin:0 auto 10px; max-width:560px; text-align:center }
+  .tree .leaves { display:grid; grid-template-columns:repeat(auto-fit, minmax(230px, 1fr)); gap:10px }
+  .leaf { border:1px solid var(--line); border-left:6px solid var(--muted); border-radius:10px; padding:8px 12px; font-size:14px }
+  .leaf.none { border-left-color:var(--none) } .leaf.improve { border-left-color:var(--improve) } .leaf.bug { border-left-color:var(--bug) }
+  .leaf b { display:block; margin-bottom:4px } .leaf .side { color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.06em }
+  dl.scenario { display:grid; grid-template-columns:max-content 1fr; gap:4px 12px; margin:14px 0 0; padding-top:10px; border-top:1px solid var(--line); font-size:14px }
+  dl.scenario dt { color:var(--muted) } dl.scenario dd { margin:0 }
+  @media (max-width:896px) { .pair { grid-template-columns:1fr } }
+</style>
+</head>
+<body>
+<header><strong>KPOT</strong> · Оптимизатор Google Фото <span class="sum">— три картинки к интервью #005: судьба оригинала, способ работы с Google, правила сжатия видео</span></header>
+<main>
+
+<section class="q">
+  <h2>К вопросу 1. Жизнь одного тяжёлого видео — где в каждый момент живёт оригинал <span class="tag">решаете вы</span></h2>
+
+  <h3>Лента времени: вариант A (рекомендую) сверху, вариант B снизу</h3>
+  <svg class="timeline" viewBox="0 0 900 250" role="img" aria-label="лента времени">
+    <text x="30" y="22" style="font-weight:600">A — оригинал сначала ложится на ваш диск</text>
+    <line x1="30" y1="70" x2="870" y2="70" stroke="currentColor" stroke-opacity=".35" stroke-width="2"/>
+    <circle cx="70" cy="70" r="7" style="fill:var(--accent)"/><text x="70" y="50" text-anchor="middle">скачал оригинал</text>
+    <circle cx="190" cy="70" r="7" style="fill:var(--none)"/><text x="190" y="50" text-anchor="middle">положил в библиотеку</text><text class="muted" x="190" y="96" text-anchor="middle">год/сезон/видео</text>
+    <circle cx="320" cy="70" r="7" style="fill:var(--accent)"/><text x="320" y="50" text-anchor="middle">сжал и проверил</text>
+    <circle cx="440" cy="70" r="7" style="fill:var(--accent)"/><text x="440" y="50" text-anchor="middle">загрузил копию</text>
+    <circle cx="560" cy="70" r="9" style="fill:var(--user)"/><text x="560" y="50" text-anchor="middle" style="fill:var(--user)">оригинал → корзина</text>
+    <rect x="570" y="62" width="250" height="16" rx="8" style="fill:var(--improve)" fill-opacity=".35"/><text x="695" y="50" text-anchor="middle">корзина Google, 30 дней</text>
+    <circle cx="840" cy="70" r="7" style="fill:var(--none)"/><text x="840" y="96" text-anchor="middle" class="good">оригинал цел на диске</text>
+    <rect x="190" y="104" width="650" height="6" rx="3" style="fill:var(--none)" fill-opacity=".6"/>
+    <text class="muted" x="515" y="124" text-anchor="middle">зелёная полоса — оригинал есть на вашем диске: навсегда</text>
+
+    <text x="30" y="160" style="font-weight:600">B — оригинал только в корзине Google</text>
+    <line x1="30" y1="205" x2="870" y2="205" stroke="currentColor" stroke-opacity=".35" stroke-width="2"/>
+    <circle cx="70" cy="205" r="7" style="fill:var(--accent)"/><text x="70" y="185" text-anchor="middle">скачал оригинал</text>
+    <circle cx="320" cy="205" r="7" style="fill:var(--accent)"/><text x="320" y="185" text-anchor="middle">сжал и проверил</text>
+    <circle cx="440" cy="205" r="7" style="fill:var(--accent)"/><text x="440" y="185" text-anchor="middle">загрузил копию</text>
+    <circle cx="560" cy="205" r="9" style="fill:var(--user)"/><text x="560" y="185" text-anchor="middle" style="fill:var(--user)">оригинал → корзина</text>
+    <rect x="570" y="197" width="250" height="16" rx="8" style="fill:var(--improve)" fill-opacity=".35"/><text x="695" y="185" text-anchor="middle">корзина Google, 30 дней</text>
+    <circle cx="840" cy="205" r="7" style="fill:var(--bug)"/><text x="840" y="231" text-anchor="middle" class="bad">оригинала больше нет нигде</text>
+  </svg>
+
+  <dl class="scenario">
+    <dt>Ситуация</dt><dd>В облаке ролик в старом кодеке; KPOT его сжал, копия загружена и проверена.</dd>
+    <dt>Действие</dt><dd>KPOT убирает тяжёлый оригинал из Google Фото.</dd>
+    <dt>Результат</dt><dd>A: через месяц оригинал по-прежнему лежит у вас на диске в своём году и сезоне. B: через 30 дней корзина Google его стирает — и оригинала нет нигде.</dd>
+    <dt>Проверка</dt><dd>Срок корзины — 30 дней (Google изменил с 60 на 30 с 2026-09-04; researches/10 §2c). Откат KPOT на облако не распространяется — только на ваш диск.</dd>
+  </dl>
+</section>
+
+<section class="q">
+  <h2>К вопросу 3. Три способа работать с Google — что делаете вы, что делает KPOT, чем рискуем <span class="tag">решаете вы</span></h2>
+
+  <h3>Дерево исходов</h3>
+  <div class="tree">
+    <div class="root">Факты: официальный доступ Google с 31 марта 2025 не видит вашу библиотеку целиком и не умеет удалять; оригиналы отдают только веб-страница Google Фото и выгрузка Google Takeout</div>
+    <div class="leaves">
+      <div class="leaf improve"><b>A) Робот в отдельном окне, удаление — вашим кликом (рекомендую)</b>
+        <span class="side">вы</span> один раз входите в Google в отдельном окне KPOT; подтверждаете удаление пачками<br>
+        <span class="side">KPOT</span> сам находит тяжёлое, скачивает, сжимает, загружает, проверяет; идёт в человеческом темпе<br>
+        <span class="side">риск</span> формально против правил Google (страницы фото закрыты для автоматики); риск для аккаунта сначала меряем на тестовом</div>
+      <div class="leaf none"><b>B) Без робота: выгрузка Google Takeout + ручные шаги</b>
+        <span class="side">вы</span> заказываете выгрузку в Google; загружаете папку копий; удаляете оригиналы сами по списку KPOT<br>
+        <span class="side">KPOT</span> берёт оригиналы из выгрузки, сжимает, готовит папку и список<br>
+        <span class="side">риск</span> для аккаунта — нет; но тысячи ручных удалений на большой библиотеке</div>
+      <div class="leaf bug"><b>C) Полностью сам, как в идее</b>
+        <span class="side">вы</span> входите один раз и ждёте<br>
+        <span class="side">KPOT</span> делает всё, включая удаление, без подтверждений<br>
+        <span class="side">риск</span> тот же, что у A, плюс ошибка робота удаляет без вашего взгляда</div>
+    </div>
+  </div>
+
+  <dl class="scenario">
+    <dt>Ситуация</dt><dd>Вы хотите облегчить облако; у Google нет официальной двери для удаления чужими программами.</dd>
+    <dt>Действие</dt><dd>Вы выбираете один из трёх способов.</dd>
+    <dt>Результат</dt><dd>A — почти без ручной работы, с вашим «да» на каждую пачку удалений; B — ноль риска, много ручной работы; C — ноль работы, наибольший риск.</dd>
+    <dt>Проверка</dt><dd>researches/10 §2a (условия Google и robots.txt, блокировка входа из автоматизированных браузеров), §4 (сравнение путей), §5 №1 (блокировка аккаунта у пользователя другого инструмента).</dd>
+  </dl>
+</section>
+
+<section class="q">
+  <h2>К вопросу 5. Ваши правила сжатия видео и практика индустрии — на двух настоящих примерах <span class="tag">решаете вы</span></h2>
+
+  <h3>Сравнение</h3>
+  <div class="pair">
+    <figure>
+      <b>Правила как в идее</b>
+      <ul>
+        <li>выше 20 Мбит/с → 20; 5–20 → минус 20 %; ниже 5 → не трогать</li>
+        <li>выше 30 кадров/с → 30</li>
+        <li>звук → пережать в AAC</li>
+      </ul>
+      <p>Ролик 60 кадров/с в старом кодеке H.264 → станет <span class="bad">30 кадров/с</span>: движение вдвое менее плавное.<br>
+      Замедленная съёмка 240 кадров/с старого iPhone (H.264) → <span class="bad">замедление пропадает</span>.<br>
+      Звук пережат второй раз → <span class="warn">потеря без выигрыша</span> (звук весит мало).</p>
+      <figcaption>размер предсказуем, качество — нет</figcaption>
+    </figure>
+    <figure>
+      <b>Качество по замеру (рекомендую)</b>
+      <ul>
+        <li>сжатие подбирается так, чтобы замер качества показал «на глаз не отличить»</li>
+        <li>частота кадров и разрешение — как в исходнике</li>
+        <li>звук копируется как есть</li>
+        <li>ваш потолок 20 Мбит/с остаётся потолком</li>
+      </ul>
+      <p>Ролик 60 кадров/с в H.264 → <span class="good">остаётся 60</span>, но легчает за счёт H.265.<br>
+      Замедленная съёмка → <span class="good">не трогается</span> (в списке исключений).<br>
+      Звук → <span class="good">без изменений</span>.</p>
+      <figcaption>качество гарантировано замером, размер — сколько получится</figcaption>
+    </figure>
+  </div>
+
+  <dl class="scenario">
+    <dt>Ситуация</dt><dd>В облаке ролик 60 кадров/с в старом кодеке H.264 — под ваше правило «не H.265 → сжимать» он попадает.</dd>
+    <dt>Действие</dt><dd>KPOT применяет правила.</dd>
+    <dt>Результат</dt><dd>Слева — ролик становится 30-кадровым; справа — остаётся как был по плавности и цвету.</dd>
+    <dt>Проверка</dt><dd>researches/10 §2f: HandBrake — «всегда постоянное качество»; замер VMAF (стандарт Netflix); «-r» в ffmpeg выбрасывает кадры; замедленная съёмка 240 кадров/с (Apple Community, 2014); iPhone пишет HEVC с iOS 11 (2017), раньше — H.264. Ролики, уже записанные в H.265 (современные iPhone), по вашему же правилу не трогаются.</dd>
+  </dl>
+</section>
+
+</main>
+</body>
+</html>

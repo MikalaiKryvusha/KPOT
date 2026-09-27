@@ -159,9 +159,21 @@ optimizer epic once the owner has answered its interview (see «Where to continu
    the copy on 2026-07-28). Undo it with
    `node bin/kpot.mjs rollback run-20260728-201538-437c4d D:\work\ai_sandbox\KPOT_SANDBOX`.
    Do not delete it without his word, and never copy more of his photographs without a fresh one.
-3. ⭐ **THE PRODUCT IS OUT WITH FRIENDS FOR TESTING — THEIR REPORTS COME FIRST.** On 2026-07-30 the
-   owner wrote «отправил на тесты друзьям». Until his feedback arrives, **do not start a new
-   feature.** Ask him what came back, and be ready to act on it.
+3. ⭐ **THE ACTIVE EPIC — the Google Photos optimizer** (`plans/10_EPIC_google_photos_optimizer.md`,
+   the owner's `ideas/03`, started by his order of 2026-09-27: «Берем в эпик планирование и проработку …
+   Устаканиваем Требования к Гугл Оптимизатору внутри KPOT»). Rung 1 is done —
+   `researches/10_google_photos_optimizer_prior_art.md` (industry sweep + local recon + requirements; the
+   headline: the official API cannot list or delete, web automation conflicts with Google's terms and risks
+   the whole account, the 30-day trash, what a re-upload loses, several of his video rules need rework).
+   **Waiting: interview #005** (10 questions, the requirements) — shown on 2026-09-27 with its picture page
+   `interviews/interview_005_explain.html`. **Next:** apply every answer into §3/§2 of the epic with
+   «interview #005, QN», mark each with `--mark-implemented`, then write the operational plan of Phase 1
+   (test-account recon + encoder calibration) as `plans/11_epic10_phase1_<name>.md` and start it. Nothing
+   touches the owner's Google account before Phase 1's numbers are shown to him.
+4. **THE PRODUCT IS OUT WITH FRIENDS FOR TESTING — THEIR REPORTS COME FIRST WHEN THEY ARRIVE.** On
+   2026-07-30 the owner wrote «отправил на тесты друзьям»; nothing has come back as of 2026-09-27. His
+   order of 2026-09-27 started the optimizer epic, which supersedes the old «do not start a new feature»;
+   a friend's report still outranks the epic the day it lands. Ask him what came back.
 
    **Why this outranks everything below.** Every defect this project has ever found that mattered
    came from contact with reality, not from the suite: `bugs/01`–`04` from the first real run,
@@ -203,14 +215,14 @@ optimizer epic once the owner has answered its interview (see «Where to continu
 5. **Writing to the owner's REAL archive still needs a fresh `AUTH:`** — the standing grant is
    READ-ONLY, and it is the archive, not a copy. Everything measured this session was read-only.
 5b. **Do NOT propose or perform a KAIF update** — the owner runs framework updates himself
-   («я сам веду обновления КАИф», 2026-07-28). A newer KAIF release existing is not a task, not a
+   («я сам веду обновления КАИф», 2026-07-28); the 2.8 update of 2026-09-27 was his direct order. A newer KAIF release existing is not a task, not a
    backlog item and not a `/what-next` candidate. Related: `plans/01_kaif_16_update_report.md` is a
    FINISHED report addressed to the KAIF framework's own agent, not open work — `/check-backlog`
    should stop counting it as an open item.
-6. **No owner question is open.** Every fork raised so far has been answered: ideas 01 and 02, the
-   reset-clock policy, the pixel authorisation, the sandbox. What is waiting is his *review*, not a
-   decision: the sorted sandbox, and the plans/02 result (95 editor exports → 1 dated by pixels
-   because the other originals are not in the archive; in the sandbox, where they are, 4 of 4).
+6. **One owner question set is open: interview #005** (the optimizer's requirements, item 3). Every
+   earlier fork is answered. Also waiting for his *review*, not a decision: the sorted sandbox, and the
+   plans/02 result (95 editor exports → 1 dated by pixels because the other originals are not in the
+   archive; in the sandbox, where they are, 4 of 4).
 7. Decisions are all in `MASTER_PLAN.md` §Decision log — re-read before designing; do not re-ask the
    owner what is already settled there.
 8. Before writing any new guard, re-read `EXPERIENCE.md` EXP-0008 (a guard that passes for the wrong
@@ -221,6 +233,10 @@ optimizer epic once the owner has answered its interview (see «Where to continu
 
 ## Open bugs
 
-**None open.** Closed so far:
+- `bugs/09_owner_review_contour_silent_answer_loss.md` — 🔬 news from a sibling project: a review page can
+  silently lose the owner's answers. **For interviews the risk is closed by switching to the shipped
+  contour** (KAIF 2.8: answers saved one at a time, a browser draft, a server pulse, infinite patience —
+  its selftest, 111 checks, covers exactly these). Still open for the home-grown `tools/review.mjs`, which
+  now serves only the release-notes approval: run the bug's 5-minute probe on it before the next release.
 
 The roll of everything closed so far lives in `PROJECT_HISTORY.md`.

@@ -312,7 +312,9 @@ function main() {
 	for (const w of waiting) {
 		console.log(`   🟡 ${w.file} — ${w.status}`);
 		for (const t of w.open) console.log(`      ⛔ ${t}`);
-		console.log(`      открыть: node tools/review.mjs open ${w.file}`);
+		// Since KAIF 2.8 interviews are shown by the SHIPPED contour (answers saved one at a time, bugs/09);
+		// the full launch — background task + the --wait waiter + the owner's voice — is /interview Step 4.
+		console.log(`      открыть: node .kaif/tools/contour/review.mjs ${w.file}   (+ сторож --wait; /interview шаг 4)`);
 	}
 	if (!waiting.length) console.log('   ✅ ни одного.');
 
