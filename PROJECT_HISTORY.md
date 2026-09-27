@@ -27,6 +27,76 @@
 
 ## Entries (newest first)
 
+### 2026-09-27 (closing, second pass) — STATUS trim under the budget ratchet 🧹
+
+Moved verbatim so STATUS shrinks below the 223 lines the ratchet recorded at this closing:
+
+   `researches/09` §6.2's requirement is already discharged in BOTH places it names — the package's
+   own `ЧИТАТЬ.txt` (built by `tools/build_package.mjs`) and the README's download section: the
+   Windows first-launch dialog is named in the words Windows itself uses, with why it appears and
+   which button to press. We cannot promise silence on anybody's machine; the product warns instead
+   of hoping. Keep that paragraph in any release notes too.
+
+   **KEEP LOOKING AT THE PAGE** — the headless browser over CDP is a stand now: `HOUSE_RULES.md` §3 (EXP-0024).
+
+5b. **Do NOT propose or perform a KAIF update** — the owner runs framework updates himself
+   («я сам веду обновления КАИф», 2026-07-28); the 2.8 update of 2026-09-27 was his direct order. A newer KAIF release existing is not a task, not a
+   backlog item and not a `/what-next` candidate. Related: `plans/01_kaif_16_update_report.md` is a
+   FINISHED report addressed to the KAIF framework's own agent, not open work — `/check-backlog`
+   should stop counting it as an open item.
+
+
+### 2026-09-27 (closing) — STATUS trim, moved verbatim 🧹
+
+Stale material moved at the closing of the 2026-09-27 chat: the old «Where we are now» paragraphs (they still
+said «Phase 5 is well under way») and two paragraphs of the friends-testing item that stopped being «now»
+(the optimizer epic became the next work by the owner's order).
+
+**Phases 0–4 are CLOSED and Phase 5 is well under way.** `kpot scan` walks a tree and dates every
+media file with evidence; `kpot plan` turns that into the pre-sort master plan the owner reads;
+`kpot apply` executes it — but only ever after a backup it verified — and `kpot rollback` undoes it
+completely. Sorting is idempotent, repeat runs are cheap (the scan cache), emptied folders are
+cleaned up reversibly, and folders KPOT cannot judge by name are set aside for the owner instead of
+being guessed at.
+
+**KPOT may now write — and every guarantee `GOAL.md` demands before it does exists and is proven.**
+
+**Phase 2 has no cuts left**: THM/XMP sidecar evidence landed 2026-07-28, so every evidence tier
+`researches/02` predicted now exists in code. **plans/02 is complete through step 2** — an edited
+photo's original is now found by its pixels when it exists.
+**Phase 5's acceptance is met** (2026-07-28): a fresh sandbox copy of four real folders was sorted
+under supervision — 813 files, 0 failures, the SHA-256 multiset unchanged, rollback rehearsed.
+**README + the tagged release are DONE** (`v0.1`, 2026-07-28).
+
+**Phase 6 — the interface — is COMPLETE** (6.0 … 6.6, 2026-07-29): `kpot ui` opens a guide on a
+messy folder and a dashboard on a library, with three re-launchable runs, guarded folder links, a
+run history with a working undo, the `НОВОЕ` inbox block, a portable package and the plain-language
+pass over everything the program says. Suite **300/300** (294 product + 6 for the review contour).
+
+**RELEASE 0.2 «Obvius KPOT» IS PUBLISHED** (2026-07-29, tag `v0.2`) with both artifacts —
+`KPOT-0.2.0-win-x64.zip` (33.2 MB, portable) and `kpot-0.2.0.tgz` (165 KB).
+
+   **Why this outranks everything below.** Every defect this project has ever found that mattered
+   came from contact with reality, not from the suite: `bugs/01`–`04` from the first real run,
+   `bugs/05` from measuring the inbox, `bugs/06` from finally RENDERING the page after six phases of
+   green specs. A friend's machine adds three things no fixture here has: **a clean Windows** (this
+   development machine has both relevant defences disabled by policy, which is why the first-launch
+   warning is still unverified — §10.2 of the README says so out loud), **an archive nobody
+   surveyed**, and **a person who has not read a single document of ours**. Expect the failures to
+   be in the first sixty seconds — download, unpack, the security warning, the first screen — not in
+   the date logic.
+
+
+   **The next piece of work is genuinely open.** Nothing is ranked and unblocked. Candidates, none
+   started: the clean-machine acceptance of the package (his, `plans/09` §9) · a square app icon
+   (his, a brand decision) · `plans/02` step 3 (PRNU) which is **unstarted and unauthorised** ·
+   whatever the owner finds when he actually uses 0.2 on his archive. **Ask him rather than
+   inventing one** — and note that a first real run of the WINDOW on his 551 GB archive is the most
+   valuable observation available, since every real-data session so far has found defects no
+   fixture could.
+
+
+
 ### 2026-09-27 — bonsai trim of STATUS.md, moved verbatim (KAIF 2.8 budget gate) 🧹
 
 Closed material from `STATUS.md` (425 lines against a budget of ~200), moved here word for word in its

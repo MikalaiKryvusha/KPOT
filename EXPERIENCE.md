@@ -69,6 +69,17 @@
 
 ## Entries
 
+### EXP-0032 · 2026-09-27 · ❌→✅ · #owner #interview #propagation #judge #gates
+class: claim-before-evidence
+**Context:** propagating the owner's interview #005 answers into the Google Photos optimizer epic, then closing Phase 0 (requirements).
+**Tried / did:** filled the gaps between his short answers with my own readings (signed `[AI]`), declared the phase closed, pushed — and only THEN ran the phase judge the epic's own §5 demands.
+**Result:** ❌ the judge REFUTED it twice. (1) My reading of his Q8 («приписка в названии») ordered replacing a «not worth it» original — which contradicted K2, the only safety net left after his Q1 = D, and would have deleted originals for 0 GB. (2) I overrode his informed «трогать все» with a skip of quota-free items. (3) The fix that followed opened a new hole: the new K2 path could be passed by the original itself (a silent no-op metadata write + Google's de-duplication). ✅ Both readings went back to him as interview #006 (answered in 3 minutes: Q1 = B, Q2 = A); K2 gained a distinct-item and round-trip check; nothing was pushed again until a judge passed.
+**Lesson:** an `[AI]` reading of an owner's answer is a DESIGN decision, so it must be checked against the plan's own acceptance criteria before it is written — a reading that makes the plan contradict its safety net is a question for the owner, not a gap to fill. And a phase gate is a gate only if it runs BEFORE the push: «closed» on origin is a claim the next session reads as fact. Third, from the same day: when successive judges keep finding a finer hole in the SAME rule (here four rounds on K2 — de-dup, a foreign item, a click-less discard, a check on the uploaded file instead of the cloud one), stop patching and restate the principle the patches circle around («verify what lies in the cloud, for THIS original») — PHILOSOPHY: a long fix means the task was not understood.
+**Repro:** after writing any `[AI]` reading into a plan, grep the plan's criteria for the objects it touches (`grep -n "К2\|удален" plans/<epic>.md`) and ask «does the reading make any criterion false?»; before `git push` of a phase closure, the judge's verdict file must already exist (`ls <scratchpad>/judge_*`).
+none-cheap: the push gate lives in the epic's text, not in a hook; a pre-push hook that reads plan gates would be a KAIF-level mechanism — noted for the next field report
+**Trigger:** writing «закрыта»/«closed» into a phase status → run the phase judge first, push after.
+**Not for:** readings that only narrow an owner's answer in the SAFE direction and are cheap to reverse (e.g. «purge only KPOT's own trash items») — those are recorded `[AI]` and told to him, not asked.
+
 ### EXP-0031 · 2026-09-27 · ❌→✅ · #kaif #migration #judge #twins #status
 class: twins-missed
 **Context:** KAIF 2.1 → 2.8 (seven versions in one hop). The machinery's scanners ran green: `stale-claims` 0 lines, manifest 100 %, attribution 0 new — and the agent had also retired `/end-chat` and moved interviews to the shipped contour.

@@ -69,7 +69,10 @@ Phase 2 builds the engine against facts and the owner's own account is never the
   question, never a silent fallback. Anchor: epic K2 «отдельный элемент Google … данные сверяются по копии, скачанной обратно из Google».
 - [ ] **5. Trash semantics (blocked).** On the test account: «delete forever» of ONE chosen item in the trash
   leaves the two items the owner trashed himself untouched (homework step 3); how the quota figure moves and
-  when. Anchor: epic §4 row 1 «как устроено «удалить навсегда» для отдельных элементов корзины»; R1's `[AI]` reading.
+  when. If single items cannot be deleted permanently from the trash, that goes back to the owner as a question —
+  never «empty the whole trash». Also: which upload quality the account uses (Original / Storage saver) and whether
+  the downloaded copy equals the uploaded file — the round trip K2 verifies. Anchor: epic §4 row 1 «как устроено
+  «удалить навсегда» для отдельных элементов корзины»; R1's `[AI]` reading.
 - [ ] **6. Restoring organisation (blocked).** Can the robot add the copy to the original's album, set
   favorite, caption, the edited date and place; how the UI exposes them. Anchor: epic K4.
 - [ ] **7. Calibration (partly blocked).** On the owner's clips and photos downloaded from the test account into

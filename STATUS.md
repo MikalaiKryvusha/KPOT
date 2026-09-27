@@ -26,6 +26,17 @@ Phases 0–6.6, every session from 2026-07-24 to 2026-07-30, releases 0.1 «Firs
 bonsai trim of KAIF 2.1 <!-- KAIF-VERSION-OK: historical — the trim was done under 2.1 -->: STATUS is the summary of NOW, ~200-line soft target; the chronicle is
 not required reading and is opened only for archaeology).
 
+### 2026-09-27 — KAIF 2.8 and the optimizer epic's requirements ✅
+- **KAIF 2.1 → 2.8** on the owner's order «обнови версию KAIF до 2.8, принимай все новинки» (sandbox-rehearsed bootstrap, 20 modules hand-merged, `HOUSE_RULES.md`,
+  the shipped interview contour, `/end-chat` → `/end-chat-soft`/`-force`, hooks); judge VERIFIED WITH CAVEATS, all
+  fixed; field report delivered — KAIF issue #129. Record: `KAIF_FRAMEWORK.md`, `reports/KAIF_UPDATES/`.
+- **Epic «Google Photos optimizer»** (`ideas/03`): prior-art review `researches/10` · meta-plan `plans/10_EPIC_…` ·
+  interviews #005 (10 answers) and #006 (2 follow-ups) answered and applied · Phase-1 plan `plans/11_…` · homework
+  `homeworks/01_…` · five phase-0 judges in a row REFUTED my readings and then successive holes in the deletion
+  rule K2; the fifth VERIFIED «nothing in the cloud is deleted without his click»; its last finding was answered by
+  one principle — verify what lies in the cloud, for THIS original — which is NOT re-judged yet (item 3).
+- STATUS trimmed 426 → 223 lines over two trims; README gained §11 «Развитие программы» and the KAIF 2.8 line.
+
 **The state it left behind, in one paragraph:** every phase of the product is implemented and
 green — scan · dating · dedupe · plan · backup/dry-run/apply/rollback · the local web interface
 (wizard + control panel) · the portable Windows ZIP. Release 0.2 «Obvius» is public. The suite is
@@ -33,29 +44,10 @@ the gate (`npm test`), and it has never been red at a commit.
 
 ## Where we are now
 
-**Phases 0–4 are CLOSED and Phase 5 is well under way.** `kpot scan` walks a tree and dates every
-media file with evidence; `kpot plan` turns that into the pre-sort master plan the owner reads;
-`kpot apply` executes it — but only ever after a backup it verified — and `kpot rollback` undoes it
-completely. Sorting is idempotent, repeat runs are cheap (the scan cache), emptied folders are
-cleaned up reversibly, and folders KPOT cannot judge by name are set aside for the owner instead of
-being guessed at.
-
-**KPOT may now write — and every guarantee `GOAL.md` demands before it does exists and is proven.**
-
-**Phase 2 has no cuts left**: THM/XMP sidecar evidence landed 2026-07-28, so every evidence tier
-`researches/02` predicted now exists in code. **plans/02 is complete through step 2** — an edited
-photo's original is now found by its pixels when it exists.
-**Phase 5's acceptance is met** (2026-07-28): a fresh sandbox copy of four real folders was sorted
-under supervision — 813 files, 0 failures, the SHA-256 multiset unchanged, rollback rehearsed.
-**README + the tagged release are DONE** (`v0.1`, 2026-07-28).
-
-**Phase 6 — the interface — is COMPLETE** (6.0 … 6.6, 2026-07-29): `kpot ui` opens a guide on a
-messy folder and a dashboard on a library, with three re-launchable runs, guarded folder links, a
-run history with a working undo, the `НОВОЕ` inbox block, a portable package and the plain-language
-pass over everything the program says. Suite **300/300** (294 product + 6 for the review contour).
-
-**RELEASE 0.2 «Obvius KPOT» IS PUBLISHED** (2026-07-29, tag `v0.2`) with both artifacts —
-`KPOT-0.2.0-win-x64.zip` (33.2 MB, portable) and `kpot-0.2.0.tgz` (165 KB).
+**The product is complete through Phase 6** (release 0.2 «Obvius», 2026-07-29): scan · dating · dedupe · plan ·
+backup / dry run / apply / rollback · the local web interface (wizard + control panel) · the portable ZIP;
+`npm test` 301/301. **The active work is Phase 7 — the Google Photos optimizer epic**, in planning (no product
+code yet; item 3 below). How the product got here: `PROJECT_HISTORY.md`.
 
 **⭐ THE PRODUCT IS IN FIELD TEST WITH REAL PEOPLE.** On 2026-07-30 the owner sent 0.2 to friends:
 «отправил на тесты друзьям». This is the first time KPOT has been used by anyone who did not build
@@ -64,7 +56,8 @@ outrank every item in the backlog below** — see §Where to continue next sessi
 
 **The README is a USER MANUAL** (2026-07-30), rewritten in the owner's academic register after his
 verdict on the old one: «текущий README считаем устаревшим фродом». Ten numbered sections in both
-languages, describing the program as it is rather than how it came to be, with every statement
+languages, describing the program as it is rather than how it came to be (plus §11 since 2026-09-27 —
+the optimizer in development, marked as absent from the present version), with every statement
 checked against the code and against a real end-to-end run.
 
 **The framework is KAIF 2.8 «Noble KAIF»** (updated from 2.1 on 2026-09-27 by the owner's direct order
@@ -175,7 +168,12 @@ optimizer epic once the owner has answered its interview (see «Where to continu
    14:06 +03:00: Q1 = B (a «not worth it» original IS replaced by a marking copy — same media data + suffix +
    metadata; K2 names this second path) · Q2 = A (quota-free items skipped). A process slip on the way: Phase 0
    was pushed as «closed» before its judge ran; it closes only after the re-judge.
-   **Next:** `plans/11_epic10_phase1_recon_and_calibration.md` — steps 1–2 (local encoder and metadata recon
+   **FIRST next session: re-judge K2 and K6 only** (clean-context `/fable-judge` over the epic's deletion rules at
+   the commit «the round-trip principle»): the fifth judge (2026-09-27) VERIFIED that nothing in the cloud is
+   deleted without the owner's click and REFUTED only the compressed-copy check; the fix — every check made on the
+   copy DOWNLOADED BACK by its ID, the copy bound to THIS original by its name and KPOT metadata — is committed
+   but not judged. VERIFIED → close Phase 0 (status in the epic, `MASTER_PLAN.md` Phase 7, `ideas/03`, here).
+   **Then:** `plans/11_epic10_phase1_recon_and_calibration.md` — steps 1–2 (local encoder and metadata recon
    on synthetic clips) are unblocked; steps 3–7 wait for `homeworks/01_google_test_account.md` (the owner
    creates a throwaway Google account with copies of his files). Nothing touches his own account before
    Phase 1's numbers are shown to him.
@@ -184,37 +182,13 @@ optimizer epic once the owner has answered its interview (see «Where to continu
    order of 2026-09-27 started the optimizer epic, which supersedes the old «do not start a new feature»;
    a friend's report still outranks the epic the day it lands. Ask him what came back.
 
-   **Why this outranks everything below.** Every defect this project has ever found that mattered
-   came from contact with reality, not from the suite: `bugs/01`–`04` from the first real run,
-   `bugs/05` from measuring the inbox, `bugs/06` from finally RENDERING the page after six phases of
-   green specs. A friend's machine adds three things no fixture here has: **a clean Windows** (this
-   development machine has both relevant defences disabled by policy, which is why the first-launch
-   warning is still unverified — §10.2 of the README says so out loud), **an archive nobody
-   surveyed**, and **a person who has not read a single document of ours**. Expect the failures to
-   be in the first sixty seconds — download, unpack, the security warning, the first screen — not in
-   the date logic.
-
    **When a report arrives, do this:** reproduce it on a FIXTURE first, never on their photographs;
-   file it with `/report-bug` (the backlog is `bugs/`, numbering continues from 08); if it is a
+   file it with `/report-bug` (the backlog is `bugs/`, numbering continues from 10); if it is a
    first-launch or packaging problem, remember the package is built **only from PowerShell**
    (EXP-0027). If a friend's archive must be examined, that needs the owner's explicit word and
    their own — the standing rule about his photographs applies to theirs with more force, not less.
 
-   **The next piece of work is genuinely open.** Nothing is ranked and unblocked. Candidates, none
-   started: the clean-machine acceptance of the package (his, `plans/09` §9) · a square app icon
-   (his, a brand decision) · `plans/02` step 3 (PRNU) which is **unstarted and unauthorised** ·
-   whatever the owner finds when he actually uses 0.2 on his archive. **Ask him rather than
-   inventing one** — and note that a first real run of the WINDOW on his 551 GB archive is the most
-   valuable observation available, since every real-data session so far has found defects no
-   fixture could.
-
-   `researches/09` §6.2's requirement is already discharged in BOTH places it names — the package's
-   own `ЧИТАТЬ.txt` (built by `tools/build_package.mjs`) and the README's download section: the
-   Windows first-launch dialog is named in the words Windows itself uses, with why it appears and
-   which button to press. We cannot promise silence on anybody's machine; the product warns instead
-   of hoping. Keep that paragraph in any release notes too.
-
-   **KEEP LOOKING AT THE PAGE** — the headless browser over CDP is a stand now: `HOUSE_RULES.md` §3 (EXP-0024).
+   Release notes keep the first-launch paragraph (`researches/09` §6.2; detail — `PROJECT_HISTORY.md`, 2026-09-27).
 
    **Two items are open for the owner, not blocking:** the clean-machine acceptance of the package
    (he chose to do it at a friend's, «сильно позже» — exact steps in `plans/09` §9, and it MUST
@@ -223,11 +197,8 @@ optimizer epic once the owner has answered its interview (see «Where to continu
 
 5. **Writing to the owner's REAL archive still needs a fresh `AUTH:`** — the standing grant is
    READ-ONLY, and it is the archive, not a copy. Everything measured this session was read-only.
-5b. **Do NOT propose or perform a KAIF update** — the owner runs framework updates himself
-   («я сам веду обновления КАИф», 2026-07-28); the 2.8 update of 2026-09-27 was his direct order. A newer KAIF release existing is not a task, not a
-   backlog item and not a `/what-next` candidate. Related: `plans/01_kaif_16_update_report.md` is a
-   FINISHED report addressed to the KAIF framework's own agent, not open work — `/check-backlog`
-   should stop counting it as an open item.
+5b. **Do NOT propose or perform a KAIF update on your own** — the owner runs them himself («я сам веду
+   обновления КАИф», 2026-07-28); 2.1 and 2.8 came by his direct order. `plans/01_…` is a finished report, not work.
 6. **No owner question is open** — interviews #005 and #006 are answered. **One homework waits for him:**
    `homeworks/01_google_test_account.md` (item 3). Also waiting for his *review*, not a decision: the sorted sandbox, and the
    plans/02 result (95 editor exports → 1 dated by pixels because the other originals are not in the

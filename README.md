@@ -9,6 +9,7 @@
 ![Interface](https://img.shields.io/badge/интерфейс-окно%20·%20командная%20строка-brightgreen)
 ![Node](https://img.shields.io/badge/node-%E2%89%A520-brightgreen)
 ![Platform](https://img.shields.io/badge/platform-Windows--first-blue)
+[![Framework](https://img.shields.io/badge/Framework-KAIF%202.8-7F52FF.svg)](https://github.com/MikalaiKryvusha/KAIF)
 
 ---
 
@@ -446,11 +447,36 @@ kpot rollback run-20260729-141204-22687e D:\Фотографии   # возвр�
 
 ---
 
+## 11. Развитие программы
+
+1. В разработке находится **оптимизатор облака Google Фото** — отдельная вкладка окна программы. В текущей
+   версии он отсутствует.
+2. Назначение оптимизатора — уменьшение места, занимаемого фотографиями и видеозаписями в Google Фото.
+   Файлы в устаревших форматах сжатия заменяются копиями в современных форматах — H.265 для видеозаписей,
+   AVIF для изображений — с сохранением разрешения, частоты кадров и HDR. Степень сжатия подбирается по
+   измерению качества. Файл, сжатие которого не даёт выигрыша не менее 20 %, заменяется копией с теми же
+   данными и пометкой в имени. У заменённого элемента утрачиваются группировка лиц, комментарии, отметки и
+   ссылки общего доступа.
+3. Оригинал удаляется из облака только после проверки загруженной копии и подтверждения пользователя.
+   Удалённый оригинал не восстанавливается: гарантии раздела 5 на облако не распространяются.
+4. Работа с Google Фото автоматизирована. При буквальном прочтении условий использования Google
+   автоматизированный доступ им противоречит и может повлечь ограничение учётной записи; перед применением
+   пользователь получает соответствующее предупреждение.
+5. Порядок разработки и принятые решения изложены в
+   [`plans/10_EPIC_google_photos_optimizer.md`](plans/10_EPIC_google_photos_optimizer.md).
+
+---
+
 ## Технологии
 
 Node.js версии 20 и выше, стандарт ESM. Сборка не выполняется, нативные модули отсутствуют. Число
 зависимостей времени выполнения равняется двум: `exifreader` и `jpeg-js`. Портативный пакет содержит
 официальную среду выполнения Node.js, подписанную OpenJS Foundation.
+
+Документы разработки: живой статус — [`STATUS.md`](STATUS.md) · дорожная карта —
+[`MASTER_PLAN.md`](MASTER_PLAN.md) · видение автора — [`GOAL.md`](GOAL.md). Разработка ведётся тандемом
+«человек-визионер + ИИ-агент» по фреймворку [KAIF](https://github.com/MikalaiKryvusha/KAIF) — развёрнута
+версия **2.8 «Noble KAIF»** (с 2026-09-27; проверка — `npm run kaif:version`).
 
 ## Лицензия
 
@@ -907,11 +933,37 @@ kpot rollback run-20260729-141204-22687e D:\Photographs   # undo
 
 ---
 
+## 11. Development of the program
+
+1. A **Google Photos cloud optimizer** is under development — a separate tab of the program's window. It
+   is absent from the present version.
+2. The purpose of the optimizer is to reduce the space occupied by photographs and videos in Google
+   Photos. Files in outdated compression formats are replaced by copies in modern formats — H.265 for
+   videos, AVIF for images — preserving the resolution, the frame rate and HDR. The degree of
+   compression is chosen by measuring quality. A file whose compression gains less than 20 % is replaced
+   by a copy with the same data and a mark in its name. A replaced item loses its face grouping, comments,
+   likes and sharing links.
+3. An original is deleted from the cloud only after the uploaded copy has been verified and the user
+   has confirmed. A deleted original cannot be restored: the guarantees of section 5 do not extend to
+   the cloud.
+4. Work with Google Photos is automated. Read literally, Google's terms of service forbid such automated
+   access, and it may lead to a restriction of the account; before use the user receives a corresponding
+   warning.
+5. The order of development and the decisions taken are set out in
+   [`plans/10_EPIC_google_photos_optimizer.md`](plans/10_EPIC_google_photos_optimizer.md).
+
+---
+
 ## Technology
 
 Node.js version 20 and higher, the ESM standard. No build is performed, native modules are absent.
 The number of runtime dependencies equals two: `exifreader` and `jpeg-js`. The portable package
 contains the official Node.js runtime signed by the OpenJS Foundation.
+
+Development documents: the live status — [`STATUS.md`](STATUS.md) · the roadmap —
+[`MASTER_PLAN.md`](MASTER_PLAN.md) · the author's vision — [`GOAL.md`](GOAL.md). Development is carried
+out by a "human visionary + AI agent" tandem under the [KAIF](https://github.com/MikalaiKryvusha/KAIF)
+framework — version **2.8 «Noble KAIF»** is deployed (since 2026-09-27; check with `npm run kaif:version`).
 
 ## Licence
 
