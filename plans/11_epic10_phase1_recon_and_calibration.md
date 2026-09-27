@@ -2,7 +2,7 @@
 
 > **Created:** 2026-09-27 (agent) · **Parent:** `plans/10_EPIC_google_photos_optimizer.md`, §4 row «1. Разведка и
 > калибровка» · **Status:** 🟡 not started — blocked on `homeworks/01_google_test_account.md` for every cloud step;
-> step 1 (local encoder recon on synthetic clips) is unblocked · **Outbound:** the numbers to the owner (a chat
+> steps 1–2 (local encoder and metadata recon on synthetic clips) are unblocked · **Outbound:** the numbers to the owner (a chat
 > report quoting `researches/11`), `FORK:` lines into the epic §7
 
 *Operational plan for the NEXT phase only (`/plan-epic` rung 3). Executor detail — English. Anchor: the epic's
@@ -18,9 +18,11 @@ Phase 2 builds the engine against facts and the owner's own account is never the
 ## Acceptance criteria (the phase closes when all hold)
 
 - **P1.** `researches/11_google_photos_measurements.md` answers each unknown of `researches/10` §7 that the epic
-  needs (rows 1–7, 10–13; row 8 «Recover storage» is out — the owner chose his own optimizer, and row 9 is
-  answered by the owner's Q2 = B: no disk matching) with a number or an observed fact, the command that produced
-  it, and the date — or states why it could not be measured.
+  needs (rows 1–7, 10–14) with a number or an observed fact, the command that produced it, and the date — or
+  states why it could not be measured. `[AI]` row 8 («Recover storage» keeps albums?) is out of scope: Google's
+  tool downsizes to 16 MP / 1080p, which R5 rules out; row 9 (the composition of the owner's own library) is
+  deferred to Phase 4, because nothing reads his account before Phase 1's numbers (R4). Row 14 (the ffmpeg
+  licence for R9) is a desk task inside this phase.
 - **P2.** Each of the five engineering forks of the epic §7 carries a `FORK: options · price of error · consulted`
   line, closed by a measurement from P1.
 - **P3.** The calibrated thresholds exist as numbers: a VMAF floor for video and an SSIMULACRA2 floor for photos,
@@ -61,7 +63,9 @@ Phase 2 builds the engine against facts and the owner's own account is never the
   record how it is obtained). Produce the before/after examples for P3. Anchor: epic §4 row 1 «калибровка
   порогов VMAF/SSIMULACRA2 и кодировщика». Delete the scratchpad copies after the phase.
 - [ ] **8. Write `researches/11`, the FORK lines, show the numbers to the owner** (chat report + the examples
-  opened for him — showing is an action), then `/fable-judge`.
+  opened for him — showing is an action), then `/fable-judge`. Anchor: epic §4 row 1 gate «`researches/11` с
+  числами; развилки агента закрыты строками `FORK:`; числа показаны владельцу» and §5 «`/fable-judge` закрывает
+  фазу».
 
 ## Verification by observation
 

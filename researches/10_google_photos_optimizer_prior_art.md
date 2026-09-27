@@ -837,6 +837,7 @@ table: that tool's DEFAULT downsizes video to 1920×1080 with AV1 CRF 36, i.e. a
 | Free space on the archive volume: 197.8 GB (measured 2026-07-26 — a past observation, re-probe before relying) | `MASTER_PLAN.md` decision log, 2026-07-26 | "Bring every cloud original home" needs disk: a 30-day-trash policy and a local landing zone must be sized on real numbers |
 | Metadata write path: none today. `exifreader` READS; nothing in KPOT writes EXIF/XMP/QuickTime tags | `src/meta/exif.mjs` | Provenance history and date/GPS preservation need a writer (exiftool or ffmpeg's `-map_metadata`), measured per format |
 | ffmpeg 8.1.1 (GPL, x265, NVENC, libvmaf) and ImageMagick are installed on THIS machine; exiftool is not | §1.2 | The R&D phase can calibrate on this machine; the product cannot assume any of it on a user's |
+| The installed full build is heavy: `ffmpeg.exe` 227 398 656 bytes, `ffprobe.exe` 227 193 344 bytes, `ffplay.exe` 228 915 712 bytes (measured 2026-09-27: `ls -la` of the winget Gyan.FFmpeg `bin/`) | measurement | R9 (the owner: installed by KPOT's scripts, not in the ZIP): the "essentials" build's size is still to measure |
 
 ### 10.2 The owner's requirements, and what his earlier answers already settle
 

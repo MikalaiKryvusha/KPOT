@@ -168,9 +168,12 @@ optimizer epic once the owner has answered its interview (see «Where to continu
    **Interview #005 is ANSWERED** (all 10, 2026-09-27 13:45 +03:00) and propagated: epic §1–§4 and §8,
    `MASTER_PLAN.md` Phase 7 + the decision-log row, each Q marked implemented. The owner's load-bearing
    answer: originals are deleted from the machine AND from Google completely, trash included (Q1 = D) — the
-   copy's verification (K2) and his click per batch (K6) are the only safety net. Three `[AI]` readings are
-   recorded in the epic and told to him: purge only KPOT's own originals from the trash; skip quota-free
-   items; «not worth it» gets the suffix via a lossless metadata rewrite + re-upload.
+   copy's verification (K2) and his click per batch (K6) are the only safety net. One `[AI]` reading stands
+   (purge only KPOT's own originals from the trash, never the whole trash). The Phase-0 judge (2026-09-27)
+   REFUTED two others — «not worth it» → re-upload with the suffix (it contradicted K2) and skipping
+   quota-free items (it overrode his «трогать все») — and they went to him as **interview #006** (2 questions,
+   shown 2026-09-27); the safe direction holds until he answers. Also a process slip: Phase 0 was pushed as
+   «closed» before its judge ran — the status is «closing» now; close it only after #006 and a re-judge.
    **Next:** `plans/11_epic10_phase1_recon_and_calibration.md` — steps 1–2 (local encoder and metadata recon
    on synthetic clips) are unblocked; steps 3–7 wait for `homeworks/01_google_test_account.md` (the owner
    creates a throwaway Google account with copies of his files). Nothing touches his own account before
@@ -224,7 +227,7 @@ optimizer epic once the owner has answered its interview (see «Where to continu
    backlog item and not a `/what-next` candidate. Related: `plans/01_kaif_16_update_report.md` is a
    FINISHED report addressed to the KAIF framework's own agent, not open work — `/check-backlog`
    should stop counting it as an open item.
-6. **No owner question is open** — interview #005 is answered. **One homework waits for him:**
+6. **One owner question set is open: interview #006** (2 follow-ups, item 3). **One homework waits for him:**
    `homeworks/01_google_test_account.md` (item 3). Also waiting for his *review*, not a decision: the sorted sandbox, and the
    plans/02 result (95 editor exports → 1 dated by pixels because the other originals are not in the
    archive; in the sandbox, where they are, 4 of 4).
