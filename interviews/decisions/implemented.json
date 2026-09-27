@@ -40,5 +40,15 @@
       "at": "2026-09-27T13:50:28+03:00",
       "where": "plans/10_EPIC_google_photos_optimizer.md §3 R10"
     }
+  },
+  "interviews/interview_006_optimizer_followup.md": {
+    "Q1": {
+      "at": "2026-09-27T14:07:15+03:00",
+      "where": "plans/10_EPIC_google_photos_optimizer.md §3 R8"
+    },
+    "Q2": {
+      "at": "2026-09-27T14:07:15+03:00",
+      "where": "plans/10_EPIC_google_photos_optimizer.md §3 R7"
+    }
   }
 }
