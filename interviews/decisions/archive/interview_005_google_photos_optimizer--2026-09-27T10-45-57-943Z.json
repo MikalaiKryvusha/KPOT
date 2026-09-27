@@ -1,0 +1,62 @@
+{
+  "kind": "interview",
+  "document": "interviews/interview_005_google_photos_optimizer.md",
+  "by": "Mikalai Kryvusha",
+  "at": "2026-09-27T10:45:57.943Z",
+  "atHuman": "27 сентября 2026, 13:45 (+03:00)",
+  "comment": "",
+  "answers": {
+    "Q1": {
+      "choice": "D",
+      "text": "после загрузки пожатой копии и ее верификации - оригинал удаляется и с машины, из из гугл облака ПОЛНОСТЬЮ, с очисткой корзины.",
+      "comment": ""
+    },
+    "Q2": {
+      "choice": "B",
+      "text": "не нужно проверяять и сравнивать, что есть на диске. Оптимизация Гугл ФОто - своя независимая изолированная работа.",
+      "comment": ""
+    },
+    "Q3": {
+      "choice": "A",
+      "text": "",
+      "comment": ""
+    },
+    "Q4": {
+      "choice": "A",
+      "text": "",
+      "comment": ""
+    },
+    "Q5": {
+      "choice": "A",
+      "text": "",
+      "comment": ""
+    },
+    "Q6": {
+      "choice": "B",
+      "text": "",
+      "comment": ""
+    },
+    "Q7": {
+      "choice": "D",
+      "text": "трогать все - HDR со сжатием в HDR",
+      "comment": ""
+    },
+    "Q8": {
+      "choice": "D",
+      "text": "в кастомные метаданные нужно писать - и приписка в названии",
+      "comment": ""
+    },
+    "Q9": {
+      "choice": "D",
+      "text": "устанавливается на ПК при установке KPOT на машину самими скриптами KPOT",
+      "comment": ""
+    },
+    "Q10": {
+      "choice": "B",
+      "text": "",
+      "comment": ""
+    }
+  },
+  "rev": "67f01a55047eaab8872d203b1b0e52faa8def0bc48183ac5d469085aeec94026",
+  "revAfter": "9f93d53dbc25349f038073ca9dfa64eed2c5747c853ec7b0e1be31d41f70220b"
+}
