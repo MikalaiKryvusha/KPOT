@@ -67,26 +67,29 @@ verdict on the old one: «текущий README считаем устаревш�
 languages, describing the program as it is rather than how it came to be, with every statement
 checked against the code and against a real end-to-end run.
 
-**The framework is KAIF 2.1 «Strong KAIF» and the OWNER-REVIEW CONTOUR is live** (2026-08-01/02, by
-his direct order — the full record is in `PROJECT_HISTORY.md` and `KAIF_FRAMEWORK.md`). Two things a
-fresh session must know, because they change how you WORK rather than what the product does:
-- **Questions to the owner go through a page, not through chat.** `npm run review:guard` shows
-  violations and stale statuses · `npm run review:list` shows who waits ·
-  `node tools/review.mjs open interviews/<doc>.md` asks him with one click, records the answer in
-  three places, and TERMINATES — that termination is what wakes you. Retelling a question in chat
-  after this exists is the rake agents who know the rule still step on.
-  **The page's look is HIS, settled by his own instructions — do not redesign it.** Header:
-  «Спрашивает ИИ-агент KPOT · дата, время» plus two filled pills, `ждут вас` / `отвечено`, with a
-  zero count going QUIET so the eye lands on the number that matters (he runs several projects whose
-  pages look alike by design, so the page must identify itself first). Also his, from the sibling
-  project: a second click clears a chosen option · no «who is answering» field · three beeps
-  880/660/990 and the `eugene` voice · auto-close 2 s in an app window · the state-coloured left
-  stripe on a question card. Each is guarded by a spec; changing one is a question for HIM.
-- **Publishing a release is gated by machine now** (his decision, interview #004 Q1 = B): `/release`
-  Step 5.5 puts the notes body up for approval, and `gh release create` is blocked on
-  `node tools/review-gate.mjs` exiting 0. Editing the notes after his click voids the approval.
-- `/pause` is now a SOFT PARK; the heavy closure is `/end-chat`. `PROJECT_HISTORY.md` is the
-  chronicle and is deliberately NOT in `/resume`'s reading set.
+**The framework is KAIF 2.8 «Noble KAIF»** (updated from 2.1 on 2026-09-27 by the owner's direct order
+«обнови версию KAIF до 2.8, принимай все новинки» — record in `KAIF_FRAMEWORK.md`, field report in
+`reports/KAIF_UPDATES/`). Things a fresh session must know, because they change how you WORK rather
+than what the product does:
+- **Questions to the owner go through a page, not through chat — the SHIPPED contour since 2.8.**
+  `npm run review:guard` (KPOT's own guard: questions outside `interviews/` + stale statuses) ·
+  `node .kaif/tools/contour/review.mjs --queue --list` (who waits + the owner's debt) · the page:
+  `node .kaif/tools/contour/review.mjs interviews/<doc>.md` plus the waiter `--wait <doc>`, both as
+  background tasks (`/interview` Step 4 has the exact launch, his voice `eugene` included). Answers are
+  saved ONE AT A TIME and the page lives until its last question — by the owner's own KAIF 2.8 word
+  («answers are saved one at a time in every project»), which replaces the old page's «auto-close 2 s».
+  Retelling a question in chat instead is the rake agents who know the rule still step on.
+- **The home-grown page `tools/review.mjs` now serves only the release notes.** Its look is HIS,
+  settled by his own instructions — do not redesign it: «Спрашивает ИИ-агент KPOT · дата, время», two
+  pills `ждут вас` / `отвечено`, a second click clears an option, three beeps 880/660/990 and the
+  `eugene` voice, the state-coloured stripe. `/release` Step 5.5 puts the notes up there and
+  `gh release create` is blocked on `node tools/review-gate.mjs` exiting 0 (interview #004 Q1 = B).
+- **New in 2.8 and binding:** the creed and the prayer open `AGENT_GUIDE.md` and are said in the chat
+  before non-trivial work · project facts (stands, tools, recipes, the environment dossier, the owner's
+  product rules R1–R7) live in `HOUSE_RULES.md` · the closure is `/end-chat-soft` (urgent:
+  `/end-chat-force`), `/pause` stays a soft park, `/kaif-go` resumes work in flight · the refresh hooks
+  are wired in `.claude/settings.json` · `STATUS.md` is under a size ratchet (`check --gate-budgets`):
+  it must SHRINK at every closing until it is under ~200 lines.
 
 | Phase | Status | What's there |
 |-------|--------|--------------|
@@ -136,10 +139,11 @@ optimizer epic once the owner has answered its interview (see «Where to continu
    makes the place-of-questions rule a gate rather than a paragraph:
    ```
    npm run review:guard     # new violations · who waits · STALE statuses · the debt number
+   node .kaif/tools/contour/review.mjs --queue --list   # who waits · the owner's debt (answered, not applied)
    ```
-   Anything waiting → open it as a PAGE (`node tools/review.mjs open interviews/<doc>.md`), never
-   as a retelling in chat. As of 2026-08-02: **0 waiting · 0 new violations · debt 0**.
-1. Verify the environment: `node -v` (≥20), `npm test` (**must be 300/300**), `git status` (clean),
+   Anything waiting → open it as a PAGE (`/interview` Step 4: the shipped contour + the `--wait` waiter), never
+   as a retelling in chat.
+1. Verify the environment: `node -v` (≥20), `npm test` (**must be 301/301**), `git status` (clean),
    `gh auth status` (MikalaiKryvusha). Owner-provided paths from this file are PAST observations —
    re-check they still exist before planning around them (EXP-0011: a sample vanished once already).
 2. **Run the whole product once, end to end, before designing on top of it.** It all works now:

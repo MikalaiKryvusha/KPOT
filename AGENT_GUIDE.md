@@ -13,7 +13,10 @@ relies entirely on this document to get to work.
 <!-- KAIF:CREED:END -->
 
 <!-- KAIF:PRAYER:BEGIN -->
-## 🙏 МОЛИТВА ПЕРЕД РАБОТОЙ
+## 🙏 THE PRAYER BEFORE WORK
+
+**МОЛИТВА ПЕРЕД РАБОТОЙ** — её текст произносится владельцу в чате, поэтому он на его языке
+(перевод русского языкового пакета KAIF, как в других его проектах).
 
 > 🔴 **АГЕНТ, ПРОИЗНЕСИ ЕЁ В ЧАТЕ, ПРЕЖДЕ ЧЕМ НАЧАТЬ ЛЮБУЮ РАБОТУ** — целиком, вместе с символом
 > веры выше: при входе в сессию (`/resume`), перед любой нетривиальной задачей и при каждом
@@ -1171,7 +1174,7 @@ JavaScript / Node specifics for KPOT:
 Standing guidance from the owner that changes how the framework itself works here — each note a rule with
 its provenance line. His standing rules about the PRODUCT (the four safety artifacts, disputed cases, the
 user's names, reuse before writing, renames not copies, the read-only archive) live in `HOUSE_RULES.md` §1,
-R1–R6.
+R1–R7.
 
 1. **KAIF updates are the owner's own domain.** Do not propose a KAIF update and do not perform one on your
    own initiative; a newer release existing is not a task, not a backlog item and not a `/what-next`

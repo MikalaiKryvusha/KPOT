@@ -69,6 +69,17 @@
 
 ## Entries
 
+### EXP-0031 · 2026-09-27 · ❌→✅ · #kaif #migration #judge #twins #status
+class: twins-missed
+**Context:** KAIF 2.1 → 2.8 (seven versions in one hop). The machinery's scanners ran green: `stale-claims` 0 lines, manifest 100 %, attribution 0 new — and the agent had also retired `/end-chat` and moved interviews to the shipped contour.
+**Tried / did:** trusted the green scanners plus my own edits, committed, and sent the update to a `/fable-judge` in a CLEAN context.
+**Result:** ❌ the judge found `STATUS.md` — the first file `/resume` reads — still saying «The framework is KAIF 2.1 «Strong KAIF»», still routing questions through `node tools/review.mjs open` (the retired interview route, the one `bugs/09` warns can lose answers), and still naming `/end-chat`; and four agent-system mirrors of `/interview` still carrying the old route. The version scanner judges only the forms it knows («KAIF 2.1» followed by a quote did not match); nothing scans for RETIRED COMMANDS. ✅ fixed by hand, mirrors re-synced (`node .kaif/kaif-core.mjs sync`).
+**Lesson:** after a framework update, the machinery's scanners prove the forms THEY know; every command, skill name and route YOU retired in the same update is a twin hunt of its own — grep the living documents for each retired thing by name, `STATUS.md` first. And the clean-context judge is worth its cost: it read the tree as the next session will, not as the session that made the edits.
+**Repro:** `git grep -nE "KAIF 2\.[0-7] «|/end-chat([^-a-z]|$)|tools/review\.mjs (open|queue|batch)" -- '*.md' ':!PROJECT_HISTORY.md' ':!reports/*' ':!.*/'` → every hit is either history, a deliberate keep, or a finding (on 2026-09-27 after the fixes: only `/release`'s notes page, its `HOUSE_RULES.md` row and the `KAIF_FRAMEWORK.md` history rows); then `node .kaif/kaif-core.mjs check` must print no «drifted mirrors».
+none-cheap: the retired names differ per update, so a fixed guard would check the previous update's names; the general mechanism belongs upstream (the update task's «withdrawn-phrases» item could list retired skills and commands, not only withdrawn features) — sent as a wish in the field report
+**Trigger:** retiring a skill, a command or a route in an update → run the grep above for its old name before the judge.
+**Not for:** the chronicle and the reports, where the old names are history by design.   → link: `reports/KAIF_UPDATES/KPOT_KAIF_2.8_UPDATE_REPORT.md` · scratchpad `judge_kaif28_verdict.md`
+
 ### EXP-0030 · 2026-08-01 · ❌→✅ · #js #template-strings #syntax #html-generation
 **Context:** generating an HTML page from a JS template literal (`tools/review.mjs`), with an inline `<script>` whose comments explain the click mechanics.
 **Tried / did:** wrote a normal code comment inside that script: `// The \`by\` field itself did not go anywhere`.
