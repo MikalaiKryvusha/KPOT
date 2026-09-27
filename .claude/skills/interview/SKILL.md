@@ -231,26 +231,29 @@ The default, autonomy-friendly method: the owner answers **right in the md docum
 Sequence:
 - Compose `interviews/interview_NNN_<topic>.md` with questions and "**Answer:**" fields.
 - Write ONE paragraph in the chat: what you found, the forks, and a link to the document.
-- **Render and ASK — on KPOT the contour is BUILT, so this step is not optional, it is the default:**
+- **Render and ASK — on KPOT the contour is the SHIPPED one (since KAIF 2.8), and this step is the default:**
+  first the door — `node .kaif/tools/contour/review.mjs interviews/interview_NNN_<topic>.md --check` (fix what it
+  names), then TWO tracked background tasks (the `Bash` tool with `run_in_background: true`, never a
+  foreground call, never `--timeout` for a human — `/owner-reviews` I31):
 
   ```bash
-  node tools/review.mjs open interviews/interview_NNN_<topic>.md
+  KAIF_VOICE_TOOL='F:\KLAS\tools\voice-say.mjs' KAIF_VOICE=eugene node .kaif/tools/contour/review.mjs interviews/interview_NNN_<topic>.md
+  node .kaif/tools/contour/review.mjs --wait interviews/interview_NNN_<topic>.md
   ```
 
-  It raises the page as an app window, calls the owner (three beeps + voice — suppressed in quiet
-  hours 23:00–09:00), and **terminates the moment he saves**, which is what wakes you. His answer
-  lands in three places by itself. Flags when you need them: `--no-signal` · `--no-open` ·
-  `--timeout <min>` · `render` for a self-contained offline snapshot.
+  The first raises the page as an app window and calls the owner (three beeps 880/660/990 + his chosen
+  voice `eugene`; quiet hours hold); the page saves answers ONE AT A TIME and lives until its last
+  question. The second is the WAITER: it exits 0 on each recorded answer — apply that answer, then start
+  the waiter again while questions are left (I8). The answer lands in the md itself (`by`/`at`), in
+  `interviews/decisions/` and in the archive. Close a live page only with `<doc> --close` (I46).
 
   🔴 **DO NOT RETELL THE QUESTIONS IN CHAT AFTER BUILDING THIS.** That is the rake agents who KNOW
-  the rule still step on — chat is cheaper in the moment, and the sibling project's agent did it
-  ten minutes after finishing its own contour («ты издеваешься? мы только что сделали инструмент»).
-  The owner's queue opens as a PAGE, not as a paragraph. One chat line pointing at it is enough.
+  the rule still step on — chat is cheaper in the moment. The owner's queue opens as a PAGE, not as a
+  paragraph. One chat line pointing at it is enough.
 - **Pause** the work (so the owner is signaled to come and fill in the answers). Don't guess for them and
   don't proceed blindly on UI/UX/brand/architecture questions. **In an autonomous loop**: never stand
-  at an open page — `node tools/review.mjs queue <doc>` parks it, `batch` raises ONE «накопилось N»
-  page for everything accumulated (invariant I7), and you move to unblocked work. A batch page dies
-  on the first save too; re-raising it for whatever is left is YOUR job, not his (invariant I8).
+  at an open page — `node .kaif/tools/contour/review.mjs --enqueue <doc>` parks it, `--queue` raises ONE
+  page for everything accumulated (invariant I7), and you move to unblocked work.
 
 ### Step 5. After the answers
 - **Implemented → mark it, in the same move (KAIF 2.7, origin issue #54).** The moment a decision lands in

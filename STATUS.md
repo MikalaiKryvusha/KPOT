@@ -109,14 +109,6 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
 
 | # | Item | Why it ranks here | Blocked by |
 |---|------|-------------------|-----------|
-| ✅ | ~~6.0 shared layer · 6.1 server · 6.2 wizard · the jargon debt~~ | **all four done 2026-07-29** — see the session record above | — |
-| ✅ | ~~6.3 — the control panel, incl. the undo button~~ | **done 2026-07-29** (`plans/07_DONE`, commit `c3dac29`) — three re-launchable runs, guarded folder links, history with an undo on every row that can honour one | — |
-| ✅ | ~~6.4 — the `НОВОЕ` top-up~~ | **done 2026-07-29** (`plans/08_DONE`, commit `abac68a`) — four misbehaviours removed rather than a pipeline added; it also caught `bugs/05_DONE`, a false deletion warning shipped in `v0.1` | — |
-| ✅ | ~~6.5 — the portable package~~ | **done 2026-07-29** (`plans/09`, 33.2 MB, built + verified on its own runtime). Its recon refuted the epic; the clean-machine acceptance is deferred by the owner to a friend's PC | — |
-| ✅ | ~~6.6 — the closing language pass~~ | **done 2026-07-29.** The interface epic is complete. Found by reading, not grepping: the reports had never had the pass at all | — |
-| ✅ | ~~`bugs/06` — a messy folder mistaken for a finished library~~ | **fixed 2026-07-29** by the owner's rule: KPOT leaves a **receipt** and asks it, instead of guessing from a `2013/` folder | — |
-| ✅ | ~~A user-facing README for the interface + download instructions~~ | **done 2026-07-29** (commit `769c627`), in both languages: what the two screens are and why one or the other appears, the receipt file explained to the person who will meet it in their own folder, and the `researches/09` §6.2 obligation discharged — the Windows first-launch dialog named in its own words, with the button to press. (This row appeared TWICE in the table; deduplicated) | — |
-| ✅ | ~~**Release 0.2 «Obvius KPOT»**~~ | **published 2026-07-29** on the owner's explicit word («НА ВСЁ ДАЮ ДОБРО»). Tag `v0.2`, two artifacts: the 33.2 MB portable ZIP and the 165 KB npm tarball. It closes BOTH honest limits `0.1` declared about itself — «No GUI yet» and «No pixel-level matching yet» | — |
 | 3 | **A square app icon** | The shortcut currently shows its target's icon. Blocked on a BRAND decision, not on work: the logo is a 1734×907 banner and a square mark out of it is the owner's call (EXP-0023). One line once he supplies one | **the owner** |
 
 **Explicitly NOT on this list, and why** — so a future session does not resurrect them:
@@ -129,102 +121,9 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
 
 ## 🤖 Autonomous backlog pool (no human / no special hardware needed)
 
-> Tasks the agent can do FULLY autonomously: write code → build → test on the harness → fix → commit,
-> without the human and without resources only the human can provide. The loop skills
-> (`/autoloop`, `/dayloop`, `/nightloop`) grind this pool.
-
-- [x] Prior-art research → `researches/01_prior_art.md` — ✅ done 2026-07-24, npm facts spot-verified.
-      Recommendation: reuse `exifreader` (images) + `node:crypto` staged SHA-256 (exact dups); write our
-      own MP4/MOV box parser, filename patterns, DateVerdict resolver and all product logic; defer
-      perceptual hashing. ExifTool vendoring = owner fork (interview).
-- [x] Fixture generator `tests/fixtures/make.mjs` — ✅ done 2026-07-24. 22 planted cases from the
-      real-chaos catalog (EXIF dates, mvhd dates, epoch names, "+"-twins, Cyrillic extension, dup
-      group, junk, audio, hand-sorted season subtree, broken clock, mtime spike) + `expected.json`
-      ground truth. `npm test` = 5/5 green (`tests/fixtures.test.mjs`). Grow the catalog with every
-      new feature.
-- [x] CLI skeleton `bin/kpot.mjs` — ✅ done 2026-07-24. `parseArgs`, phase dispatch (scan/plan/apply/
-      rollback), `--help`/`--version`, stable exit-code contract (0 ok · 1 error · 2 usage · 3 not
-      implemented), dir-existence validation, `bin` entry in package.json. 7 specs in
-      `tests/cli.test.mjs`; suite 12/12.
-- [x] `src/core/` primitives — ✅ done 2026-07-24. `paths.mjs` (win32 normalization, long-path/UNC
-      prefixes, `samePath`/`isInside`), `journal.mjs` (append-only JSONL, durable per-record append,
-      torn-tail tolerated for crash rollback), `pool.mjs` (`mapLimit` settle-all). 14 specs.
-- [x] Date-evidence model in `src/meta/` — ✅ done 2026-07-24. `evidence.mjs` (precedence from
-      Elodie + survey, wall/instant claims, plausibility window) + `filename_date.mjs` (all survey
-      conventions incl. epoch decode with range sanity, double-dated names yield both claims,
-      scavengers demoted to medium). 11 specs, verified against fixture `expected.json` ground truth.
-- [x] Scan phase `src/scan/` — ✅ done 2026-07-24. Identify-by-content + walk + streamed hashing,
-      wired to `kpot scan` (exit 0, JSON out). 8 specs incl. read-only proof; suite 48/48.
-- [x] Phase-2 date pipeline — ✅ done 2026-07-24. Extractors (exif/mp4/dirname) + mtime spike
-      discounting + DateVerdict resolver + annotate, wired into `kpot scan`. Acceptance spec green;
-      suite 55/55.
-- [x] Phase-3 dedupe + SortPlan — ✅ done 2026-07-26. `src/dedupe/dedupe.mjs` (sha256 grouping +
-      total-order keeper choice), `src/plan/bucket.mjs` (destination rules incl. technical-vs-custom
-      dirs), `src/plan/plan.mjs` (SortPlan artifact + Russian owner report), `kpot plan` wired with
-      `--json`. 17 specs; suite 73/73; guards verified by breaking the code first.
-- [x] Phase-4 safety — ✅ done 2026-07-26. `src/apply/backup.mjs` (manifest + hardlink snapshot,
-      probed capability, explicit refusal), `src/apply/apply.mjs` (the single writer; dry run = the
-      same loop with inert effects), `src/apply/rollback.mjs` (journal replayed backwards,
-      idempotent, prunes only what the run created). `kpot apply`/`rollback` wired. 13 specs;
-      suite 88/88; every guard verified by breaking it first.
-- [x] Sidecar evidence (THM/XMP) — ✅ done 2026-07-28 (commit `d26ebb5`). Recon FIRST
-      (`researches/04_sidecars.md`, read-only over the real archive), and it changed the design:
-      a `.thm` is a 160×120 JPEG with full EXIF (34/34 carry `DateTimeOriginal`), and 25 of them sit
-      beside an **AVI** — RIFF, not ISO-BMFF, so `mp4.mjs` reads nothing from it. Those 25 videos had
-      only a folder year. `src/meta/sidecar.mjs` pairs by stem or full name (case-insensitively,
-      within one directory), donates capture properties ONLY, and refuses to pair an orphan or an
-      ambiguous stem. Fixture v4 (+6 cases), 13 new specs + the acceptance case; all five guards
-      break-verified (1/5/3/1/1 red), plus the THM-quarantine guard (2 red). Real-data proof:
-      **25/25 now `dated`, winner `sidecar`** —
-      19 → `2012/Весна/видео/`, 2 → `2012/Зима конец года/видео/`, 4 → `2013/Осень/видео/`.
-      Honest limit recorded: the XMP *date* path is fixture-only — the single real `.xmp` is an
-      ACDSee catalog sidecar with no date at all.
-- [x] Scan-map cache keyed by (path, size, mtime) — ✅ done 2026-07-26. `src/core/scan_cache.mjs`
-      (load/lookup/save/re-key), wired into every phase via the CLI, `--no-cache` opts out. A repeat
-      run reports `cache 26/26 reused (no re-hash)`, and `apply` re-keys the cache from its own moves
-      so the cache survives a sort. 10 specs incl. three invalidation angles (changed content,
-      same-size edit, backdated mtime) and corruption tolerance; guards verified by breaking them.
-- [x] Empty-folder removal — ✅ done 2026-07-26 (owner's decision). Backup manifest records every
-      DIRECTORY; the plan lists the folders that will disappear before the run; apply removes them
-      deepest-first (re-reading each one, and using `rmdir`, never a recursive delete); rollback
-      recreates them. 6 specs; the safety chain verified by breaking both links.
-- [x] Suspicious-folder approval + the `НА_РАЗБОР/` quarantine — ✅ done 2026-07-26 (owner's decision,
-      revised by the owner the same day). `src/plan/suspicious.mjs` (criterion: an unclear NAME) +
-      `src/core/decisions.mjs` (an editable Russian decisions file at
-      `.kpot-runs/папки-на-согласование.txt`, answers preserved across runs). Such a folder is moved
-      WHOLE into a top-level `НА_РАЗБОР/` keeping its original parent structure; «как есть» leaves it
-      there. Stripping that one prefix recovers the original path, which is what makes the flow
-      idempotent and keeps `НА_РАЗБОР` out of the library. 12 specs; every guard verified by breaking it.
-- [x] Progress output for large trees — ✅ done 2026-07-26. `src/core/progress.mjs`, wired into scan
-      (walk · read · dates), backup and apply. stderr only and inert unless stderr is a TTY, so
-      pipes and the JSON artifacts are untouched; repaints throttled to 5/s (measured: 17 904 per
-      hour of work instead of 71 606); the ETA comes from the rate actually observed and appears
-      only once there is enough of it. 9 specs; the three that matter verified by breaking them.
-- [x] Resumability of an interrupted `apply` — ✅ done 2026-07-26. `src/apply/resume.mjs` +
-      `openRunJournal`. An unfinished run BLOCKS a new one and offers two ways out; `--resume`
-      reuses the same run id, journal and BACKUP, so one rollback still restores the true original.
-      9 specs; all three guards verified by breaking them.
-- [x] plans/02 step 2 — ✅ done 2026-07-28 (commit `c6bfee6`). `src/meta/pixels.mjs`: an editor
-      export's ACTUAL original found by comparing images — candidates from `family.mjs`, coarse 16×16
-      ranking, fine 32×32 verification of the finalists, and a date inherited only on a decisive
-      margin over the best candidate from another day. `jpeg-js` (BSD-3-Clause) is the second runtime
-      dependency; `--no-pixels` opts out. Design `researches/05` §7, calibration `researches/06`
-      (which corrected it three times, and caught a real defect in our own code before it shipped).
-      Fixture v6, 15 new specs + 5 for the reset-clock rule, all guards break-verified; suite 191.
-      **Measured: 62/80 accepted with the right day when the original exists, 2/80 fabricated when it
-      does not; on the real archive 1 of 95 — because the other originals are not there.**
-      Step 3 (PRNU) stays unstarted and unauthorised.
-- [x] Reset camera clocks — ✅ done 2026-07-28 (owner's decision). A «1 января 00:25» date is refused
-      only when the archive itself proves the clock wrong (its year is below the collection's earliest
-      trustworthy capture year); a genuine New Year photograph of the same shape is untouched. Both
-      cases planted in fixture v6; `tests/meta_reset_clock.test.mjs`; guards break-verified (10 and 4
-      specs red).
-- [x] Season mapping — ✅ done 2026-07-24. `src/plan/season.mjs` (`seasonForMonth`, canonical Russian
-      dir names per interview #001 Q2), specs in `tests/season.test.mjs`. Suite 15/15.
-- [x] plans/02 step 1 — ✅ done 2026-07-27 (commit `e55ae91`). Editor save dates demoted to ceilings
-      (`editor-save`), exact original lookup by XMP identity (`derived-original`), camera-family
-      signs (`src/meta/family.mjs`). Fixture v3 (+7 cases), suite 156/156, guards break-verified,
-      real-data measurement: 201 broken-class files → 199 lose their false year.
+Every item the pool held through 2026-07-29 is done — the list moved verbatim to `PROJECT_HISTORY.md`
+(entry 2026-09-27, bonsai trim). The pool is EMPTY: new autonomous work comes from the Google Photos
+optimizer epic once the owner has answered its interview (see «Where to continue»).
 
 ---
 
@@ -276,18 +175,6 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
    (EXP-0027). If a friend's archive must be examined, that needs the owner's explicit word and
    their own — the standing rule about his photographs applies to theirs with more force, not less.
 
-   **Release 0.2 as shipped:** published 2026-07-29 as **«Obvius KPOT»** (tag `v0.2`) on the owner's
-   explicit authorisation («НА ВСЁ ДАЮ ДОБРО»), with both artifacts attached:
-   `KPOT-0.2.0-win-x64.zip` (33.2 MB portable) and `kpot-0.2.0.tgz` (165 KB). The README's download
-   links are real links, in both languages, and were verified to return 200.
-
-   **What the judge pass corrected before publishing, so nobody repeats it:** the scope was NOT
-   «the interface epic + six bugs». `git log v0.1..HEAD` says two bugs closed since the tag (05 and
-   06) — the other four predate it — and the pixel search (`plans/02` step 2) and the
-   reset-camera-clock rule are ALSO new in 0.2, because `v0.1` was tagged before them. The clean
-   framing that came out of it, and the one the notes use: **0.2 closes both honest limits 0.1
-   declared about itself** — «No GUI yet» and «No pixel-level matching yet».
-
    **The next piece of work is genuinely open.** Nothing is ranked and unblocked. Candidates, none
    started: the clean-machine acceptance of the package (his, `plans/09` §9) · a square app icon
    (his, a brand decision) · `plans/02` step 3 (PRNU) which is **unstarted and unauthorised** ·
@@ -302,103 +189,13 @@ Full phase definitions with acceptance criteria: `MASTER_PLAN.md`.
    which button to press. We cannot promise silence on anybody's machine; the product warns instead
    of hoping. Keep that paragraph in any release notes too.
 
-   **KEEP LOOKING AT THE PAGE.** The single most valuable tool this project gained on 2026-07-29 is
-   a browser you control: `--headless=new --remote-debugging-port=N --user-data-dir=<temp>`, then
-   CDP over a WebSocket — navigate, click, read `innerText`, screenshot. Scripts `ui_shot.mjs`,
-   `ui_drive.mjs`, `ui_wizard.mjs` in that session's scratchpad. It found, in one afternoon, defects
-   that six phases and 280 green specs never could: the wizard's step strip drawn on the panel,
-   every run card labelled «Дальше», and bug 06 itself (EXP-0024).
+   **KEEP LOOKING AT THE PAGE** — the headless browser over CDP is a stand now: `HOUSE_RULES.md` §3 (EXP-0024).
 
    **Two items are open for the owner, not blocking:** the clean-machine acceptance of the package
    (he chose to do it at a friend's, «сильно позже» — exact steps in `plans/09` §9, and it MUST
    print the two attachment-policy values first or the result is unreadable), and a square app icon
    (a brand decision — EXP-0023).
 
-   **Phase 6.4 is CLOSED** (2026-07-29, commit `abac68a`, `plans/08_DONE_novoe_topup.md`). Two
-   things from it a next session should not have to rediscover: the plan document's own refutation
-   of the duplicate-keeper problem was **itself refuted by measurement** (it had used an undated
-   file; with a dated one the date criteria tie and depth hands the library's place to the
-   freshly-dropped copy — `plans/08` §3a, EXP-0021); and the same probe found `bugs/05_DONE`, a
-   false deletion warning that had shipped in `v0.1` and made the **rehearsal disagree with the real
-   run** (48 folders vs 1). Both are fixed and guarded.
-
-   **The recon that gated it is DONE** — `researches/08_open_folder_and_path_safety.md`, measured on
-   this machine 2026-07-29. Its three findings, so nobody re-derives them:
-   - **`explorer.exe` exits 1 even when it succeeds** (3 of 3 tries on a folder that opened). The
-     exit code carries no information: check the path BEFORE launching, then ignore the result.
-   - **A junction defeats the textual `isInside`** — `mklink /J` inside the library, no admin rights
-     needed, points anywhere on the machine and the textual check says "inside". `realpath` catches
-     it. `src/core/paths.mjs` is correct for the plan and **insufficient as a security boundary**.
-   - **8.3 short names break the same check the other way** (a legitimate path rejected), and
-     `realpath` fixes that too. One rule covers both: **resolve first, then check containment, then
-     launch.** A path that cannot be resolved is refused — `realpath` throws `ENOENT`, which is the
-     answer we want anyway.
-
-   **Most of 6.3 is ALREADY BUILT** (2026-07-29). What exists:
-   - `src/ui/reveal.mjs` + `POST /api/reveal` — resolve the real path, refuse anything outside the
-     library with a plain Russian sentence, then launch and ignore the exit code. Eight specs,
-     including one that **builds a junction escape and proves it refused**, and that skips LOUDLY if
-     `mklink` is unavailable rather than passing quietly;
-   - `libraryShape()` + `GET /api/library` — the question that chooses the face. A folder is a
-     library if it holds a `<год>` directory or `ПРОЧЕЕ`, shapes KPOT itself creates;
-   - the panel screen: three re-launchable runs, the attention count, the years newest-first with
-     «Открыть» on each, and a sort that still passes the one confirmation and returns to the panel.
-
-   **6.3 is CLOSED** (2026-07-29, commit `c3dac29`, `plans/07_DONE_undo_button.md`). The undo button
-   exists and is guarded on the SERVER, not on the page: the run must resolve by its **real path**
-   into this library, `listRuns` must already call it `undoable`, the confirmation names the run and
-   the numbers, and nothing else may be running. Its specs assert the **absence of an effect** (a
-   sha256 census of the tree) on every refusal, and byte-for-byte restoration on the success.
-
-   **What the panel must do** (owner's own words, interview #003): re-launch **any of the three runs**
-   (scan · plan · sort) with a state on each card · show what needs a decision — folders awaiting an
-   answer (answered in the UI, over the existing `src/core/decisions.mjs`) and disputed dates · the
-   library by year with **links that open folders, никаких миниатюр** · the `НОВОЕ` top-up block ·
-   a run history with a rollback on each row.
-
-   Read first: `plans/03_interface_epic.md` (the cut and each acceptance criterion), the two closed
-   plans `04_DONE`/`05_DONE` for how the layers fit, and `interviews/interview_003_designs.html`
-   (the clickable mock-up — the «Пульт управления» tab is the target).
-
-   **The golden harness from 6.0 is worth re-creating** for any later refactor: it lifts the previous
-   code out of git (`git stash push -- <file>`), runs 13 CLI scenarios and diffs byte-for-byte. It
-   lived in the session scratchpad (`golden.mjs`). **Self-test it first by capturing twice from
-   unchanged code, then by planting a break** — its first version was blind to two of the four apply
-   endings and said nothing (EXP-0016).
-
-   **The design, settled:**
-   - **Two screens.** A wizard for the first flight (four steps, one thing per screen, the four
-     `GOAL.md` guarantees visible at the bottom). Once the library exists, it steps aside for a
-     **control panel**: three run cards (scan · plan · sort) each re-launchable at any time, an
-     attention section (folders awaiting a decision, disputed dates), the library by year with
-     **links that open folders** (no thumbnails — the owner cut them), the `НОВОЕ` top-up block, and
-     a run history with a rollback per row.
-   - **Server + «морда» are separate.** Closing the browser does NOT stop the server. Three
-     obligations follow: an explicit «Завершить работу» control; a second launch must FIND the
-     running server and open the face on it (never start a second one — port conflict); and the
-     server stays the only writer, so RULE 1 holds with the UI as one more caller above `src/apply/`.
-   - **Security is not optional even on localhost** (`researches/07` §5.1): bind `127.0.0.1`, default
-     port with a random fallback, a token minted at start-up and carried in the opened URL, a `Host`
-     header whitelist, and the browser opened only after the `listening` event.
-   - **Delivery: a portable ZIP** — «скачал - распаковал - готово». It carries Node's own signed
-     binary (measured: Authenticode Valid, OpenJS Foundation, 87.4 MB → **32.7 MB zipped**) plus our
-     `.mjs`, so no unsigned executable is ever introduced and SmartScreen has nothing to fire on.
-     First run offers to create a desktop shortcut. **Verify on a real download** before promising it:
-     files from a downloaded ZIP inherit the Mark-of-the-Web and the Attachment Manager may warn once
-     on a `.cmd` launcher — a locally-created shortcut carries no such mark.
-   - **Bilingual RU/EN with a switch** (Russian default) ⇒ every UI string lives in a dictionary from
-     the first line of code. Window title: «Krinik Photo Organizer Tool (KPOT)». One deliberate
-     confirmation with the numbers before the sort. No access from other devices.
-   - Idea 01 (the inbox/top-up) is part of this epic: inbox **inside** the library, named `НОВОЕ`,
-     emptied inbox folders deleted; the «ярлычок» he asked for IS this UI's shortcut.
-
-   **A debt to clear while doing it:** the plan report still prints `dated 2012-06-15 (exif-original)`
-   at the owner. He made plain language a hard requirement on 2026-07-28; the «даты, взятые у
-   исходного снимка» section was already rewritten, the move lines were not. Scheduled in the epic
-   as phase 6.6, but any earlier chance to fix it is a chance taken.
-
-4. **Phase 5 is CLOSED** (2026-07-28): the supervised run on `KPOT_SANDBOX` sorted 813 real files
-   with 0 failures, an identical SHA-256 multiset, and a rehearsed rollback. Nothing is left in it.
 5. **Writing to the owner's REAL archive still needs a fresh `AUTH:`** — the standing grant is
    READ-ONLY, and it is the archive, not a copy. Everything measured this session was read-only.
 5b. **Do NOT propose or perform a KAIF update** — the owner runs framework updates himself
