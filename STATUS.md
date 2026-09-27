@@ -165,11 +165,16 @@ optimizer epic once the owner has answered its interview (see «Where to continu
    `researches/10_google_photos_optimizer_prior_art.md` (industry sweep + local recon + requirements; the
    headline: the official API cannot list or delete, web automation conflicts with Google's terms and risks
    the whole account, the 30-day trash, what a re-upload loses, several of his video rules need rework).
-   **Waiting: interview #005** (10 questions, the requirements) — shown on 2026-09-27 with its picture page
-   `interviews/interview_005_explain.html`. **Next:** apply every answer into §3/§2 of the epic with
-   «interview #005, QN», mark each with `--mark-implemented`, then write the operational plan of Phase 1
-   (test-account recon + encoder calibration) as `plans/11_epic10_phase1_<name>.md` and start it. Nothing
-   touches the owner's Google account before Phase 1's numbers are shown to him.
+   **Interview #005 is ANSWERED** (all 10, 2026-09-27 13:45 +03:00) and propagated: epic §1–§4 and §8,
+   `MASTER_PLAN.md` Phase 7 + the decision-log row, each Q marked implemented. The owner's load-bearing
+   answer: originals are deleted from the machine AND from Google completely, trash included (Q1 = D) — the
+   copy's verification (K2) and his click per batch (K6) are the only safety net. Three `[AI]` readings are
+   recorded in the epic and told to him: purge only KPOT's own originals from the trash; skip quota-free
+   items; «not worth it» gets the suffix via a lossless metadata rewrite + re-upload.
+   **Next:** `plans/11_epic10_phase1_recon_and_calibration.md` — steps 1–2 (local encoder and metadata recon
+   on synthetic clips) are unblocked; steps 3–7 wait for `homeworks/01_google_test_account.md` (the owner
+   creates a throwaway Google account with copies of his files). Nothing touches his own account before
+   Phase 1's numbers are shown to him.
 4. **THE PRODUCT IS OUT WITH FRIENDS FOR TESTING — THEIR REPORTS COME FIRST WHEN THEY ARRIVE.** On
    2026-07-30 the owner wrote «отправил на тесты друзьям»; nothing has come back as of 2026-09-27. His
    order of 2026-09-27 started the optimizer epic, which supersedes the old «do not start a new feature»;
@@ -219,8 +224,8 @@ optimizer epic once the owner has answered its interview (see «Where to continu
    backlog item and not a `/what-next` candidate. Related: `plans/01_kaif_16_update_report.md` is a
    FINISHED report addressed to the KAIF framework's own agent, not open work — `/check-backlog`
    should stop counting it as an open item.
-6. **One owner question set is open: interview #005** (the optimizer's requirements, item 3). Every
-   earlier fork is answered. Also waiting for his *review*, not a decision: the sorted sandbox, and the
+6. **No owner question is open** — interview #005 is answered. **One homework waits for him:**
+   `homeworks/01_google_test_account.md` (item 3). Also waiting for his *review*, not a decision: the sorted sandbox, and the
    plans/02 result (95 editor exports → 1 dated by pixels because the other originals are not in the
    archive; in the sandbox, where they are, 4 of 4).
 7. Decisions are all in `MASTER_PLAN.md` §Decision log — re-read before designing; do not re-ask the

@@ -769,6 +769,12 @@ Run every cloud-side probe on a **throwaway Google account first**, never on the
 
 ## 8. Forks that need the OWNER's decision (phrased neutrally)
 
+<!-- attribution-ok: these are open forks, not decisions; the owner's answers are interview #005 Q1–Q10 (interviews/interview_005_google_photos_optimizer.md) -->
+Nine of the eleven forks below were put to the owner as interview #005 (F1+F2 → Q3, F3 → Q1, F4+F5 → Q5,
+F6 → Q6, F7 → Q8, F10 → Q9, F11 → Q7) and answered on 2026-09-27; F9 was settled by the idea's own words
+(`_KPOT_OPTIMIZED`, epic R11) and F8 is left to the agent's measured `FORK:` line (epic §7). The answers live in
+the interview and in the epic's §3.
+
 | Fork | Options |
 |---|---|
 | **F1. Route to the library** | (a) web-UI automation end to end · (b) Takeout down + official API up + delete by hand or assisted · (c) local-first, KPOT never deletes in the cloud · (d) point users to Google's Recover storage · (e) a staged mix, e.g. (c) now and (b) later |
