@@ -216,7 +216,7 @@ Application of `PHILOSOPHY.md` to this project:
 - **Goal of the phase:** a KPOT tab that replaces heavy Google Photos items with verified compressed copies
   (H.265 video, AVIF photos) at the same resolution, frame rate and HDR, and deletes the originals only after
   the check and the owner's click on the batch. The owner's idea: `ideas/03_Google_Photos_Optimizer.md`.
-- **Scope, settled by the owner** (interview #005, 2026-09-27, all ten answered): originals deleted from the
+- **Scope, settled by the owner** (interview #005, all ten answered, and interview #006, two follow-ups; 2026-09-27): originals deleted from the
   machine and from Google completely, trash included (Q1) · isolated from the local library (Q2) · a robot in
   a separate browser window, deletion by the owner's click per batch (Q3) · everything tried on a test Google
   account first (Q4) · compression by measured quality, source fps/resolution/audio kept, 20 Mbps cap (Q5) ·

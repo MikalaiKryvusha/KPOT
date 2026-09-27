@@ -49,8 +49,9 @@ Phase 2 builds the engine against facts and the owner's own account is never the
   Verify: round-trip on synthetic files, printed field by field. Anchor: epic §7 «Чем писать метаданные».
 - [ ] **2b. Marking-copy rewrite (unblocked).** Per format (MP4/MOV HEVC and H.264, 3GP, AVI, JPEG, HEIC, PNG,
   AVIF): write the `_KPOT_OPTIMIZED` name and KPOT's metadata without touching the media; prove it with per-stream
-  hashes before/after (`ffmpeg -map 0 -c copy -f streamhash -`; for images the decoded pixels' hash) and a
-  different whole-file hash. A format where the write is a silent no-op is recorded. Anchor: epic K2 «копия-пометка
+  hashes before/after (`ffmpeg -map 0 -c copy -f streamhash -`; for images the hash of EVERY data part, not only
+  the decoded pixels: the Motion Photo video appended to the file, the Ultra HDR gain map, HEIC auxiliary images) and
+  a different whole-file hash. A format where the write is a silent no-op is recorded. Anchor: epic K2 «копия-пометка
   … хеш файла копии не равен хешу оригинала, метаданные KPOT прочитаны обратно».
 - [ ] **3. The test-account intake (blocked on the homework).** The owner signs into the test account in a
   separate browser window with its own profile (never his daily profile — `researches/10` §2a). Observe and
@@ -62,8 +63,10 @@ Phase 2 builds the engine against facts and the owner's own account is never the
   Google UI shows (date, place, HDR badge, slow-mo, motion) and which metadata and the file name survived.
   Anchor: epic §4 row 1 «какие метаданные и имена переживают загрузку, играются ли HEVC-HDR и AVIF».
 - [ ] **4b. Marking copy in the cloud (blocked).** Upload a 2b copy NEXT TO its original (both present): a
-  distinct item (IDs differ) or de-duplicated; download it back — stream hashes equal to the original's, file name
-  kept? Anchor: epic K2 «отдельный элемент Google … данные сверяются по копии, скачанной обратно из Google».
+  distinct item or de-duplicated — the IDs taken the same way both times (the library listing before and after the
+  upload); download it back BY THE COPY'S OWN ID — stream hashes equal to the original's, file name kept? If Google
+  always de-duplicates, the marking path of #006 Q1 = B is impossible as designed — that goes back to the owner as a
+  question, never a silent fallback. Anchor: epic K2 «отдельный элемент Google … данные сверяются по копии, скачанной обратно из Google».
 - [ ] **5. Trash semantics (blocked).** On the test account: «delete forever» of ONE chosen item in the trash
   leaves the two items the owner trashed himself untouched (homework step 3); how the quota figure moves and
   when. Anchor: epic §4 row 1 «как устроено «удалить навсегда» для отдельных элементов корзины»; R1's `[AI]` reading.
