@@ -18,23 +18,69 @@ Trigger: the human says "let's add this to experience" / "log this lesson" / "re
 finished something with a reusable takeaway (a success worth repeating, a failure worth avoiding, a
 non-obvious gotcha). **Capture proactively — don't wait to be asked.**
 
+0. **Ask the mechanization question FIRST — "can this lesson be made unnecessary, and at what
+   cost?"** The hierarchy of means, in order: **(1) remove the trap itself** (a config line, a
+   safer default, a rename — often cheaper than the entry that would warn about it); **(2) a
+   guard/linter/gate that reddens by itself;** **(3) only when neither is cheaply possible — a log
+   entry.** Field measurement behind this order (origin issue #14): 281 entries across three
+   projects, 7 mechanized — the journal had become the default sink, and the recall ritual
+   structurally misses action-level lessons, so an entry is the WEAKEST carrier, never the default.
 1. **Distill the lesson** to its reusable core — the *approach-level* takeaway, not defect detail
    (defect detail belongs in `bugs/`; `EXPERIENCE.md` is "what to do / not do next time").
+   A lesson about a dangerous ACTION (a command that destroys state: a test runner that wipes a
+   directory, a reset, a force-push) also lives IN THE ROW OF THAT ACTION in the project's tool
+   registry (`AGENT_GUIDE.md` → Tools) — where sessions look when they RUN it; the journal entry
+   duplicates it with an `#action:<command>` tag, it never replaces it (sessions grep by what they
+   FIX and get burned by what they RUN).
 2. **Write one entry** at the **top** of the `## Entries` section, in the canonical format:
    ```
    ### EXP-NNNN · <ISO date> · <✅|❌|❌→✅> · #tag #area
+   class: <slug>
    **Context:** one line.
    **Tried / did:** briefly.
    **Result:** ✅/❌ — what happened.
    **Lesson:** the reusable takeaway.   → link: bugs/NN · ideas/NN · plans/NN (if any)
-   **Repro:** the ready-to-run command/check that verifies or applies the lesson (omit only if none).
+   **Repro:** the ready-to-run command/check that verifies or applies the lesson — REQUIRED since 2.1:
+     a lesson with no Repro line is not accepted (a weak session executes a pasted command reliably,
+     an essay it won't act on). If the lesson genuinely has no command, say what to OBSERVE — as an action.
+   **Trigger:** for class-level lessons — the decision point that must invoke this lesson, as
+     "writing X → run Y" (the lesson names WHERE it applies, instead of hoping to be remembered).
    **Not for:** the validity range — where this lesson does NOT apply.
+   **Mechanization:** REQUIRED, exactly one of three (the step-0 answer, recorded):
+     `mechanized: <the tool>` — the lesson is now enforced/eliminated by code ·
+     `none-cheap: <why>` — mechanization is not cheaply possible, the reason named ·
+     `subject-lesson` — a lesson about the subject matter; the journal is its right home.
+     An entry whose text reduces to "first A, then B" / "don't forget X before Y" is a TRAP
+     CANDIDATE BY FORM: `subject-lesson` is not available to it — it carries `mechanized:` or
+     `none-cheap: <why>`.
    ```
    - `EXP-NNNN` = next id (highest existing + 1, zero-padded).
+   - `class: <slug>` is the **unit of recurrence** — REQUIRED on its own line, right under the heading:
+     tags are free and overlap, so "the same class" was visible only to a human who read the whole
+     journal (origin issue #69: 14 of 15 failure classes recurred AFTER their lesson was written, five
+     lessons written 6–17 times in different words). Take the slug from the CLASS LIST in the journal's
+     header (`<!-- classes: … -->` or the "Lesson classes" section); a genuinely new class is legal —
+     add its slug to that list in the SAME write. Lowercase latin, digits, dashes.
    - Pick 1–3 short `#tags` **inline on the entry** (there is no central tag cloud) — reuse an existing tag
      where one fits (grep the file to see what's in use), so `grep '#tag'` collects related experiences.
    - Keep it SHORT and grep-friendly: stable id, ISO date, outcome marker, inline tags.
 3. Keep it truthful — record what actually happened, including failures.
+4. **A lesson that repeats is a lesson that failed as text.** When the same class recurs in NEW code
+   after its entry was recorded, the lesson MUST become executable (a linter rule, a guard, a gate) and
+   the entry's Mechanization field flips to `mechanized: <the tool>`. Two strikes → a mechanism, never
+   a third reminder — that deadline stands; step 0 asks the question at the FIRST capture so the
+   second burn stops being the price of asking.
+5. **Run the deadline, don't remember it:** `node .kaif/tools/kaif-experience-lint.mjs check` — a SECOND
+   failure entry of one `class:` with no `mechanized:` is a finding naming the class and both entries by
+   id. Two fates clear it, both WRITTEN: name the guard in the entry (`mechanized: <the tool>`), or
+   re-check the price once for the whole class and declare it —
+   `<!-- class-ok: <slug> — <why mechanizing it is not cheaply possible> -->` in the journal (an empty
+   declaration is itself a finding, and the declared classes are printed on the summary line: that list
+   only shrinks). A third record is never a fate;
+   it also warns when `mechanized:` names a command the project does not contain and when a slug is
+   outside the header's list. `--shrink EXP-NNNN` collapses a MECHANIZED entry to one line pointing at
+   its guard (shows by default; `--yes` writes — the text itself stays in the git history). A journal with
+   not one `class:` exits 3 = SKIPPED, said aloud: "not judged" is never "clean".
 
 ## Mode B — RECALL lessons ("recount your experience")
 
@@ -43,7 +89,9 @@ OR you are **starting a task** and want to avoid known dead ends. **Recall at th
 default** — it's cheap and prevents repeated mistakes.
 
 1. **Grep** `EXPERIENCE.md` by the task's tags/keywords: `grep -i '#loop\|context' EXPERIENCE.md`
-   (`-A4` to include the entry body), then read the matched entries.
+   (`-A4` to include the entry body), then read the matched entries. **Grep a second axis too — the
+   ACTIONS you are about to run:** `grep '#action:' EXPERIENCE.md` — a session greps by what it
+   FIXES and gets burned by what it RUNS; subject tags never surface an action lesson.
 2. **Summarize** the relevant lessons in 1–5 lines: what was tried, what worked, what to avoid — and let
    that steer the approach BEFORE writing code. If a past entry says an approach failed, don't blindly
    retry it; go the other way (or note why this time differs). Mind each entry's **Not for:** range —

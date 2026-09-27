@@ -50,3 +50,11 @@ KAIF_UPDATE_TASK.superseded.md
 # in git. The DECISIONS (interviews/decisions/) are the opposite: they are the owner's word and ARE
 # versioned. Written before the first page existed, per AGENT_GUIDE §git hygiene.
 /test-results/
+KAIF_ADAPTATION_TASK.superseded.md
+.kaif/backup-*/
+.kaif/update-journal.json
+.kaif/guarded-loop.json
+.kaif/refresh-marker.json
+.kaif/voice-marker.json
+.kaif/contour-window/
+.kaif/update-rehearsal.json

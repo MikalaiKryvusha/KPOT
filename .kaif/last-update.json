@@ -1,15 +1,196 @@
 {
-  "from": "1.6",
-  "to": "2.1",
-  "route": "legacy-bootstrap",
+  "from": "2.1",
+  "to": "2.8",
+  "route": "bootstrap",
   "counters": {
-    "replaced": 18,
-    "mergedModules": 24,
-    "added": 13,
-    "kept": 31,
+    "replaced": 31,
+    "mergedModules": 44,
+    "added": 39,
+    "kept": 28,
     "adopted": 6
   },
   "classified": true,
-  "date": "2026-08-01",
-  "verifiedAt": "2026-08-01"
+  "verdicts": {
+    "AGENT_GUIDE.md": {
+      "baseFound": 21,
+      "baseN": 21,
+      "ceiling": 3,
+      "outcome": "merged"
+    },
+    "PHILOSOPHY.md": {
+      "baseFound": 20,
+      "baseN": 20,
+      "ceiling": 3,
+      "outcome": "merged"
+    },
+    ".claude/skills/interview/SKILL.md": {
+      "baseFound": 8,
+      "baseN": 8,
+      "ceiling": 1,
+      "outcome": "merged"
+    },
+    ".claude/skills/pause/SKILL.md": {
+      "baseFound": 4,
+      "baseN": 4,
+      "ceiling": 1,
+      "outcome": "merged"
+    },
+    ".claude/skills/release/SKILL.md": {
+      "baseFound": 10,
+      "baseN": 11,
+      "ceiling": 1,
+      "outcome": "merged"
+    },
+    ".claude/skills/resume/SKILL.md": {
+      "baseFound": 4,
+      "baseN": 4,
+      "ceiling": 1,
+      "outcome": "merged"
+    }
+  },
+  "divergedModules": {
+    "AGENT_GUIDE.md": [
+      "## Before every task — checklist",
+      "### Context router (progressive loading) — read only the slice you need",
+      "### Recon artifacts — when the task has an external truth",
+      "## Goal of the project",
+      "## Architecture — the map",
+      "## Test harness (how the agent observes & drives the software)",
+      "## Git workflow",
+      "## Commits",
+      "## Push / GitHub authentication",
+      "## Tools",
+      "## Decisions the agent must NOT make alone — interviews",
+      "## Notes from the human",
+      "# kpot — AI Agent Guide",
+      "(anchored block KAIF:PRAYER)"
+    ],
+    "researches/README.md": [
+      "# `researches/` — база знаний по масштабным трудным вопросам"
+    ],
+    ".claude/skills/dayloop/SKILL.md": [
+      "## 🔁 The cycle (one iteration)"
+    ],
+    ".claude/skills/nightloop/SKILL.md": [
+      "## 🔁 The cycle (one iteration)"
+    ],
+    ".claude/skills/pause/SKILL.md": [
+      "# /pause — soft-park the chat (we continue HERE later)",
+      "## Step 3. The parking note — the chat IS the memory here"
+    ],
+    ".claude/skills/resume/SKILL.md": [
+      "## Step 1. Read ALL the canon documents of the KAIF framework (in parallel)"
+    ]
+  },
+  "newModules": {
+    "AGENT_GUIDE.md": [
+      "## 🙏 THE PRAYER BEFORE WORK",
+      "### Document taxonomy — the five tiers",
+      "### Context refresh — the re-read rule and its witness",
+      "### Environment dossier — the agent knows its machine from its own notes",
+      "### Document header meta — the first screen answers \"what is this\"",
+      "### Contours — the project's large logical modules",
+      "### Languages — routed by AUDIENCE, never by directory",
+      "### The form of an obligation — a command, a step, or a checkbox",
+      "### A leading skill word is an order — the first word of the owner's message",
+      "### The owner's word mid-turn — the system signs its author",
+      "### The storefront — text a stranger reads"
+    ],
+    "PHILOSOPHY.md": [
+      "### Code before cognition — determinism first, the model second",
+      "### The principle set is battle-tested, not sacred — propose and prune"
+    ],
+    "BUG_FIXING_FRAMEWORK.md": [
+      "## The severity ladder — the response is sized by the incident, never fixed at maximum",
+      "## The owner's debt comes first — a bug he flagged, a decision he answered"
+    ],
+    "TESTING_FRAMEWORK.md": [
+      "## What the word \"test\" means — a functional run on the real product, by the user's path",
+      "## The testing activities — the chain that makes \"tested\" mean something",
+      "## The work produces its own means of checking",
+      "## An executed run produces its report",
+      "## The agent's stand is not the owner's real world — \"done\" about production comes after the real world"
+    ],
+    ".kaif/KAIF_REFERENCE.md": [
+      "### 9.3 Renamed headings (2.7)",
+      "### 11.3 Install mode: origin by default, anonymity on request",
+      "### 12.4 The crash journal (`.kaif/update-journal.json`)",
+      "## 17. Why the canon says so (informative)",
+      "### `TESTING_FRAMEWORK.md` → What the word \"test\" means — a functional run on the real product, by the user's path",
+      "### `TESTING_FRAMEWORK.md` → The testing activities — the chain that makes \"tested\" mean something",
+      "### `TESTING_FRAMEWORK.md` → Test-status markers — the trust contract",
+      "### `TESTING_FRAMEWORK.md` → The work produces its own means of checking",
+      "### `TESTING_FRAMEWORK.md` → An executed run produces its report",
+      "### `TESTING_FRAMEWORK.md` → Green tests ≠ working — the observation gates",
+      "### `TESTING_FRAMEWORK.md` → The agent's stand is not the owner's real world — \"done\" about production comes after the real world",
+      "### `AGENT_GUIDE.md` → Task execution discipline — the fable loop",
+      "### `AGENT_GUIDE.md` → Decisions the agent must NOT make alone — interviews",
+      "### `AGENT_GUIDE.md` → Document taxonomy — the five tiers",
+      "### `AGENT_GUIDE.md` → Context refresh — the re-read rule and its witness",
+      "### `AGENT_GUIDE.md` → Languages — routed by AUDIENCE, never by directory",
+      "### `AGENT_GUIDE.md` → The form of an obligation — a command, a step, or a checkbox",
+      "### `AGENT_GUIDE.md` → A leading skill word is an order — the first word of the owner's message",
+      "### `AGENT_GUIDE.md` → The owner's word mid-turn — the system signs its author",
+      "### `AGENT_GUIDE.md` → The storefront — text a stranger reads",
+      "### `AGENT_GUIDE.md` → Backlog & the DONE tag",
+      "### `AGENT_GUIDE.md` → Git workflow",
+      "### `AGENT_GUIDE.md` → Planning discipline — the task ladder (`/plan-task` · `/plan-epic`)",
+      "### `AGENT_GUIDE.md` → Environment dossier — the agent knows its machine from its own notes",
+      "### `AGENT_GUIDE.md` → Goal of the project",
+      "### `AGENT_GUIDE.md` → Architecture — the map",
+      "### `AGENT_GUIDE.md` → Test harness (how the agent observes & drives the software)",
+      "### `AGENT_GUIDE.md` → Tools",
+      "### `AGENT_GUIDE.md` → Push / GitHub authentication"
+    ],
+    ".claude/skills/interview/SKILL.md": [
+      "### Step 3a. Every question and every option — a scenario of what the owner will see, the formula after",
+      "### Step 3b. Confused by the owner's proposal? Search → measure → ask — never \"it breaks X\" (KAIF 2.6)",
+      "### Step 3c. Check the form against the contour contract before opening the page (KAIF 2.6)",
+      "### Step 3d. Archaeology BEFORE the question — search, read, attest (KAIF 2.7)"
+    ],
+    ".claude/skills/owner-reviews/SKILL.md": [
+      "## The named class: \"handling the human's work\"",
+      "## Page elements by name (P1–P9) — one style across projects",
+      "## The executable build contract (C1–C13) — assemble by steps, don't re-invent",
+      "### Platform traps (T1–T11) — warned in advance, each paid for in the field",
+      "### Canonical defaults (DEF1–DEF8)",
+      "## Guard norms (G1–G13) — how the contour's checks are built",
+      "## The acceptance checklist (QA1–QA7) — accepting a built contour"
+    ],
+    ".claude/skills/owner-voice/SKILL.md": [
+      "## The writing contract — by the portrait, independently checked, then the owner",
+      "## Mode `check` — the machine half of the independent check"
+    ],
+    ".claude/skills/plan-epic/SKILL.md": [
+      "## Rung 2 — the meta-plan (one `plans/NN_EPIC_<name>.md`)"
+    ],
+    ".claude/skills/release/SKILL.md": [
+      "## Step 6.9. PUBLICATION GATE — open the rendered page and read the first screen WITH YOUR EYES"
+    ],
+    ".claude/skills/report-bug/SKILL.md": [
+      "## Branch first — a defect of the FRAMEWORK itself, not the project",
+      "### Template A — KAIF bug report",
+      "### Template B — KAIF improvement request",
+      "### Template C — tester's bug report (a defect of THE PRODUCT, for its developer)"
+    ],
+    ".claude/skills/resume/SKILL.md": [
+      "## Step 1b. Run the owner's queue — a command with an exit condition, not a wish"
+    ],
+    ".claude/skills/what-next/SKILL.md": [
+      "### Step 3. Answer in chat — in the FIXED FORM (KAIF 2.6, origin issue #53)"
+    ],
+    ".kaif/spheres/programming.md": [
+      "## Outward write channels → retraction command"
+    ],
+    ".kaif/spheres/_template.md": [
+      "## Outward write channels → retraction command"
+    ],
+    ".kaif/_owner-voice-template.md": [
+      "## Corpus registry",
+      "## 9. Portrait journal — how this document changed (append-only)"
+    ]
+  },
+  "translatedFiles": [],
+  "date": "2026-09-27T12:53:23+03:00",
+  "core": "d424900c5f5fe25608290c2a99c73864d146ef07e0c5c70613d3ac5e756710cd"
 }

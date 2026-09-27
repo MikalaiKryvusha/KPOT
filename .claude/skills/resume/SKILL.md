@@ -1,11 +1,16 @@
 ---
 name: resume
-description: Resume work where the last session left off — read the key project documents, decide the single most important thing to do now, announce it, and start. Use when the human says "continue", "let's continue", "what's next", "where did we leave off", "resume", "pick up where we left off", "продолжи", "продолжим", "что дальше". Trigger aliases (ru): «продолжи», «продолжим», «возобнови», «на чём мы остановились», «что дальше по работе»
+description: Resume work where the last session left off — read the key project documents, decide the single most important thing to do now, announce it, and start. Use when the human says "continue", "let's continue", "what's next", "where did we leave off", "resume", "резюм", "резюме", "pick up where we left off", "продолжи", "продолжим", "что дальше" — and ALWAYS when "resume" (or "резюм") is the FIRST word of the human's message with the task written below it: the skill runs FIRST, in full, then the task (AGENT_GUIDE.md → "A leading skill word is an order"). Trigger aliases (ru): «resume», «резюм», «резюме», «продолжи», «продолжим», «возобнови», «на чём мы остановились», «что дальше по работе»
 ---
 
 # /resume — pick up where we left off
 
 A new session starts with empty context. This skill rebuilds the picture fast and gets to work.
+
+> **The word at the top of the message is the order; the task under it waits.** A message that
+> opens with `resume` (or its Russian shorthand) and continues with a task runs THIS skill first, in full — the task
+> is read only after the Step-2 announcement (`AGENT_GUIDE.md` → "A leading skill word is an
+> order"; the mechanical half is the `prompt-resume-word.mjs` hook of the refresh-hooks module).
 
 ## Step 1. Read ALL the canon documents of the KAIF framework (in parallel)
 
@@ -47,17 +52,34 @@ retelling in chat.
 > slice" governs tasks INSIDE a session; `/resume` is the session's ENTRY point — the one full pass
 > here is exactly what makes the lazy slices safe afterwards. Never "optimize" one with the other.
 
+## Step 1b. Run the owner's queue — a command with an exit condition, not a wish
+
+Before choosing the session's direction, run the queue command of the project's interactive
+contour (the one `/owner-reviews` built — e.g. `node tools/review.mjs --queue --list`, no browser)
+and read what it prints: every waiting document shows its age and whether the owner has EVER seen
+it (contract I40–I42). The step is not complete while a waiting document reads `NEVER SHOWN`: raise
+it — the page, or a pointed question in chat with the fact recorded by `--mark-shown` — or write one
+line here saying why not (a dead document → fix its status, and it leaves the queue). Printing the
+queue is not delivering the question. The owner's word (field issue #47, a question printed by
+~40 sessions for 48 days and never once shown): "questions to the owner come in priority number
+ONE". A project without the contour runs the same step by hand: `ls interviews/` plus the status
+line of every waiting document — and the same exit condition.
+
 ## Step 2. Synthesize — choose the one main thing
 
 Pick a single direction for this session. Priority (descending):
 
+0. **The owner's debt** — his decisions awaiting application (the first section of the queue command of step 1b) and the bugs
+   he flagged come before everything below (`BUG_FIXING_FRAMEWORK.md` → "The owner's debt comes first"; KAIF 2.8, origin issue #86).
 1. **Open bugs with real symptoms** — if `STATUS.md` lists an open bug with reproducible symptoms, it's
    priority #1. Work by `BUG_FIXING_FRAMEWORK.md`.
 2. **Next item from the `STATUS.md` "where to continue" checklist** — if bugs are clear.
 3. **Next phase from `MASTER_PLAN.md`** — if the checklist is empty/done.
 
-Before starting, **tell the human in one paragraph**: what you read and the current status; what you
-picked as the main thing and why; what you're about to do right now.
+Before starting, **say the creed and the prayer aloud in the chat** (`AGENT_GUIDE.md`, the blocks
+between `KAIF:CREED` / `KAIF:PRAYER` markers — in full, no paraphrase), then **tell the human in
+one paragraph**: what you read and the current status; what you picked as the main thing and why;
+what you're about to do right now.
 
 Wait for confirmation only if the task is **destructive** or **large and non-obvious**. If the plan is
 clear — start right after the short announcement.

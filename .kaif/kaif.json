@@ -1,7 +1,7 @@
 {
   "framework": "KAIF",
-  "version": "2.1",
-  "released": "2026-07-31",
+  "version": "2.8",
+  "released": "2026-09-26",
   "origin": "https://github.com/MikalaiKryvusha/KAIF",
   "tracking": "origin",
   "sphere": "programming",
@@ -19,6 +19,14 @@
       "to": "2.1",
       "route": "legacy-bootstrap",
       "date": "2026-08-01"
+    },
+    {
+      "from": "2.1",
+      "to": "2.8",
+      "route": "bootstrap",
+      "date": "2026-09-27T12:53:23+03:00"
     }
-  ]
+  ],
+  "canonArtifacts": [],
+  "build": "106b97d7715c"
 }
