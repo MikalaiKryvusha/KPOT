@@ -220,8 +220,9 @@ Application of `PHILOSOPHY.md` to this project:
   machine and from Google completely, trash included (Q1) · isolated from the local library (Q2) · a robot in
   a separate browser window, deletion by the owner's click per batch (Q3) · everything tried on a test Google
   account first (Q4) · compression by measured quality, source fps/resolution/audio kept, 20 Mbps cap (Q5) ·
-  photos too, in AVIF (Q6) · everything is touched, HDR kept as HDR (Q7) · KPOT's own metadata and the
-  `_KPOT_OPTIMIZED` suffix (Q8) · ffmpeg installed by KPOT's own scripts at setup (Q9) · a tab for every user
+  photos too, in AVIF (Q6) · everything is touched, HDR kept as HDR (Q7) — except quota-free items (#006 Q2) ·
+  KPOT's own metadata and the `_KPOT_OPTIMIZED` suffix (Q8), a «not worth it» original replaced by a marking
+  copy with the same media data (#006 Q1) · ffmpeg installed by KPOT's own scripts at setup (Q9) · a tab for every user
   from the first release, with a plain warning about the account risk (Q10).
 - **The epic:** `plans/10_EPIC_google_photos_optimizer.md` (phases 0–7, criteria K1–K6); the prior-art review
   `researches/10_google_photos_optimizer_prior_art.md`.

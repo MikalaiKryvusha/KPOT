@@ -23,6 +23,10 @@ Phase 2 builds the engine against facts and the owner's own account is never the
   tool downsizes to 16 MP / 1080p, which R5 rules out; row 9 (the composition of the owner's own library) is
   deferred to Phase 4, because nothing reads his account before Phase 1's numbers (R4). Row 14 (the ffmpeg
   licence for R9) is a desk task inside this phase.
+- **P1b.** The marking-copy path of K2 (interview #006, Q1 = B) rests on three unknowns, each measured: a
+  per-format rewrite of the name and KPOT's metadata that keeps every media stream byte-identical; whether Google
+  keeps such an upload as a DISTINCT item next to the original or de-duplicates it; whether the stream hashes
+  survive the round trip (upload → download).
 - **P2.** Each of the five engineering forks of the epic §7 carries a `FORK: options · price of error · consulted`
   line, closed by a measurement from P1.
 - **P3.** The calibrated thresholds exist as numbers: a VMAF floor for video and an SSIMULACRA2 floor for photos,
@@ -43,6 +47,11 @@ Phase 2 builds the engine against facts and the owner's own account is never the
   (`©xyz`, `location.ISO6709`) and an XMP packet into MP4/MOV; can ImageMagick/`avifenc`-class tools carry
   EXIF/XMP into AVIF; is exiftool needed (not installed — record the fact, do not install without the fork).
   Verify: round-trip on synthetic files, printed field by field. Anchor: epic §7 «Чем писать метаданные».
+- [ ] **2b. Marking-copy rewrite (unblocked).** Per format (MP4/MOV HEVC and H.264, 3GP, AVI, JPEG, HEIC, PNG,
+  AVIF): write the `_KPOT_OPTIMIZED` name and KPOT's metadata without touching the media; prove it with per-stream
+  hashes before/after (`ffmpeg -map 0 -c copy -f streamhash -`; for images the decoded pixels' hash) and a
+  different whole-file hash. A format where the write is a silent no-op is recorded. Anchor: epic K2 «копия-пометка
+  … хеш файла копии не равен хешу оригинала, метаданные KPOT прочитаны обратно».
 - [ ] **3. The test-account intake (blocked on the homework).** The owner signs into the test account in a
   separate browser window with its own profile (never his daily profile — `researches/10` §2a). Observe and
   record: the sign-in succeeds or is blocked; how long the session lives; which download path returns the
@@ -52,6 +61,9 @@ Phase 2 builds the engine against facts and the owner's own account is never the
   HEVC-HDR, VFR slow-mo, AVIF, AVIF-with-gain-map, a Motion Photo rebuild); download it back; record what the
   Google UI shows (date, place, HDR badge, slow-mo, motion) and which metadata and the file name survived.
   Anchor: epic §4 row 1 «какие метаданные и имена переживают загрузку, играются ли HEVC-HDR и AVIF».
+- [ ] **4b. Marking copy in the cloud (blocked).** Upload a 2b copy NEXT TO its original (both present): a
+  distinct item (IDs differ) or de-duplicated; download it back — stream hashes equal to the original's, file name
+  kept? Anchor: epic K2 «отдельный элемент Google … данные сверяются по копии, скачанной обратно из Google».
 - [ ] **5. Trash semantics (blocked).** On the test account: «delete forever» of ONE chosen item in the trash
   leaves the two items the owner trashed himself untouched (homework step 3); how the quota figure moves and
   when. Anchor: epic §4 row 1 «как устроено «удалить навсегда» для отдельных элементов корзины»; R1's `[AI]` reading.
