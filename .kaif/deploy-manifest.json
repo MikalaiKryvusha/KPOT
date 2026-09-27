@@ -4126,8 +4126,8 @@
     ".claude/skills/resume/SKILL.md"
   ],
   "values": {
-    "<PROJECT_NAME>": "kpot",
-    "<SHORT_NAME>": "kpot",
+    "<PROJECT_NAME>": "KPOT",
+    "<SHORT_NAME>": "KPOT",
     "<AUTHOR>": "Mikalai Kryvusha",
     "<REPO_URL>": "https://github.com/MikalaiKryvusha/KPOT.git",
     "<LOCAL_PATH>": "D:\\work\\ai_sandbox\\KPOT",
@@ -4161,6 +4161,7 @@
       }
     ],
     "canonArtifacts": [],
-    "build": "106b97d7715c"
+    "build": "106b97d7715c",
+    "projectName": "KPOT"
   }
 }

@@ -13,7 +13,7 @@ status "awaiting approval" and is **NOT implemented until the human approves it*
 
 - An idea arises that moves the project toward the goals in `MASTER_PLAN.md`/`PHILOSOPHY.md` and doesn't
   contradict the human's vision.
-- **The OWNER tossed an idea into the chat mid-task** (drive-by, idea 17 §2): file it immediately with
+- **The OWNER tossed an idea into the chat mid-task** (the drive-by rule, `AGENT_GUIDE.md`): file it immediately with
   the source noted in the header ("tossed by the owner, <date>"), confirm in one chat line, return to
   the interrupted task. An owner-tossed idea needs no approval gate (it IS the owner's) — but it waits
   its turn in the backlog unless the owner explicitly says "switch to it now".
@@ -38,11 +38,13 @@ status "awaiting approval" and is **NOT implemented until the human approves it*
    > Source: AI agent (dayloop/nightloop/observation), <date>.
    > Status: ❓ AWAITING HUMAN APPROVAL — an agent idea = an element of the vision; not implemented without approval.
 
+   ## Goal vector — the pain it solves + how we check
+   <what pain/opportunity, for whom, and where we want to be; acceptance criteria — how we will
+   OBSERVE that the idea worked (REQUIREMENTS_FRAMEWORK.md) — as fit-criterion lines or as
+   four-line scenarios: Situation · Action · Result · Check; both may change as the work teaches>
+
    ## Essence
    <what is proposed, briefly>
-
-   ## Why / what problem it solves
-   <the pain/opportunity; for whom>
 
    ## How it fits the master plan and vision
    <clear tie to master_plan / accepted decisions — why it's "on track", not sideways>

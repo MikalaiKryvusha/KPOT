@@ -30,18 +30,21 @@ well-structured explanation they can read and act on.
    files in the repo so no session starts from zero. One line on why it's useful here.
 
 2. **The key documents — what to read/keep, and who owns each.** Briefly, as a list:
-   `AGENT_GUIDE.md` (the canon), `PHILOSOPHY.md` (how the agent thinks), `BUG_FIXING_FRAMEWORK.md`,
+   `AGENT_GUIDE.md` (the canon), `PHILOSOPHY.md` (how the agent thinks), `REQUIREMENTS_FRAMEWORK.md` +
+   `TESTING_FRAMEWORK.md` + `BUG_FIXING_FRAMEWORK.md` (requirements shape, testing compares,
+   bug-fixing closes the gap),
    **`GOAL.md`** (the owner's vision — *your* document), `STATUS.md` (the living summary of now),
    `PROJECT_HISTORY.md` (the chronicle — archaeology on demand), `MASTER_PLAN.md`
    (roadmap), the external & internal maps, `KAIF_FRAMEWORK.md` (this "what's deployed" summary).
 
 3. **The directories — where knowledge lives, and where the owner acts.** `plans/`, `ideas/` (mostly
-   yours), `bugs/`, `researches/`, `interviews/` (you answer here), `homeworks/` (tasks for you). Mention
-   the DONE-tag convention in one line.
+   yours), `bugs/`, `researches/`, `interviews/` (you answer here), `homeworks/` (tasks for you),
+   `reports/` (the agent's field and audit reports; KAIF update/install reports are mandatory there).
+   Mention the DONE-tag convention in one line.
 
 4. **The skills — the commands you type.** List them grouped, each with a one-line purpose — build the
    groups from the ACTUAL skills inventory (never this example verbatim): session (`/resume`, `/pause` —
-   soft-park, the chat continues, `/end-chat` — full wrap-up with a handoff), autonomy (`/autoloop`,
+   soft-park, the chat continues, `/end-chat-soft` — full unhurried wrap-up with a handoff, `/end-chat-force` — the urgent capture-and-go closure), autonomy (`/autoloop`,
    `/dayloop`, `/nightloop`, `/guarded-loop`), hygiene (`/refresh-context`, `/check-backlog`), knowledge & memory
    (`/report-bug`, `/bug-research`, `/propose-idea`, `/experience`), owner (`/interview`, `/fix-vision`,
    `/what-next`, `/owner-voice`, `/owner-reviews`), planning (`/plan-task`, `/plan-epic`, `/revision`),
@@ -52,10 +55,11 @@ well-structured explanation they can read and act on.
 
 5. **How a normal workflow looks.** A short example: *"`/resume` to start → I work and keep `STATUS.md`
    current → you drop ideas in `ideas/` or answer an `/interview` → `/pause` to break off (the chat
-   continues later) or `/end-chat` to close the chat with a handoff."* Note the human's role (visionary:
+   continues later) or `/end-chat-soft` to close the chat with a handoff (`/end-chat-force` when it must close right now)."* Note the human's role (visionary:
    `GOAL.md`, ideas, interview answers) vs. the agent's (executor).
 
-6. **Where to go deeper.** Point to `KAIF_FRAMEWORK.md` and `AGENT_GUIDE.md` for the full detail.
+6. **Where to go deeper.** Point to `.kaif/KAIF_REFERENCE.md` (the authoritative framework
+   reference — first), then `KAIF_FRAMEWORK.md` and `AGENT_GUIDE.md` for the full detail.
 
 ## Notes
 - This is a **read-and-explain** skill — don't edit files, don't deploy, don't change state.

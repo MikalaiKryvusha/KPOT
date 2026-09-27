@@ -33,6 +33,7 @@ Application of `PHILOSOPHY.md` to this project:
 
 ### Phase 0 — Foundation ✅
 - **Goal of the phase:** a repo an autonomous agent can work in.
+<!-- KAIF-VERSION-OK: historical — the version deployed at Phase 0 (2026-07-24) -->
 - **Steps:** `GOAL.md` from the owner · KAIF 1.5 deployed · public MIT repo on GitHub · docs adapted
   (canon, maps, this plan) · `npm test` gate wired.
 - **Status:** ✅ done 2026-07-24.
@@ -215,6 +216,13 @@ Files are no longer scattered "как попало": the owner opens the library
 season. The measure is his, not ours — `GOAL.md`, closing paragraph.
 
 ## Decision log
+
+Stamped, one line each: significant decisions and why — so a future session doesn't relitigate them.
+Since KAIF 2.8 (2026-09-27) a NEW row's stamp is a MOMENT: date AND time in the owner's local clock
+(`YYYY-MM-DD HH:MM +03:00`); decided and recorded are two moments — tell them apart when they differ,
+and write an honest `≈` rather than an invented minute. Every row names its author: `[OWNER]` with his
+verbatim words or the interview address, `[AI]` for the agent's own call (`AGENT_GUIDE.md` →
+"Authorship of a decision"). Older rows carry the date only, as they were written.
 
 | Date | Decision | Why |
 |------|----------|-----|

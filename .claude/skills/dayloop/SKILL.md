@@ -54,7 +54,7 @@ when the current one is exhausted (see step 8).
      alone) — don't do them blind: file the question in `interviews/interview_NNN_*.md` (`/interview`)
      AND mark `STATUS.md` "❓ awaiting human review: …". Then take ANOTHER task and continue.
    - If a task needs **human actions** (test on real hardware, external accounts) — file **homework** in
-     `plans/homework_*.md` and move on.
+     `homeworks/` and move on.
 3. **Do it**: code → gate (no build step — run `npm test`) → run → test on the harness (`npm test` + `node bin/kpot.mjs <phase>` over `tests/fixtures/`),
    verify objectively. Use the high-level harness commands; if one is missing, do it the low-level way,
    then ADD a command to the harness so next time it's one step. Execute the item by the fable loop

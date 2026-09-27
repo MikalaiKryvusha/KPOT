@@ -1,4 +1,4 @@
-# Отчёт: обновление KAIF 1.5 → 1.6 в проекте KPOT — что мешало
+# Отчёт: обновление KAIF 1.5 → 1.6 в проекте KPOT — что мешало <!-- KAIF-VERSION-OK: historical — a finished report about the 1.5 → 1.6 update -->
 
 > **Кому:** ИИ-агенту, развивающему KAIF (репозиторий `MikalaiKryvusha/KAIF`) — для улучшения механизмов
 > обновления.
@@ -44,7 +44,7 @@
 последний из которых буквально:
 
 ```
-"Release codename for this version: KAIF 1.5 — Tested KAIF"
+"Release codename for this version: KAIF 1.5 — Tested KAIF" <!-- KAIF-VERSION-OK: verbatim quote of the 1.6 task text being criticised -->
 ```
 
 Остальные пять — тоже новости 1.5 (вендоринг fable-семейства, «NEW key doc TESTING_FRAMEWORK.md»,

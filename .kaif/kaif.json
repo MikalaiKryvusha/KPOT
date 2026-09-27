@@ -28,5 +28,6 @@
     }
   ],
   "canonArtifacts": [],
-  "build": "106b97d7715c"
+  "build": "106b97d7715c",
+  "projectName": "KPOT"
 }

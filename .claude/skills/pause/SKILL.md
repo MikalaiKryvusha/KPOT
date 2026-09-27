@@ -6,8 +6,8 @@ description: SOFT-PARK the current chat — a temporary pause with the intent to
 # /pause — soft-park the chat (we continue HERE later)
 
 A temporary pause, not a goodbye: the human intends to come back to THIS chat and continue. The whole
-point is a **cheap, precise parking** — no heavyweight rituals. The heavy closure — `STATUS.md`,
-commits, pushes, handing the baton to other agents — is `/end-chat`, a different skill.
+point is a **cheap, precise parking** — no heavyweight rituals. (The heavy closure — STATUS, commits,
+pushes, handing over to other agents — is `/end-chat-soft` (or the urgent `/end-chat-force`), a different skill.)
 
 ## Step 1. Reach a logical stopping point — never park mid-surgery
 
@@ -29,14 +29,14 @@ Do NOT start anything new.
 Post one compact note in the chat:
 - **Where we stand:** what just got finished and verified (one line per item).
 - **Exactly where to resume:** the next concrete action, with file/command names — written so that
-  "продолжаем"/"continue" picks up with zero re-derivation.
+  a bare "continue" (in any language the owner speaks) picks up with zero re-derivation.
 - Anything time-sensitive the human should know before they leave.
 
 Then stop. No further actions, no background work.
 
 **For KPOT specifically:** "green" in step 1 means `npm test` passes — there is no build step (pure
 Node ESM), so `npm run build` does not exist and must not be invented. That is the whole gate for a
-soft park; everything heavier (README, `STATUS.md`, the push) belongs to `/end-chat`.
+soft park; everything heavier (README, `STATUS.md`, the push) belongs to `/end-chat-soft`.
 
 ## Notes
 

@@ -13,6 +13,7 @@
 >
 > ```
 > ### EXP-0001 · 2026-01-01 · ✅ · #tag #area
+> class: <slug from the class list below — the UNIT OF RECURRENCE>
 > **Context:** one line — what was being done.
 > **Tried / did:** the approach, briefly.
 > **Result:** ✅/❌ — what happened.
@@ -34,6 +35,27 @@
 > Two strikes → a mechanism, never a third reminder. On KPOT the live candidate is **EXP-0027**
 > (text through files): it has already fired twice, and its mechanization would be a pre-commit grep
 > for non-ASCII inside `-c`/`-m` shell arguments.
+>
+> **The deadline is RUN, not remembered** (KAIF 2.7): `node .kaif/tools/kaif-experience-lint.mjs check`
+> reads the `class:` field as the UNIT of recurrence and reddens on the SECOND failure entry of one class
+> with no `mechanized:`, naming the class and both entries by id. Two fates clear it, both WRITTEN: name
+> the guard in the entry (`mechanized: <the tool>`), or re-check the price once for the WHOLE class and
+> declare it — `<!-- class-ok: <slug> — <why it is not cheaply possible> -->`. A third record is never a
+> fate. `--shrink EXP-NNNN` collapses a MECHANIZED entry to one line pointing at its guard. The command
+> belongs in the closing ritual (`/end-chat-soft`). Entries before EXP-0031 predate the field (adopted
+> 2026-09-27 with KAIF 2.8) — the linter folds them into one line; classify them from the newest end
+> when you touch them.
+>
+> **The class list of this journal** — a CONTROLLED list, not a closed one: pick a slug from it, and
+> when a lesson genuinely brings a new class, add the slug here in the same write. The first eleven are
+> the origin's measured starter list; the rest are KPOT's own.
+>
+> <!-- classes: question-already-answered, guard-not-proven-against-threat, shown-as-link,
+>      claim-before-evidence, owner-decision-not-applied, text-in-agents-world,
+>      etalon-from-dirty-tree, shell-lied, escaping-layer, twins-missed,
+>      field-dropped-in-rebuild, second-run-blind-spot, face-never-seen, owner-identity-decided-by-agent,
+>      measurement-generalised-from-atypical-case, framework-migration -->
+>
 >
 > The `#tags` are **trigger-tags**: before a task, grep by the task's tags and QUOTE the relevant
 > lessons in your report (id + one line) — or state "no relevant lessons". An unquoted recall is

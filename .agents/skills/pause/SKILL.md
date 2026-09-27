@@ -1,13 +1,13 @@
 ---
 name: pause
-description: SOFT-PARK the current chat — a temporary pause with the intent to CONTINUE IN THIS SAME CHAT. Bring the task in flight to a logical stopping point, verify the tree is green, park neatly WITHOUT the heavy wrap-up (no push, no STATUS/README ceremony) and post a precise parking note in the chat. Use when the human says "pause", "park it", "hold on, back soon", "пауза", "припаркуйся", "прервёмся ненадолго". For the FULL session closure (STATUS, commits, pushes, handoff to other chats) use /end-chat instead. Trigger aliases (ru): «пауза», «сделаем паузу», «припаркуйся», «прервёмся ненадолго»
+description: SOFT-PARK the current chat — a temporary pause with the intent to CONTINUE IN THIS SAME CHAT. Bring the task in flight to a logical stopping point, verify the tree is green, park neatly WITHOUT the heavy wrap-up (no push, no STATUS/README ceremony) and post a precise parking note in the chat. Use when the human says "pause", "park it", "hold on, back soon", "пауза", "припаркуйся", "прервёмся ненадолго". For the FULL session closure (STATUS, commits, pushes, handoff to other chats) use /end-chat-soft (unhurried) or /end-chat-force (urgent) instead. Trigger aliases (ru): «пауза», «сделаем паузу», «припаркуйся», «прервёмся ненадолго»
 ---
 
 # /pause — soft-park the chat (we continue HERE later)
 
 A temporary pause, not a goodbye: the human intends to come back to THIS chat and continue. The whole
-point is a **cheap, precise parking** — no heavyweight rituals. The heavy closure — `STATUS.md`,
-commits, pushes, handing the baton to other agents — is `/end-chat`, a different skill.
+point is a **cheap, precise parking** — no heavyweight rituals. (The heavy closure — STATUS, commits,
+pushes, handing over to other agents — is `/end-chat-soft` (or the urgent `/end-chat-force`), a different skill.)
 
 ## Step 1. Reach a logical stopping point — never park mid-surgery
 
@@ -20,7 +20,7 @@ Do NOT start anything new.
 
 - If the tree is green and carries uncommitted work: make a **local commit without pushing**
   (`wip: <what> — soft parking` + your standard co-author trailer). A local commit costs nothing
-  and survives a crash; a push is a session-closure act and belongs to `/end-chat`.
+  and survives a crash; a push is a session-closure act and belongs to `/end-chat-soft` / `/end-chat-force`.
 - Do NOT update `STATUS.md`, README or other status documents — that ceremony is exactly what this
   skill exists to skip. The parking note in the chat (step 3) is the continuation medium.
 
@@ -29,18 +29,21 @@ Do NOT start anything new.
 Post one compact note in the chat:
 - **Where we stand:** what just got finished and verified (one line per item).
 - **Exactly where to resume:** the next concrete action, with file/command names — written so that
-  "продолжаем"/"continue" picks up with zero re-derivation.
+  a bare "continue" (in any language the owner speaks) picks up with zero re-derivation.
 - Anything time-sensitive the human should know before they leave.
 
 Then stop. No further actions, no background work.
 
 **For KPOT specifically:** "green" in step 1 means `npm test` passes — there is no build step (pure
 Node ESM), so `npm run build` does not exist and must not be invented. That is the whole gate for a
-soft park; everything heavier (README, `STATUS.md`, the push) belongs to `/end-chat`.
+soft park; everything heavier (README, `STATUS.md`, the push) belongs to `/end-chat-soft`.
 
 ## Notes
 
-- The difference in one line: **/pause = the chat continues later; /end-chat = the chat says goodbye.**
+- The family in one line: **/pause = the chat continues later; /end-chat-soft = finish properly, then say goodbye; /end-chat-force = capture the essentials and say goodbye right now.**
+- The RETURN from a pause is a refresh trigger (`AGENT_GUIDE.md` → Context refresh): before resuming
+  the parked work, re-read the re-read core and update the witness (marker + quote) — the parking
+  note says WHERE to continue; the refresh makes sure you continue by the CURRENT canon.
 - If the pause unexpectedly becomes permanent (the human never returns to this chat), nothing is
   lost: the local commit holds the work, and the next session's `/resume` reads the tree and
   `git log` as usual.

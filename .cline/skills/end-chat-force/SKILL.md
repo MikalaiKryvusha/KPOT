@@ -32,8 +32,14 @@ move) instead of finishing it — naming survives, rushing corrupts.
 
 Commit through the project's staging gate and push:
 
-`<Use your commit tool/flow. If you have one (e.g. tools/commit.mjs that bumps build, adds, commits,
-pushes), run it. Otherwise: git add -A && git commit -m "..." && git push.>`
+KPOT has no commit tool and no build step — plain git on `main`, after `npm test`:
+
+```bash
+npm test && git diff --stat && git add -A && git commit -m "..." && git push origin main
+```
+
+End the message with `Co-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>` (the model
+actually doing the work).
 
 If the build is known-broken, say so IN the commit message (`wip:` prefix) — an honest broken
 state beats a silently lost one. If a push is rejected (non-fast-forward) — `git pull --rebase`,

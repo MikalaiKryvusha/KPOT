@@ -326,8 +326,8 @@ These are distilled from `EXPERIENCE.md` (grep it by tag before a task — it is
 | `researches/01…04` | prior art · the real archive survey · the first real run · sidecars |
 | `plans/` `bugs/` `ideas/` `interviews/` | the backlog. A `DONE` in the filename means closed |
 
-**Framework note for whoever picks this up:** the repo is wrapped in **KAIF 2.1 «Strong KAIF»**
-(updated from 1.6 on 2026-08-01; skills under `.claude/skills/`, mirrored to four other agent
+**Framework note for whoever picks this up:** the repo is wrapped in **KAIF 2.8 «Noble KAIF»**
+(updated 1.6 → 2.1 on 2026-08-01 and 2.1 → 2.8 on 2026-09-27, each on the owner's direct order; skills under `.claude/skills/`, mirrored to four other agent
 systems). **Do not propose or perform a KAIF update** — the owner stated on 2026-07-28 that he runs
 framework updates himself («я сам веду обновления КАИф»), so a newer release existing is not a task
 and not a backlog item. The 1.6 → 2.1 migration happened only because he ordered it outright

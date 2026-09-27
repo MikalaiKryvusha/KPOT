@@ -15,47 +15,55 @@ A new session starts with empty context. This skill rebuilds the picture fast an
 ## Step 1. Read ALL the canon documents of the KAIF framework (in parallel)
 
 **Read every canon document — the full set, not a slice.** A session that skips one resumes with a
-hole exactly there; owners kept having to re-order the full pass by hand (idea 17 §1):
+hole exactly there; owners kept having to re-order the full pass by hand:
 
 - `STATUS.md` — current state, what's in progress, the "where to continue" checklist
 - `AGENT_GUIDE.md` — the rules for working on this project (the canon)
 - `PHILOSOPHY.md` — how the agent thinks: KISS + Occam and the wider principle set
 - `BUG_FIXING_FRAMEWORK.md` — how defects are fixed here
 - `TESTING_FRAMEWORK.md` — nothing raw is trusted: the `[NOT-TESTED]`/`[TESTED]` contract
+- `REQUIREMENTS_FRAMEWORK.md` — how requirements and acceptance criteria are written and checked
 - `GOAL.md` — the owner's vision
 - `MASTER_PLAN.md` — the long-term plan and phases
 - `PROJECT_STRUCTURE_EXTERNAL_MAP.md` — external map: modules, files, data flow
 - `PROJECT_ARCHITECTURE_INTERNAL_MAP.md` — internal map: abstractions and interactions
 - `KAIF_FRAMEWORK.md` — the deployment record: which KAIF is deployed here and how
+- **If the project has one:** `HOUSE_RULES.md` — the owner's standing rules and the systems, stands, routes and tools of this project (tier 4 — read at entry, not part of the re-read core; the condition comes first, so `check` does not demand the file)
 - `EXPERIENCE.md` — recall relevant lessons (grep by the task's tags) so you don't repeat a known dead end
 
 If relevant to open questions:
 - `bugs/` — `ls bugs/`, open the non-`DONE` bugs
 
-**Then RUN the owner's-queue check — a command, not a glance:**
+**Then RUN the owner's-queue check — a command, not a glance** (KPOT's own guard, next to step 1b):
 
 ```bash
-npm run review:guard      # both halves: new place-of-questions violations · who waits · STALE statuses
+npm run review:guard      # new place-of-questions violations outside interviews/ · who waits · STALE statuses
 ```
 
-This is what makes the place-of-questions rule a gate instead of a paragraph. It exists because the
-rule is broken by agents who KNOW it, and because a document whose status still shouts «ЖДЁТ» after
-the owner answered makes the next session wait for what was given days ago — which is exactly what
-it found on this project the day it was written (interviews #002 and #003, six and three days
-stale). Anything waiting → open it as a PAGE (`node tools/review.mjs open <doc>`), never as a
-retelling in chat.
+It makes the place-of-questions rule a gate instead of a paragraph: a document whose status still shouts
+«ЖДЁТ» after the owner answered makes the next session wait for what was given days ago (it found exactly
+that the day it was written). Anything waiting → open it as a PAGE with the shipped contour (step 1b), never
+as a retelling in chat.
 
 > `PROJECT_HISTORY.md` (the chronicle) is deliberately NOT in this set — it is the project's past,
 > not its now. Open it on demand when you need the archaeology of a decision or an old phase.
+
+> **This list is guarded.** `node .kaif/kaif-core.mjs check` warns BY NAME when one of the nine
+> re-read core documents (`AGENT_GUIDE.md` → Document taxonomy, tier 1) is missing from the bullets
+> above. Put the bullet back; never silence the line.
 
 > **Boundary with the context router** (`AGENT_GUIDE.md`): the router's "read only the relevant
 > slice" governs tasks INSIDE a session; `/resume` is the session's ENTRY point — the one full pass
 > here is exactly what makes the lazy slices safe afterwards. Never "optimize" one with the other.
 
+The full pass IS a context refresh (`AGENT_GUIDE.md` → Context refresh): on completing it, rewrite
+`.kaif/refresh-marker.json` (trigger `ritual:/resume`); the Step-2 announcement doubles as the
+quote-acceptance when it cites at least one concrete line from the read — quote it.
+
 ## Step 1b. Run the owner's queue — a command with an exit condition, not a wish
 
 Before choosing the session's direction, run the queue command of the project's interactive
-contour (the one `/owner-reviews` built — e.g. `node tools/review.mjs --queue --list`, no browser)
+contour (on KPOT the shipped one — `node .kaif/tools/contour/review.mjs --queue --list`, no browser)
 and read what it prints: every waiting document shows its age and whether the owner has EVER seen
 it (contract I40–I42). The step is not complete while a waiting document reads `NEVER SHOWN`: raise
 it — the page, or a pointed question in chat with the fact recorded by `--mark-shown` — or write one

@@ -13,7 +13,7 @@
 >   and *"does a newcomer still read the whole file in one sitting?"* Soft target **~200 lines** —
 >   a warning, not a wall, but crossing it means a trim is overdue.
 > - **Closed work is MOVED OUT, not accumulated:** when a phase/session entry stops being "now", it
->   moves VERBATIM into `PROJECT_HISTORY.md`. `/end-chat` carries the "bonsai trim" step for exactly
+>   moves VERBATIM into `PROJECT_HISTORY.md`. `/end-chat-soft` carries the "bonsai trim" step for exactly
 >   this; `/pause` stays ceremony-free by design.
 > - **Leave the file the way you'd want to find it:** what works, what's in progress, what's next,
 >   the pitfalls, and WHERE TO LOOK for detail — pointers, not retellings.
@@ -23,7 +23,7 @@
 
 Phases 0–6.6, every session from 2026-07-24 to 2026-07-30, releases 0.1 «First KPOT» and 0.2
 «Obvius», and the closed-bug roll moved VERBATIM to `PROJECT_HISTORY.md` on 2026-08-01 (the
-bonsai trim of KAIF 2.1: STATUS is the summary of NOW, ~200-line soft target; the chronicle is
+bonsai trim of KAIF 2.1 <!-- KAIF-VERSION-OK: historical — the trim was done under 2.1 -->: STATUS is the summary of NOW, ~200-line soft target; the chronicle is
 not required reading and is opened only for archaeology).
 
 **The state it left behind, in one paragraph:** every phase of the product is implemented and

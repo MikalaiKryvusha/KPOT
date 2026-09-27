@@ -1,0 +1,55 @@
+{
+  "_kaif_hooks": "Модуль refresh-hooks KAIF 2.8 (.kaif/hooks/README.md). Подключён 2026-09-27 при обновлении KAIF 2.1 → 2.8 по слову владельца в чате: «обнови версию KAIF до 2.8, принимай все новинки, которые приносит КАИФ». Отличие от .kaif/hooks/settings-fragment.json: команда одной строкой вместо полей command+args — документированная схема хуков Claude Code поля args не содержит (так же подключено в соседнем проекте ndim на этой машине). Выключатель хука ответа на слово владельца — переменная окружения KAIF_OWNER_WORD_GATE=off.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "compact|clear",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.kaif/hooks/session-start-refresh.mjs\"",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.kaif/hooks/prompt-refresh-timer.mjs\"",
+            "timeout": 15
+          },
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.kaif/hooks/prompt-resume-word.mjs\"",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.kaif/hooks/pretool-owner-word.mjs\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.kaif/hooks/stop-status-guard.mjs\"",
+            "timeout": 15
+          }
+        ]
+      }
+    ]
+  }
+}

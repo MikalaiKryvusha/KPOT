@@ -52,6 +52,18 @@ this closure pays it: run what was skipped and remove the line.
 If the project keeps a **truth↔mirror pairs registry**, run its check commands before handing
 over — a handover across a drifted pair hands the next session a lie.
 
+**Run the owner's-queue check before the handover leaves** (KPOT):
+
+```bash
+npm run review:guard                                   # new place-of-questions violations · who waits · STALE statuses
+node .kaif/tools/contour/review.mjs --queue --list     # who waits · the owner's debt (answered, not yet applied)
+```
+
+A handover over an unanswered question nobody noticed, or over a document whose status lies about
+waiting, costs the next session days. Anything waiting → raise it as a page
+(`node .kaif/tools/contour/review.mjs interviews/<doc>.md`, background) before you close, or say plainly
+in the handover that it waits.
+
 **The bonsai trim (STATUS is a summary, not a chronicle):** entries that stopped being "now" —
 closed phases, finished sessions, shipped releases — move VERBATIM into `PROJECT_HISTORY.md`
 (newest on top; move, don't rewrite). Then re-read what remains of `STATUS.md` with the two tests
@@ -99,22 +111,29 @@ is bilingual, keep both languages in sync. Don't invent — reflect only what is
 
 ### Step 3. (Re)build / regenerate artifacts
 
-`<Run the project build and any artifact regeneration (e.g. a rendered README.pdf). For this framework's
-own project: `node tools/build-framework.mjs` regenerates KAIF.md, and `node tools/readme-pdf.mjs`
-regenerates README.pdf.>` If a build fails, stop and show the errors — don't commit broken state.
+**KPOT has NO build step** — it is plain Node ESM, sources run as written. `npm run build` does not
+exist; do not invent it. The equivalent gate is **`npm test`** (`node --test`), and it must pass. If
+it fails, stop and show the errors — don't commit broken state.
+
+The one regenerable artifact is the portable Windows ZIP (`npm run package` + `npm run package:verify`),
+and it is a **release** concern, not a chat-closure one — rebuild it only when this chat actually
+touched packaging. `npm run package` runs from PowerShell ONLY (EXP-0027: GNU tar reads `D:\…` as a
+remote host).
 
 ### Step 4. Commit and push (judge first)
 
 Run a `/fable-judge` pass over this chat's finished claims before pushing (the canon: a judge pass
-precedes every push). Then:
+precedes every push). Then use plain git, on `main` (no feature branches) — KPOT has no commit tool:
 
-`<Use your commit tool/flow. If you have one (e.g. tools/commit.mjs that bumps build, adds, commits,
-pushes), run it. Otherwise: git add -A && git commit -m "..." && git push.>`
+```bash
+git diff --stat          # of the set that is ACTUALLY LEAVING — anything you did not intend: STOP and explain
+git add -A && git commit -m "..." && git push origin main
+```
 
 Message style (from `AGENT_GUIDE.md`): `feat:` / `fix:` / `docs:` / `refactor:` / `ci:` + one line.
 End the message with your standard co-author trailer, e.g.:
 ```
-Co-Authored-By: <YOUR AGENT/MODEL> <YOUR AGENT'S noreply EMAIL>
+Co-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>
 ```
 
 ### Step 5. The farewell report

@@ -44,7 +44,7 @@ Until one fires — don't stop, don't wait for confirmations, work.
 2. **Pick ANY backlog task.** Sources & priority as in `/dayloop` (finish started > bugs/polish > new ideas).
    - Make technical/implementation decisions yourself.
    - ONLY brand/UX/architecture-defining decisions — file an `/interview` + mark `STATUS.md`, take another task.
-   - Tasks needing human actions (real hardware, external accounts) — file homework in `plans/homework_*.md`.
+   - Tasks needing human actions (real hardware, external accounts) — file homework in `homeworks/`.
 3. **Do it**: code → gate (no build step — run `npm test`) → run → test on the harness (`npm test` + `node bin/kpot.mjs <phase>` over `tests/fixtures/`),
    verify objectively. High-level harness commands first; if missing, do it low-level then ADD the command.
    Execute the item by the fable loop (`/fable-method`; `/fable-loop` for substantive items) — its gates

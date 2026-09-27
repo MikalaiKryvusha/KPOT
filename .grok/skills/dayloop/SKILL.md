@@ -16,18 +16,23 @@ This is the "working-hours" variant of `/nightloop`: same execution discipline a
 ## 🛑 STOP CONDITIONS (check at the START of each iteration)
 
 Stop the loop ONLY if one of:
-1. **The human wrote in the chat — classify before you switch** (idea 17 §2): a direct request or
+1. **The human wrote in the chat — classify before you switch** (the drive-by rule, `AGENT_GUIDE.md`): a direct request or
    question → exit the loop immediately, switch to them; a **drive-by idea/bug NOT about the current
    task** → capture it as a document right away (`/propose-idea` / `/report-bug`, source noted:
    "tossed by the owner"), confirm in one chat line and CONTINUE the loop; vision-level →
-   `/fix-vision`, then continue.
+   `/fix-vision`, then continue. A message delivered MID-TURN is the same word — the system signs its author (`AGENT_GUIDE.md` → "The owner's word mid-turn"): "stop" ends the loop in this turn; "switch" writes a `PARKED:` line in `STATUS.md` first.
 2. **ONLY a truly critical error** that can't be worked around autonomously and makes continuing
    impossible in principle (toolchain hopelessly broken; repo in an unresolvable state). This is RARE.
    ❗ **Non-critical errors are NOT a stop condition — just keep working:** a failed build (fix it), a
    flaky connection (reconnect), a bug in the software (file it and fix or defer), a hard/unclear task
    (take another), a crash (investigate/fix). These are normal working situations.
+3. **The owner NAMED an end time when starting this run** ("work until 11", "for an hour") and it
+   has arrived → **start `/end-chat-soft`**; until that time — normal pace, no early finish out of
+   deadline fear (`AGENT_GUIDE.md` → Working until a named time). At the start of each iteration take the clock by a probe (`date '+%Y-%m-%d %H:%M %z'`), never by feel; before any closing
+   ceremony print `BOUNDARY: now <that probe> · named <the owner's time> · pool <empty | N items>` — the clock decides (origin issue #96).
 
-⚠️ **No time-stop, no pauses, no time checks.** Unlike the night loop, don't stop at any hour and don't
+⚠️ **No time-stop, no pauses, no time checks** (unless the owner named an end time — condition 3).
+Unlike the night loop, don't stop at any hour and don't
 look at the clock. Work **CONTINUOUSLY**: finished one — take the next. Don't pause, don't wait for
 confirmations, don't schedule big "wake up later" gaps. The only stop is a stop condition above. A
 **short** `ScheduleWakeup` (≈60s) is NOT a pause — it's the loop's heartbeat to continue in a new turn
@@ -49,7 +54,7 @@ when the current one is exhausted (see step 8).
      alone) — don't do them blind: file the question in `interviews/interview_NNN_*.md` (`/interview`)
      AND mark `STATUS.md` "❓ awaiting human review: …". Then take ANOTHER task and continue.
    - If a task needs **human actions** (test on real hardware, external accounts) — file **homework** in
-     `plans/homework_*.md` and move on.
+     `homeworks/` and move on.
 3. **Do it**: code → gate (no build step — run `npm test`) → run → test on the harness (`npm test` + `node bin/kpot.mjs <phase>` over `tests/fixtures/`),
    verify objectively. Use the high-level harness commands; if one is missing, do it the low-level way,
    then ADD a command to the harness so next time it's one step. Execute the item by the fable loop
@@ -84,7 +89,9 @@ when the current one is exhausted (see step 8).
 - **Don't go interactive:** the human is busy — no questions in chat with waiting for an answer.
   Human-level decisions — file in `interviews/` + mark STATUS, take another task.
 - **Change safety:** small verified commits; if you break something, fix it or revert via git history.
-- **🔄 Periodically refresh context** — every few iterations call `/refresh-context`.
+- **🔄 Periodically refresh context** — every few iterations call `/refresh-context`; the hour rule
+  applies (`AGENT_GUIDE.md` → Context refresh): >60 min since the last refresh, or a HEAVY item
+  next → refresh now, with the marker + quote witness.
 - **🧹 Occasionally revise the backlog** — every few iterations (not every) call `/check-backlog`.
 - **🐞 Hit a bug** you won't fix right now — file it with `/report-bug`.
 - **💡 A worthwhile NEW idea** (in line with the master plan/vision) — file it with `/propose-idea` and

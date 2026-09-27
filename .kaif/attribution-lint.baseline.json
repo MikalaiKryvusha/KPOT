@@ -1,0 +1,18 @@
+{
+  "written": "2026-09-27T10:09:11.095Z",
+  "count": 12,
+  "entries": {
+    "PROJECT_ARCHITECTURE_INTERNAL_MAP.md:3fe2c2220a0c67cf": "PROJECT_ARCHITECTURE_INTERNAL_MAP.md:102 are set aside, not erased — removing a user's file is the owner's decision, not the tool's.",
+    "PROJECT_HISTORY.md:777edc1afa563d8b": "PROJECT_HISTORY.md:355 The owner asked for a pool of autonomous work until 14:00; the honest pool for 35 minutes was one",
+    "PROJECT_HISTORY.md:74a5f0e2da2e0ead": "PROJECT_HISTORY.md:447 The owner's order is эпик → фазы → операционные планы, and every input the epic needed was closed",
+    "interviews/interview_002_backup_mechanism.md:375056ef6074b2d0": "interviews/interview_002_backup_mechanism.md:44 Опирается на решение владельца от 2026-07-24: **перемещения — это переименования, а не копирование**",
+    "interviews/interview_002_backup_mechanism.md:ab485d2793a0a520": "interviews/interview_002_backup_mechanism.md:75 Позиция агента: это **решение владельца о своём архиве, а не функция инструмента**. KPOT может",
+    "plans/06_phase_6_2_wizard.md:0159dac8e08ff97c": "plans/06_phase_6_2_wizard.md:29 | **Сортировка требует подтверждения** | владелец выбрал одно осознанное подтверждение с числами (Q4",
+    "plans/06_phase_6_2_wizard.md:5ae3aa10592316f9": "plans/06_phase_6_2_wizard.md:30 | **Прогон переживает закрытие вкладки** | решение владельца; уже проверено на уровне SSE в 6.1, теп",
+    "plans/08_DONE_novoe_topup.md:48b06b01e56ed17b": "plans/08_DONE_novoe_topup.md:20 **Доливка — это не новый режим.** Инбокс живёт ВНУТРИ корня библиотеки (решение владельца), а",
+    "plans/09_portable_package.md:7e8ad0faca22bc1e": "plans/09_portable_package.md:98 - **Никакого установщика и никакого MSI** — решение владельца, портативный пакет.",
+    "researches/03_first_real_run.md:2802e14cbbd2b7a3": "researches/03_first_real_run.md:57 | Folders held for the owner's decision | 25 |",
+    "researches/03_first_real_run.md:e81b704fb3b2d240": "researches/03_first_real_run.md:65 | held for the owner's decision | 480 |",
+    "researches/07_local_ui_and_delivery.md:70cad4807153498c": "researches/07_local_ui_and_delivery.md:16 **Question.** KPOT is a CLI for a person who does not open terminals. The owner decided the interfac"
+  }
+}

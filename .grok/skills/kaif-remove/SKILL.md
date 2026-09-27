@@ -15,8 +15,8 @@ intact and working — we only remove what KAIF added, surgically.
 ## Two modes
 
 - **Partial** — remove the framework **core/wrapper** but **keep the content artifacts**:
-  `bugs/`, `interviews/`, `ideas/`, `researches/`, `homeworks/`, and any other knowledge the work produced.
-  The agent's accumulated knowledge survives; only the KAIF machinery leaves.
+  `bugs/`, `interviews/`, `ideas/`, `researches/`, `homeworks/`, `reports/`, and any other knowledge the
+  work produced. The agent's accumulated knowledge survives; only the KAIF machinery leaves.
 - **Full** — remove the core/wrapper **and** the content artifacts. KAIF is burned out of the project's
   history as if it had never been there — leaving only the user's project.
 
@@ -33,8 +33,9 @@ intact and working — we only remove what KAIF added, surgically.
    - If the answer is vague, ambiguous, or conditional ("maybe", "whatever's cleaner", "up to you", silence)
      — do **not** guess and do **not** default. Ask again, restating the two options, until the owner gives
      an explicit choice.
-   - A `--all` flag or an explicit phrase like "full removal" / "выжги полностью" counts as an explicit
-     answer for **full**; "keep my artifacts" / "частично" counts as **partial**. Anything else → re-ask.
+   - A `--all` flag or an explicit phrase like "full removal" (in any language the owner speaks) counts
+     as an explicit answer for **full**; "keep my artifacts" / "partial" counts as **partial**. Anything
+     else → re-ask.
 
 2. **Identify KAIF-owned items** from `.kaif/kaif.json` and the known layout:
    - **Core/wrapper (removed in both modes):** the key docs (`AGENT_GUIDE.md`, `PHILOSOPHY.md`,
@@ -42,8 +43,9 @@ intact and working — we only remove what KAIF added, surgically.
      the deployed skills (`.claude/skills/` or the agent's equivalent), the `kaif` tools,
      `KAIF.md`/`framework/` if present, `.kaif/`, and the KAIF additions to the auto-loaded context file
      (`CLAUDE.md`/`AGENTS.md`).
-   - **Content artifacts (kept in partial, removed in full):** `bugs/`, `interviews/`, `ideas/`,
-     `researches/`, `homeworks/`, `plans/`, etc.
+   - **Content artifacts (kept in partial, removed in full):** the house-rules file `HOUSE_RULES.md` and the voice portrait
+     `AUTHOR_STYLOMETRY.md` (if present), `bugs/`, `interviews/`, `ideas/`,
+     `researches/`, `homeworks/`, `plans/`, `reports/`, etc.
    - **NEVER touched:** the user's own project files and directories.
 
 3. **Un-wire the npm handles.** Remove the `kaif:*` scripts that KAIF added to the project's

@@ -17,10 +17,14 @@ time and on the human appearing**, and **self-restart via `ScheduleWakeup`**.
 Stop the loop ONLY if one of:
 1. **It is ≥ the wake time** (default 09:00 local; set it when starting the loop). ⏰ Check the time
    (`date "+%H:%M"`) PERIODICALLY — don't miss the wake hour. The human comes online in the morning.
-2. **The human wrote in the chat — classify before you switch** (idea 17 §2): a direct request →
+   Reaching the wake time means **START `/end-chat-soft`** — never a rushed stop and never an EARLY
+   finish out of deadline fear: work at your normal pace right up to the hour (`AGENT_GUIDE.md` →
+   Working until a named time). At the start of each iteration take the clock by a probe (`date '+%Y-%m-%d %H:%M %z'`), never by feel; before any closing
+   ceremony print `BOUNDARY: now <that probe> · named <the owner's time> · pool <empty | N items>` — the clock decides (origin issue #96).
+2. **The human wrote in the chat — classify before you switch** (the drive-by rule, `AGENT_GUIDE.md`): a direct request →
    exit, switch to them immediately; a **drive-by idea/bug not about the current task** → capture it
    (`/propose-idea` / `/report-bug`, source: "tossed by the owner"), confirm in one line and
-   CONTINUE the night; vision-level → `/fix-vision`, then continue.
+   CONTINUE the night; vision-level → `/fix-vision`, then continue. A message delivered MID-TURN is the same word — the system signs its author (`AGENT_GUIDE.md` → "The owner's word mid-turn"): "stop" ends the loop in this turn; "switch" writes a `PARKED:` line in `STATUS.md` first.
 3. **ONLY a truly critical error** that can't be worked around autonomously and makes continuing
    impossible in principle. RARE.
    ❗ **Non-critical errors are NOT a stop condition — just keep working:** failed build (fix), flaky
@@ -40,7 +44,7 @@ Until one fires — don't stop, don't wait for confirmations, work.
 2. **Pick ANY backlog task.** Sources & priority as in `/dayloop` (finish started > bugs/polish > new ideas).
    - Make technical/implementation decisions yourself.
    - ONLY brand/UX/architecture-defining decisions — file an `/interview` + mark `STATUS.md`, take another task.
-   - Tasks needing human actions (real hardware, external accounts) — file homework in `plans/homework_*.md`.
+   - Tasks needing human actions (real hardware, external accounts) — file homework in `homeworks/`.
 3. **Do it**: code → gate (no build step — run `npm test`) → run → test on the harness (`npm test` + `node bin/kpot.mjs <phase>` over `tests/fixtures/`),
    verify objectively. High-level harness commands first; if missing, do it low-level then ADD the command.
    Execute the item by the fable loop (`/fable-method`; `/fable-loop` for substantive items) — its gates
@@ -70,7 +74,9 @@ Until one fires — don't stop, don't wait for confirmations, work.
   decisions (UX/brand/architecture) — defer with a note, don't decide alone.
 - **Change safety:** small verified commits; if you break something, fix it or revert via git history.
 - **⏰ Watch the time** (`date "+%H:%M"`) so you don't miss the wake hour (stop condition).
-- **🔄 Periodically refresh context** — every few iterations call `/refresh-context`.
+- **🔄 Periodically refresh context** — every few iterations call `/refresh-context`; the hour rule
+  applies (`AGENT_GUIDE.md` → Context refresh): >60 min since the last refresh, or a HEAVY item
+  next → refresh now, with the marker + quote witness.
 - **🧹 Occasionally revise the backlog** — every few iterations call `/check-backlog`.
 - **🐞 Hit a bug** you won't fix now — file it with `/report-bug`.
 - **💡 A worthwhile NEW idea** — file it with `/propose-idea` and continue with OTHER tasks. **Don't
@@ -78,10 +84,12 @@ Until one fires — don't stop, don't wait for confirmations, work.
 
 ## Finishing (when a stop condition fired)
 
-- Get the current micro-step compiling, **commit and push** (don't leave broken/uncommitted main).
-- Update `STATUS.md`: what got done overnight, where you stopped, what's next, any "awaiting human review".
-- If stop = wake time or the human wrote — write a short summary of the night in the chat.
-- If stop = a critical error — describe it, what you tried, why you can't continue; wait.
+- Stop = the wake time → **start `/end-chat-soft`**: finish the current item to a natural cut at
+  your normal pace, then the full unhurried ceremonies (status + handover, judge pass, commit AND
+  push, the night's summary in the chat). The wake time bounds the WORKING, not the closing.
+- Stop = the human wrote — switch to them; give a short summary of the night.
+- Stop = a critical error — get the current micro-step compiling if you can, **commit and push**
+  (don't leave broken/uncommitted main), describe what happened and what you tried; wait.
 
 ## Notes
 

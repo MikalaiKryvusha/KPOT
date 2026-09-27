@@ -82,6 +82,49 @@ Bring `README.md` in line with reality: phase status, working features, instruct
 both languages in sync. Don't invent — reflect only what's actually done and verified (cross-check
 `STATUS.md` and the closed `bugs/`/`ideas/` `*_DONE_*`).
 
+**The version number also lives INSIDE images — regenerate them with a command, not by eye.** A
+showcase carries its version in places no text search reaches: a caption burned into a logo or a
+banner, plus the badge, the version line, the image alt text and the newest row of the version
+history table. List those places once, give each a command, and run them here:
+
+```bash
+<your command that redraws the versioned image, e.g. node tools/build-logo-title.mjs>
+```
+
+Then OPEN the image and read the caption — a render is judged by eyes. Paid for in the field on
+this framework's own origin: release 2.3 shipped to GitHub carrying a logo that still said
+version 2.2, and a README still on the previous version, because nothing could redraw the caption
+and nobody opened it.
+
+**And the MEANING of a code name is asked of the owner, never derived from the name itself.** If
+the showcase explains what the version's name means, quote the owner's word for that meaning (an
+interview, the decision journal, a chat message). No such word — either ask one pointed question
+or don't explain the name at all; a neutral framing is legitimate. Paid for in the same session: a
+name was read as a plausible-sounding metaphor, and the guess spread through both language halves
+of the release notes as paragraphs and headings while every showcase guard stayed green.
+
+**The README and the release notes are the OWNER'S artifacts — the showcase they sign.** So if the
+project has a voice portrait (`AUTHOR_STYLOMETRY.md`, `/owner-voice`), OPEN it now and run its
+self-check before handing the text over; no portrait, no obligation, and its absence never reddens
+the release. A DRAFT portrait (thresholds unmet, no blind test passed) is written BY, never rewritten
+FROM: rewrite mode does not start from a draft. Either way the verdict "this sounds like me" belongs
+to the owner — the taste class is never judged by the agent (`TESTING_FRAMEWORK.md`).
+
+**Being the owner's artifacts does NOT put provenance marks into them** (`AGENT_GUIDE.md` →
+provenance marks, the showcase exemption): `README` and the release notes ship as-is, so they never
+carry `[AI]…[/AI]`. Their acceptance queue is the owner's PROOFREADING, and it is just as mandatory —
+file the request as homework and say plainly, in the release report, that the showcase text is not
+yet proofread if it is not.
+
+**The showcase is judged by a MACHINE, not by memory.** The storefront rules live in
+`AGENT_GUIDE.md` → "The storefront — text a stranger reads": no text about the document itself, no
+excuses next to a number, no hint of a backstage, no denial undermining a figure, no calque, no
+impersonal voice in a procedure, no internal label as a table row name, no estimate range wider
+than its source, no internal build command shown as proof, no instruction the human cannot execute
+(a flag the AGENT passes is not something the reader can "add"), and the two language halves must
+match in skeleton. `<If the project has a storefront linter, run it here; otherwise walk the ten
+rules by hand before handing the text over.>`
+
 ## Step 3. Regenerate rendered docs
 
 `<Regenerate any rendered artifacts, e.g. README.pdf (node tools/readme-pdf.mjs). For this framework's
@@ -233,6 +276,25 @@ because skipping it took down a real prod:
 > (4) domain invariants = file counts, total bytes and hash-group counts before vs. after a dry run —
 > they must be identical, and a real run must move exactly what the dry run planned; (5) the prod-run
 > document is `README.md` + `AGENT_GUIDE.md`'s harness table.
+
+## Step 6.9. PUBLICATION GATE — open the rendered page and read the first screen WITH YOUR EYES
+
+Checking the SOURCE is not checking the PUBLICATION. Rendering rules belong to the foreign medium,
+and they differ: **a GitHub release body preserves single line breaks** (a 100-column wrap becomes
+ragged text), **a README joins them**, **a PDF re-flows to its own width**. Field case: a release
+page shipped with a conjunction hanging alone on a line and a sentence cut in half, while the
+source file had passed four green tools — the defect arrived as a screenshot from the owner.
+
+```bash
+gh release view vX.Y --web   # open the PUBLISHED page, not the notes file
+```
+Read the first screen: paragraphs intact, breaks where you intended them, image in place, links
+clickable. The mechanical half of the gate runs before publishing: the notes body file must have
+**no two non-empty lines in a row** outside code blocks, tables, HTML blocks and comments (a centred logo, an
+anchor before a heading and an HTML comment are structure, not wrapped prose).
+
+The rule is wider than releases and applies to any foreign medium — an issue, an email, a chat bot,
+a slide: learn its wrapping rule BEFORE writing, open the result AFTER shipping.
 
 ## Step 7. Verify and report
 
