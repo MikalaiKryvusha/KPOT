@@ -79,7 +79,7 @@ const ADDRESS = process.env.KPOT_OWNER_ADDRESS || 'Николай';
  *
  * 🎙 Two tracts, the first BORROWED from the neighbouring KLAS project on this same machine:
  *
- *   1. **Silero v5 ru** — `F:\KLAS\tools\voice-say.mjs` (local, offline, CPU; voices `aidar`,
+ *   1. **Silero v5 ru** — `F:\krinik_tts\voice-say.mjs` (local, offline, CPU; voices `aidar`,
  *      `baya`, `kseniya`, `xenia`, `eugene`). Sounds human rather than robotic. The default
  *      `eugene` is the OWNER'S OWN choice, made by blind listening to five samples on one material
  *      in the sibling project — not ours to re-decide.
@@ -98,7 +98,7 @@ const ADDRESS = process.env.KPOT_OWNER_ADDRESS || 'Николай';
  */
 const VOICE = opt('--voice', process.env.KPOT_VOICE || 'eugene');
 const SAPI_VOICE = process.env.KPOT_SAPI_VOICE || 'Microsoft Irina Desktop';
-const VOICE_TOOL = opt('--voice-tool', process.env.KPOT_VOICE_TOOL || 'F:\\KLAS\\tools\\voice-say.mjs');
+const VOICE_TOOL = opt('--voice-tool', process.env.KPOT_VOICE_TOOL || 'F:\\krinik_tts\\voice-say.mjs');
 const TIMEOUT_MIN = Number(opt('--timeout', '30'));
 
 /**
